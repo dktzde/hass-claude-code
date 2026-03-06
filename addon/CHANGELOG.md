@@ -2,9 +2,8 @@
 
 ### Bug fixes
 
-- Enable mouse wheel scrolling via tmux mouse mode (hold Shift to select/copy text)
+- Add floating ESC button for mobile users (no Escape key needed)
 - Increase tmux scrollback buffer to 10,000 lines
-- Show scroll/copy hint in terminal on startup
 
 ## 0.1.11
 

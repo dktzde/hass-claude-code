@@ -16,15 +16,14 @@ else
     options+=(-d1)
 fi
 
-# Listen on all interfaces (Supervisor Ingress proxies to this container)
-options+=(-i 0.0.0.0)
+# Listen on localhost only — ttyd-proxy handles the ingress port
+options+=(-i 127.0.0.1)
 
 # Enable terminal input
 options+=(--writable)
 
-# Get assigned Ingress port
-ingress_port=$(bashio::addon.ingress_port)
-options+=(-p "${ingress_port}")
+# Fixed internal port (ttyd-proxy forwards ingress traffic here)
+options+=(-p 7682)
 
 # Change working directory
 cd /homeassistant || cd /root || bashio::exit.nok 'Unable to change working directory'

@@ -1,0 +1,11 @@
+#!/command/with-contenv bashio
+# shellcheck shell=bash
+# ==============================================================================
+# Claude Code Add-on: ttyd HTTP proxy
+# Proxies ingress traffic to ttyd and injects ESC button for mobile
+# ==============================================================================
+bashio::log.info 'Starting ttyd-proxy...'
+
+ingress_port=$(bashio::addon.ingress_port)
+
+exec node /usr/bin/ttyd-proxy.js "${ingress_port}"

@@ -26,8 +26,6 @@ fi
 echo "Starting Claude Code..."
 echo "Working directory: $(pwd)"
 echo ""
-echo "  Scroll: mouse wheel  |  Select/copy text: hold Shift + drag"
-echo ""
 
 # Launch Claude Code
 exec claude "${CLAUDE_ARGS[@]}"
