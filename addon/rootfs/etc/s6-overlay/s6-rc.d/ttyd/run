@@ -22,9 +22,6 @@ options+=(-i 0.0.0.0)
 # Enable terminal input
 options+=(--writable)
 
-# Enable scrollback buffer for xterm.js
-options+=(-t scrollback=10000)
-
 # Get assigned Ingress port
 ingress_port=$(bashio::addon.ingress_port)
 options+=(-p "${ingress_port}")

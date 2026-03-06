@@ -2,7 +2,7 @@
 
 ### Bug fixes
 
-- Fix missing scrollbar in web terminal: enable xterm.js scrollback buffer (10,000 lines)
+- Fix scrolling in web terminal: enable tmux mouse mode so mouse wheel scrolls through terminal history (10,000 lines scrollback)
 
 ## 0.1.11
 
