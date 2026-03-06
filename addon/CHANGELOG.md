@@ -2,7 +2,9 @@
 
 ### Bug fixes
 
-- Increase tmux scrollback buffer to 10,000 lines (use Ctrl+B [ to scroll)
+- Enable mouse wheel scrolling via tmux mouse mode (hold Shift to select/copy text)
+- Increase tmux scrollback buffer to 10,000 lines
+- Show scroll/copy hint in terminal on startup
 
 ## 0.1.11
 
