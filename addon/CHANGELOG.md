@@ -1,3 +1,9 @@
+## 0.1.12
+
+### Bug fixes
+
+- Fix missing scrollbar in web terminal: enable xterm.js scrollback buffer (10,000 lines)
+
 ## 0.1.11
 
 ### Improvements
