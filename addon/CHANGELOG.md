@@ -2,7 +2,7 @@
 
 ### Bug fixes
 
-- Fix scrolling in web terminal: enable tmux mouse mode so mouse wheel scrolls through terminal history (10,000 lines scrollback)
+- Increase tmux scrollback buffer to 10,000 lines (use Ctrl+B [ to scroll)
 
 ## 0.1.11
 
