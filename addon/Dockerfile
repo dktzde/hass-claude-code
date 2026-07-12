@@ -9,8 +9,11 @@ ARG BUILD_FROM=ghcr.io/hassio-addons/base:20.0.1
 # compile against the same Node.js version and musl libc.
 FROM alpine:3.23 AS mcp-builder
 
+# Pin the pnpm major version — pnpm 11 removed support for the "pnpm" field in
+# package.json and renamed the build-script allowlist to allowBuilds in
+# pnpm-workspace.yaml. An unpinned install broke this build once already (#4).
 RUN apk add --no-cache nodejs npm git build-base python3 && \
-    npm install -g pnpm
+    npm install -g pnpm@11
 
 WORKDIR /build
 
@@ -22,8 +25,12 @@ RUN git clone --depth 1 --branch "${DOCS_REF}" "${DOCS_REPO}" /tmp/repo && \
     rm -rf /tmp/repo
 
 # Install MCP server dependencies
-COPY mcp-server/package.json mcp-server/pnpm-lock.yaml* ./mcp-server/
-RUN cd mcp-server && pnpm install --frozen-lockfile 2>/dev/null || pnpm install
+# pnpm-workspace.yaml carries the allowBuilds allowlist and must be present
+# before install, or pnpm refuses to run dependency build scripts.
+COPY mcp-server/package.json mcp-server/pnpm-workspace.yaml mcp-server/pnpm-lock.yaml* ./mcp-server/
+RUN cd mcp-server && \
+    if [ -f pnpm-lock.yaml ]; then pnpm install --frozen-lockfile; \
+    else pnpm install; fi
 
 # Copy MCP server source
 COPY mcp-server/ ./mcp-server/

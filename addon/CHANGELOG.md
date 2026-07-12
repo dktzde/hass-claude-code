@@ -7,6 +7,15 @@
   - Bumping the pinned version now forces a fresh install on update
 - Point docs clone and repository metadata at the `dktzde` fork
 
+### Bug fixes (from YangXu1990uiuc/hass-claude-code)
+
+- Fix Docker build failure with pnpm 11 (`ERR_PNPM_IGNORED_BUILDS`, #4): move the
+  dependency build-script allowlist from the no-longer-read `pnpm` field in
+  package.json to `allowBuilds` in `pnpm-workspace.yaml`
+- Pin pnpm to major version 11 so future pnpm releases can't silently break the build
+- Stop hiding pnpm install errors behind `2>/dev/null`; pick frozen vs regular
+  install based on whether a lockfile is present
+
 ## 0.1.11
 
 ### Improvements
