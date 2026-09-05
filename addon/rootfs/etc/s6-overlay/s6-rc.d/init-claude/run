@@ -38,19 +38,33 @@ printf '%s' "/data/models" > /var/run/s6/container_environment/MODELS_DIR
 
 # --- Persistent storage ---
 mkdir -p /data/.claude /data/models
-if [[ ! -f /data/.claude.json ]]; then
-    echo '{}' > /data/.claude.json
-fi
 touch /data/.bash_history
 
-# Symlink persistent data into root home
-ln -sf /data/.claude /root/.claude
-ln -sf /data/.claude.json /root/.claude.json
-ln -sf /data/.bash_history /root/.bash_history
+# The Claude installer pre-creates /root/.claude as a real directory and writes
+# /root/.claude.json during the image build. `ln -sf` onto an existing directory
+# creates the link *inside* it (/root/.claude/.claude), so credentials, sessions
+# and memory end up on the ephemeral container layer and are lost on every
+# restart. Seed .claude.json from the installer's copy on first run, then
+# replace the installer's directory with the symlink outright.
+if [[ ! -f /data/.claude.json ]]; then
+    if [[ -f /root/.claude.json && ! -L /root/.claude.json ]]; then
+        cp /root/.claude.json /data/.claude.json
+    else
+        echo '{}' > /data/.claude.json
+    fi
+fi
+if [[ -d /root/.claude && ! -L /root/.claude ]]; then
+    rm -rf /root/.claude
+fi
+
+# Symlink persistent data into root home (-n: never descend into an existing link)
+ln -sfn /data/.claude /root/.claude
+ln -sfn /data/.claude.json /root/.claude.json
+ln -sfn /data/.bash_history /root/.bash_history
 
 # Symlink convenient paths
-ln -sf /homeassistant /root/homeassistant
-ln -sf /share /root/share
+ln -sfn /homeassistant /root/homeassistant
+ln -sfn /share /root/share
 
 # --- Generate managed settings (system-wide) ---
 mkdir -p /etc/claude-code
