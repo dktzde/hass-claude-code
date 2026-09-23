@@ -1,4 +1,4 @@
 ---
-name: Claude Code for Home Assistant
-url: https://github.com/dkmaker/hass-claude-code
-maintainer: DKMaker
+name: Claude Code for Home Assistant (dktzde fork)
+url: https://github.com/dktzde/hass-claude-code
+maintainer: dktzde

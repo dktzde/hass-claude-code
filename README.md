@@ -1,4 +1,15 @@
-# Claude Code for Home Assistant
+# Claude Code for Home Assistant (dktzde fork)
+
+> **Fork von [dkmaker/hass-claude-code](https://github.com/dkmaker/hass-claude-code)**
+>
+> **Warum?** Das Original installiert Claude Code beim Build immer als „latest“. Der HA-Supervisor baut Add-ons aber **mit Docker-Layer-Cache** (`docker buildx build --pull`, ohne `--no-cache`) auf einem fest gepinnten Basis-Image. Dadurch bleibt die Installations-Schicht gecacht: Auch „Rebuild“ liefert immer wieder die alte Claude-Code-Version.
+>
+> **Was ist geändert?**
+> - `addon/Dockerfile`: Claude Code wird über `ARG CLAUDE_CODE_VERSION` fest versioniert installiert (aktuell **2.1.280**). Eine neue Version dort eintragen invalidiert den Cache, und die neue Version wird installiert.
+> - `addon/config.yaml`: Add-on-Version erhöht, damit HA das Update anbietet.
+> - `repository.yaml`, `DOCS_REPO`, Links in dieser README: zeigen auf diesen Fork.
+>
+> **Claude Code aktualisieren:** `CLAUDE_CODE_VERSION` in `addon/Dockerfile` und `version` in `addon/config.yaml` erhöhen, pushen, in HA auf „Update“ klicken.
 
 A Home Assistant add-on that runs [Claude Code](https://docs.anthropic.com/en/docs/claude-code) inside your HA instance with a web terminal, full API access, and a built-in MCP server providing structured tools for interacting with your smart home.
 
@@ -15,13 +26,13 @@ A Home Assistant add-on that runs [Claude Code](https://docs.anthropic.com/en/do
 
 ### 1. Add the repository
 
-[![Open your Home Assistant instance and show the add add-on repository dialog.](https://my.home-assistant.io/badges/supervisor_add_addon_repository.svg)](https://my.home-assistant.io/redirect/supervisor_add_addon_repository/?repository_url=https%3A%2F%2Fgithub.com%2Fdkmaker%2Fhass-claude-code)
+[![Open your Home Assistant instance and show the add add-on repository dialog.](https://my.home-assistant.io/badges/supervisor_add_addon_repository.svg)](https://my.home-assistant.io/redirect/supervisor_add_addon_repository/?repository_url=https%3A%2F%2Fgithub.com%2Fdktzde%2Fhass-claude-code)
 
 Or manually:
 
 1. Go to **Settings** > **Add-ons** > **Add-on Store**
 2. Click the **three-dot menu** (top right) > **Repositories**
-3. Add: `https://github.com/dkmaker/hass-claude-code`
+3. Add: `https://github.com/dktzde/hass-claude-code`
 4. Click **Save**, then refresh
 
 ### 2. Install the add-on
@@ -42,7 +53,7 @@ Home Assistant builds the Docker image **locally on your device** when you insta
 4. Installs Claude Code CLI, ttyd, tmux, and other tools
 5. Sets up s6-overlay services for process management
 
-First install takes several minutes depending on your hardware. Subsequent updates are faster due to Docker layer caching.
+First install takes several minutes depending on your hardware. Subsequent updates are faster due to Docker layer caching — which is also why the Claude Code version is pinned (see the fork note at the top).
 
 ## Configuration
 

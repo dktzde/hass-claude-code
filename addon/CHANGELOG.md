@@ -1,3 +1,12 @@
+## 0.1.12
+
+### Improvements
+
+- Pin Claude Code to 2.1.280 via `CLAUDE_CODE_VERSION` build arg
+  - Previously the installer always fetched "latest", but the Docker layer was cached, so rebuilds kept the old version
+  - Bumping the pinned version now forces a fresh install on update
+- Point docs clone and repository metadata at the `dktzde` fork
+
 ## 0.1.11
 
 ### Improvements

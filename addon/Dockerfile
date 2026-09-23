@@ -15,7 +15,7 @@ RUN apk add --no-cache nodejs npm git build-base python3 && \
 WORKDIR /build
 
 # Clone docs from the repository (same repo, just need the docs/ directory)
-ARG DOCS_REPO=https://github.com/dkmaker/hass-claude-code.git
+ARG DOCS_REPO=https://github.com/dktzde/hass-claude-code.git
 ARG DOCS_REF=main
 RUN git clone --depth 1 --branch "${DOCS_REF}" "${DOCS_REPO}" /tmp/repo && \
     cp -r /tmp/repo/docs /build/docs && \
@@ -63,8 +63,10 @@ RUN apk add --no-cache \
     tmux \
     ttyd
 
-# Install Claude Code via official binary installer
-RUN curl -fsSL https://claude.ai/install.sh | bash
+# Pinned so a version change busts the Docker layer cache; the Supervisor
+# builds without --no-cache, so an unpinned install would stay stale forever.
+ARG CLAUDE_CODE_VERSION=2.1.280
+RUN curl -fsSL https://claude.ai/install.sh | bash -s "${CLAUDE_CODE_VERSION}"
 
 # Add Claude Code to PATH and disable auto-updater
 ENV PATH="/root/.local/bin:${PATH}" \
