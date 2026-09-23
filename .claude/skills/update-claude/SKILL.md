@@ -15,12 +15,22 @@ Claude Code is pinned via `ARG CLAUDE_CODE_VERSION` in `addon/Dockerfile`. The H
 - Target: `$ARGUMENTS` if given, otherwise latest:
   `curl -s https://registry.npmjs.org/@anthropic-ai/claude-code/latest | grep -o '"version":"[^"]*"'`
 - Verify the release exists: `curl -sI https://downloads.claude.ai/claude-code-releases/<VERSION>/manifest.json | head -1` must be `200`.
-- If target equals current pin: tell the user it is already up to date and stop.
+- If target equals current pin: tell the user Claude Code is already up to date, still run steps 2 and 2a, and skip step 3's version edits unless fixes were taken (then bump only the add-on version and changelog).
 
 ## 2. Sync with upstream first
 
 - `git fetch upstream` and check `git log --oneline HEAD..upstream/main`.
 - If upstream has new commits, show them to the user and ask whether to merge them before continuing. Do not merge without confirmation.
+
+## 2a. Check the YangXu1990uiuc fork
+
+Our pnpm-11 and login-persistence fixes came from this fork. Check it for new fixes worth taking.
+
+- Remote `yangxu` (add if missing: `git remote add yangxu https://github.com/YangXu1990uiuc/hass-claude-code.git`), then `git fetch yangxu`.
+- Last reviewed commit: `3735681`
+- New since then: `git log --format='%h %ad %s' --date=short 3735681..yangxu/main`, also glance at new branches in `git branch -r | grep yangxu`.
+- If there are new commits: summarize each (what it fixes, whether relevant for us) and ask the user which to cherry-pick with `git cherry-pick -x <hash>`. Do not cherry-pick without confirmation.
+- Afterwards, whether or not anything was taken, update the "Last reviewed commit" hash above to the current `yangxu/main` and include SKILL.md in the commit.
 
 ## 3. Edit
 
@@ -42,7 +52,7 @@ Run the build in the background (takes several minutes). The version output must
 ## 5. Commit and push
 
 ```bash
-git add addon/Dockerfile addon/config.yaml addon/CHANGELOG.md README.md
+git add addon/Dockerfile addon/config.yaml addon/CHANGELOG.md README.md .claude/skills/update-claude/SKILL.md
 git commit -m "chore(addon): update Claude Code to <VERSION>"
 git push origin HEAD:main
 ```
