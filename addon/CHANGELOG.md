@@ -15,6 +15,9 @@
 - Pin pnpm to major version 11 so future pnpm releases can't silently break the build
 - Stop hiding pnpm install errors behind `2>/dev/null`; pick frozen vs regular
   install based on whether a lockfile is present
+- Persist Claude Code login, sessions and memory across add-on restarts: replace the
+  installer's `/root/.claude` directory with the `/data` symlink (`ln -sfn`) instead of
+  creating a nested link inside it
 
 ## 0.1.11
 

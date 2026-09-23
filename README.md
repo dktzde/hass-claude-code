@@ -9,6 +9,10 @@
 > - `addon/config.yaml`: Add-on-Version erhöht, damit HA das Update anbietet.
 > - `repository.yaml`, `DOCS_REPO`, Links in dieser README: zeigen auf diesen Fork.
 >
+> **Übernommen aus [YangXu1990uiuc/hass-claude-code](https://github.com/YangXu1990uiuc/hass-claude-code)** (Stand 2026-09):
+> - **pnpm-11-Build-Fix**: Das Original bricht mit aktuellem pnpm beim Build ab (`ERR_PNPM_IGNORED_BUILDS`). Fix: `pnpm-workspace.yaml` mit `allowBuilds`, pnpm auf Major 11 gepinnt.
+> - **Login bleibt erhalten**: Im Original landete `/root/.claude` durch einen Symlink-Fehler nicht in `/data`, dadurch waren Login, Verlauf und Memory nach jedem Neustart weg.
+>
 > **Claude Code aktualisieren:** `CLAUDE_CODE_VERSION` in `addon/Dockerfile` und `version` in `addon/config.yaml` erhöhen, pushen, in HA auf „Update“ klicken.
 
 A Home Assistant add-on that runs [Claude Code](https://docs.anthropic.com/en/docs/claude-code) inside your HA instance with a web terminal, full API access, and a built-in MCP server providing structured tools for interacting with your smart home.
