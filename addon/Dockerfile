@@ -72,7 +72,7 @@ RUN apk add --no-cache \
 
 # Pinned so a version change busts the Docker layer cache; the Supervisor
 # builds without --no-cache, so an unpinned install would stay stale forever.
-ARG CLAUDE_CODE_VERSION=2.1.280
+ARG CLAUDE_CODE_VERSION=2.1.283
 RUN curl -fsSL https://claude.ai/install.sh | bash -s "${CLAUDE_CODE_VERSION}"
 
 # Add Claude Code to PATH and disable auto-updater

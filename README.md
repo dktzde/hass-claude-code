@@ -5,7 +5,7 @@
 > **Warum?** Das Original installiert Claude Code beim Build immer als „latest“. Der HA-Supervisor baut Add-ons aber **mit Docker-Layer-Cache** (`docker buildx build --pull`, ohne `--no-cache`) auf einem fest gepinnten Basis-Image. Dadurch bleibt die Installations-Schicht gecacht: Auch „Rebuild“ liefert immer wieder die alte Claude-Code-Version.
 >
 > **Was ist geändert?**
-> - `addon/Dockerfile`: Claude Code wird über `ARG CLAUDE_CODE_VERSION` fest versioniert installiert (aktuell **2.1.280**). Eine neue Version dort eintragen invalidiert den Cache, und die neue Version wird installiert.
+> - `addon/Dockerfile`: Claude Code wird über `ARG CLAUDE_CODE_VERSION` fest versioniert installiert (aktuell **2.1.283**). Eine neue Version dort eintragen invalidiert den Cache, und die neue Version wird installiert.
 > - `addon/config.yaml`: Add-on-Version erhöht, damit HA das Update anbietet.
 > - `repository.yaml`, `DOCS_REPO`, Links in dieser README: zeigen auf diesen Fork.
 >

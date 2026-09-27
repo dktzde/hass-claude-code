@@ -1,3 +1,7 @@
+## 0.1.13
+
+- Update Claude Code to 2.1.283
+
 ## 0.1.12
 
 ### Improvements
