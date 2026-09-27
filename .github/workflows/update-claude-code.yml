@@ -1,0 +1,161 @@
+name: Update Claude Code
+
+# Weekly version of .claude/skills/update-claude/SKILL.md: bumps the pinned
+# Claude Code version when a newer release exists, and reports new commits in
+# upstream and the YangXu1990uiuc fork as issues (merging stays manual).
+
+on:
+  schedule:
+    # Saturday 07:30 Europe/Berlin. Cron runs in UTC, so both DST offsets are
+    # scheduled and the gate job keeps only the one matching the current offset.
+    - cron: "30 5 * * 6" # CEST (UTC+2)
+    - cron: "30 6 * * 6" # CET (UTC+1)
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  issues: write
+
+concurrency:
+  group: update-claude-code
+
+jobs:
+  gate:
+    runs-on: ubuntu-latest
+    outputs:
+      run: ${{ steps.check.outputs.run }}
+    steps:
+      - id: check
+        env:
+          SCHEDULE: ${{ github.event.schedule }}
+        run: |
+          run=true
+          if [ "$GITHUB_EVENT_NAME" = "schedule" ]; then
+            if [ "$(TZ=Europe/Berlin date +%z)" = "+0200" ]; then want="30 5 * * 6"; else want="30 6 * * 6"; fi
+            [ "$SCHEDULE" = "$want" ] || run=false
+          fi
+          echo "run=$run" >> "$GITHUB_OUTPUT"
+
+  update:
+    needs: gate
+    if: needs.gate.outputs.run == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Determine versions
+        id: version
+        run: |
+          current=$(grep -oP '^ARG CLAUDE_CODE_VERSION=\K.*' addon/Dockerfile)
+          latest=$(curl -fsSL https://registry.npmjs.org/@anthropic-ai/claude-code/latest | jq -r .version)
+          echo "Pinned: $current, latest: $latest"
+          # sort -V keeps a moved-back "latest" tag from downgrading the pin
+          if [ "$latest" = "$current" ] || [ "$(printf '%s\n' "$current" "$latest" | sort -V | tail -1)" != "$latest" ]; then
+            echo "Claude Code $current is up to date." >> "$GITHUB_STEP_SUMMARY"
+            echo "update=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          if ! curl -fsI "https://downloads.claude.ai/claude-code-releases/$latest/manifest.json" > /dev/null; then
+            echo "::error::Claude Code $latest is on npm but has no release manifest on downloads.claude.ai"
+            exit 1
+          fi
+          addon_current=$(grep -oP '^version: \K.*' addon/config.yaml)
+          {
+            echo "update=true"
+            echo "claude=$latest"
+            echo "addon=${addon_current%.*}.$(( ${addon_current##*.} + 1 ))"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Bump versions and changelog
+        if: steps.version.outputs.update == 'true'
+        env:
+          CLAUDE: ${{ steps.version.outputs.claude }}
+          ADDON: ${{ steps.version.outputs.addon }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          sed -i "s/^ARG CLAUDE_CODE_VERSION=.*/ARG CLAUDE_CODE_VERSION=$CLAUDE/" addon/Dockerfile
+          sed -i "s/^version: .*/version: $ADDON/" addon/config.yaml
+          sed -i "s/(aktuell \*\*[0-9.]*\*\*)/(aktuell **$CLAUDE**)/" README.md
+          # addon/CHANGELOG.md is what HA shows in the update dialog
+          {
+            printf '## %s\n\n' "$ADDON"
+            printf -- '- **Automated update** by the GitHub Action "Update Claude Code" ([workflow run](%s)), not made by hand\n' "$RUN_URL"
+            printf -- '- Update Claude Code to %s\n\n' "$CLAUDE"
+            cat addon/CHANGELOG.md
+          } > CHANGELOG.new
+          mv CHANGELOG.new addon/CHANGELOG.md
+          git diff
+
+      - name: Test-build the add-on (amd64)
+        if: steps.version.outputs.update == 'true'
+        run: docker buildx build addon --pull --platform linux/amd64 --load -t hass-claude-code-test:local
+
+      - name: Check installed Claude Code version
+        if: steps.version.outputs.update == 'true'
+        env:
+          CLAUDE: ${{ steps.version.outputs.claude }}
+        run: |
+          installed=$(docker run --rm --entrypoint /root/.local/bin/claude hass-claude-code-test:local --version | awk '{print $1}')
+          echo "Installed: $installed"
+          [ "$installed" = "$CLAUDE" ]
+
+      - name: Commit and push
+        if: steps.version.outputs.update == 'true'
+        env:
+          CLAUDE: ${{ steps.version.outputs.claude }}
+          ADDON: ${{ steps.version.outputs.addon }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add addon/Dockerfile addon/config.yaml addon/CHANGELOG.md README.md
+          git commit -m "chore(addon): update Claude Code to $CLAUDE (automated)"
+          git push origin HEAD:main
+          echo "Updated Claude Code to $CLAUDE, add-on version $ADDON." >> "$GITHUB_STEP_SUMMARY"
+
+  check-forks:
+    needs: gate
+    if: needs.gate.outputs.run == 'true'
+    runs-on: ubuntu-latest
+    env:
+      # Explicit so gh never picks a fetched fork as the target repo
+      GH_REPO: ${{ github.repository }}
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - name: Report new upstream and fork commits
+        run: |
+          git fetch -q https://github.com/dkmaker/hass-claude-code.git main:refs/remotes/upstream/main
+          git fetch -q https://github.com/YangXu1990uiuc/hass-claude-code.git main:refs/remotes/yangxu/main
+          reviewed=$(grep -oP 'Last reviewed commit: `\K[0-9a-f]+' .claude/skills/update-claude/SKILL.md)
+
+          # One open issue per source: created or refreshed while commits are
+          # pending, closed once they are merged or marked as reviewed.
+          sync_issue() {
+            local title=$1 commits=$2 number body
+            number=$(gh issue list --state open --limit 100 --json number,title \
+              --jq ".[] | select(.title == \"$title\") | .number" | head -1)
+            if [ -z "$commits" ]; then
+              if [ -n "$number" ]; then gh issue close "$number" --comment "Keine offenen Commits mehr."; fi
+              return 0
+            fi
+            body=$(printf 'Neue Commits seit dem letzten Stand:\n\n%s\n\nPrüfen und bei Bedarf lokal mit `/update-claude` übernehmen.' "$commits")
+            if [ -n "$number" ]; then
+              gh issue edit "$number" --body "$body"
+            else
+              gh issue create --title "$title" --body "$body"
+            fi
+          }
+
+          upstream=$(git log --format='- `%h` %ad %s' --date=short HEAD..upstream/main)
+          yangxu=$(git log --format='- `%h` %ad %s' --date=short "$reviewed"..yangxu/main)
+          {
+            echo "### dkmaker/hass-claude-code (upstream)"
+            echo "${upstream:-Keine neuen Commits.}"
+            echo "### YangXu1990uiuc/hass-claude-code (seit $reviewed)"
+            echo "${yangxu:-Keine neuen Commits.}"
+          } >> "$GITHUB_STEP_SUMMARY"
+          sync_issue "Neue Commits in dkmaker/hass-claude-code (upstream)" "$upstream"
+          sync_issue "Neue Commits im Fork YangXu1990uiuc/hass-claude-code" "$yangxu"
