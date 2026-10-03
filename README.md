@@ -8,7 +8,7 @@
 > - `addon/Dockerfile`: Claude Code wird über `ARG CLAUDE_CODE_VERSION` fest versioniert installiert (aktuell **2.1.288**). Eine neue Version dort eintragen invalidiert den Cache, und die neue Version wird installiert.
 > - `addon/config.yaml`: Add-on-Version erhöht, damit HA das Update anbietet.
 > - `repository.yaml`, `DOCS_REPO`, Links in dieser README: zeigen auf diesen Fork.
-> - `.github/workflows/update-claude-code.yml`: prüft jeden Samstag um 7:30 Uhr (Europe/Berlin), ob es eine neue Claude-Code-Version gibt, und führt das Update dann selbst durch (Testbuild, Commit, Push). Im Changelog sind diese Updates als **Automated update** markiert. Neue Commits in upstream und im YangXu-Fork meldet der Workflow als Issue.
+> - `.github/workflows/update-claude-code.yml`: prüft jeden Samstag um 05:47 UTC (7:47 Uhr Sommerzeit, 6:47 Uhr Winterzeit), ob es eine neue Claude-Code-Version gibt, und führt das Update dann selbst durch (Testbuild, Commit, Push). Im Changelog sind diese Updates als **Automated update** markiert. Neue Commits in upstream und im YangXu-Fork meldet der Workflow als Issue.
 >
 > **Übernommen aus [YangXu1990uiuc/hass-claude-code](https://github.com/YangXu1990uiuc/hass-claude-code)** (Stand 2026-09):
 > - **pnpm-11-Build-Fix**: Das Original bricht mit aktuellem pnpm beim Build ab (`ERR_PNPM_IGNORED_BUILDS`). Fix: `pnpm-workspace.yaml` mit `allowBuilds`, pnpm auf Major 11 gepinnt.

@@ -9,7 +9,7 @@ disable-model-invocation: true
 
 Claude Code is pinned via `ARG CLAUDE_CODE_VERSION` in `addon/Dockerfile`. The HA Supervisor builds with Docker layer cache, so only a changed pin makes it install a new version. Follow these steps in order and stop to report if any step fails.
 
-The GitHub Action `.github/workflows/update-claude-code.yml` runs steps 1 and 3–5 automatically every Saturday 07:30 Europe/Berlin and opens one issue per source for new commits from steps 2/2a. It may have pushed since the last local pull, so run `git pull origin main` first.
+The GitHub Action `.github/workflows/update-claude-code.yml` runs steps 1 and 3–5 automatically every Saturday 05:47 UTC (07:47 CEST / 06:47 CET) and opens one issue per source for new commits from steps 2/2a. It may have pushed since the last local pull, so run `git pull origin main` first.
 
 ## 1. Determine versions
 

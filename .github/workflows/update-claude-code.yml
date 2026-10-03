@@ -6,10 +6,11 @@ name: Update Claude Code
 
 on:
   schedule:
-    # Saturday 07:30 Europe/Berlin. Cron runs in UTC, so both DST offsets are
-    # scheduled and the gate job keeps only the one matching the current offset.
-    - cron: "30 5 * * 6" # CEST (UTC+2)
-    - cron: "30 6 * * 6" # CET (UTC+1)
+    # Saturday 05:47 UTC (07:47 CEST / 06:47 CET). Cron runs in UTC and there is
+    # deliberately no DST handling. GitHub delays or drops scheduled runs under
+    # high load and names the start of every hour as a high-load time, so the
+    # minute is off the :00/:15/:30/:45 marks.
+    - cron: "47 5 * * 6"
   workflow_dispatch:
 
 permissions:
@@ -20,25 +21,7 @@ concurrency:
   group: update-claude-code
 
 jobs:
-  gate:
-    runs-on: ubuntu-latest
-    outputs:
-      run: ${{ steps.check.outputs.run }}
-    steps:
-      - id: check
-        env:
-          SCHEDULE: ${{ github.event.schedule }}
-        run: |
-          run=true
-          if [ "$GITHUB_EVENT_NAME" = "schedule" ]; then
-            if [ "$(TZ=Europe/Berlin date +%z)" = "+0200" ]; then want="30 5 * * 6"; else want="30 6 * * 6"; fi
-            [ "$SCHEDULE" = "$want" ] || run=false
-          fi
-          echo "run=$run" >> "$GITHUB_OUTPUT"
-
   update:
-    needs: gate
-    if: needs.gate.outputs.run == 'true'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
@@ -113,8 +96,6 @@ jobs:
           echo "Updated Claude Code to $CLAUDE, add-on version $ADDON." >> "$GITHUB_STEP_SUMMARY"
 
   check-forks:
-    needs: gate
-    if: needs.gate.outputs.run == 'true'
     runs-on: ubuntu-latest
     env:
       # Explicit so gh never picks a fetched fork as the target repo
