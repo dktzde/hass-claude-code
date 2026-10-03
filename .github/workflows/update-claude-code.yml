@@ -58,7 +58,7 @@ jobs:
         run: |
           sed -i "s/^ARG CLAUDE_CODE_VERSION=.*/ARG CLAUDE_CODE_VERSION=$CLAUDE/" addon/Dockerfile
           sed -i "s/^version: .*/version: $ADDON/" addon/config.yaml
-          sed -i "s/(aktuell \*\*[0-9.]*\*\*)/(aktuell **$CLAUDE**)/" README.md
+          sed -i "s/(currently \*\*[0-9.]*\*\*)/(currently **$CLAUDE**)/" README.md
           # addon/CHANGELOG.md is what HA shows in the update dialog
           {
             printf '## %s\n\n' "$ADDON"

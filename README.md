@@ -1,20 +1,20 @@
 # Claude Code for Home Assistant (dktzde fork)
 
-> **Fork von [dkmaker/hass-claude-code](https://github.com/dkmaker/hass-claude-code)**
+> **Fork of [dkmaker/hass-claude-code](https://github.com/dkmaker/hass-claude-code)**
 >
-> **Warum?** Das Original installiert Claude Code beim Build immer als „latest“. Der HA-Supervisor baut Add-ons aber **mit Docker-Layer-Cache** (`docker buildx build --pull`, ohne `--no-cache`) auf einem fest gepinnten Basis-Image. Dadurch bleibt die Installations-Schicht gecacht: Auch „Rebuild“ liefert immer wieder die alte Claude-Code-Version.
+> **Why?** The original always installs Claude Code as "latest" at build time. But the HA Supervisor builds add-ons **with the Docker layer cache** (`docker buildx build --pull`, without `--no-cache`) on a pinned base image. As a result the install layer stays cached: even "Rebuild" keeps delivering the old Claude Code version.
 >
-> **Was ist geändert?**
-> - `addon/Dockerfile`: Claude Code wird über `ARG CLAUDE_CODE_VERSION` fest versioniert installiert (aktuell **2.1.288**). Eine neue Version dort eintragen invalidiert den Cache, und die neue Version wird installiert.
-> - `addon/config.yaml`: Add-on-Version erhöht, damit HA das Update anbietet.
-> - `repository.yaml`, `DOCS_REPO`, Links in dieser README: zeigen auf diesen Fork.
-> - `.github/workflows/update-claude-code.yml`: prüft jeden Samstag um 05:47 UTC (7:47 Uhr Sommerzeit, 6:47 Uhr Winterzeit), ob es eine neue Claude-Code-Version gibt, und führt das Update dann selbst durch (Testbuild, Commit, Push). Im Changelog sind diese Updates als **Automated update** markiert. Neue Commits in upstream und im YangXu-Fork meldet der Workflow als Issue.
+> **What changed?**
+> - `addon/Dockerfile`: Claude Code is installed at a pinned version via `ARG CLAUDE_CODE_VERSION` (currently **2.1.288**). Entering a new version there invalidates the cache, so the new version gets installed.
+> - `addon/config.yaml`: add-on version bumped so HA offers the update.
+> - `repository.yaml`, `DOCS_REPO`, links in this README: point to this fork.
+> - `.github/workflows/update-claude-code.yml`: every Saturday at 05:47 UTC (7:47 CEST / 6:47 CET) it checks for a new Claude Code version and performs the update itself (test build, commit, push). These updates are marked as **Automated update** in the changelog. The workflow reports new commits in upstream and in the YangXu fork as issues.
 >
-> **Übernommen aus [YangXu1990uiuc/hass-claude-code](https://github.com/YangXu1990uiuc/hass-claude-code)** (Stand 2026-09):
-> - **pnpm-11-Build-Fix**: Das Original bricht mit aktuellem pnpm beim Build ab (`ERR_PNPM_IGNORED_BUILDS`). Fix: `pnpm-workspace.yaml` mit `allowBuilds`, pnpm auf Major 11 gepinnt.
-> - **Login bleibt erhalten**: Im Original landete `/root/.claude` durch einen Symlink-Fehler nicht in `/data`, dadurch waren Login, Verlauf und Memory nach jedem Neustart weg.
+> **Taken from [YangXu1990uiuc/hass-claude-code](https://github.com/YangXu1990uiuc/hass-claude-code)** (as of 2026-09):
+> - **pnpm 11 build fix**: The original fails to build with current pnpm (`ERR_PNPM_IGNORED_BUILDS`). Fix: `pnpm-workspace.yaml` with `allowBuilds`, pnpm pinned to major 11.
+> - **Login is preserved**: In the original, a symlink bug kept `/root/.claude` out of `/data`, so login, history and memory were lost after every restart.
 >
-> **Claude Code aktualisieren:** passiert wöchentlich automatisch (siehe oben). Manuell: `CLAUDE_CODE_VERSION` in `addon/Dockerfile` und `version` in `addon/config.yaml` erhöhen, pushen, in HA auf „Update“ klicken.
+> **Updating Claude Code:** happens automatically every week (see above). Manually: bump `CLAUDE_CODE_VERSION` in `addon/Dockerfile` and `version` in `addon/config.yaml`, push, then click "Update" in HA.
 
 A Home Assistant add-on that runs [Claude Code](https://docs.anthropic.com/en/docs/claude-code) inside your HA instance with a web terminal, full API access, and a built-in MCP server providing structured tools for interacting with your smart home.
 

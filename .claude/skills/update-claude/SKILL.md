@@ -39,7 +39,7 @@ Our pnpm-11 and login-persistence fixes came from this fork. Check it for new fi
 - `addon/Dockerfile`: set `ARG CLAUDE_CODE_VERSION=<VERSION>`
 - `addon/config.yaml`: bump `version` patch level (e.g. 0.1.12 -> 0.1.13) — without this HA offers no update
 - `addon/CHANGELOG.md`: add a new top section `## <new add-on version>` with `- Update Claude Code to <VERSION>`
-- `README.md`: update the "aktuell **x.y.z**" version in the fork note at the top
+- `README.md`: update the "currently **x.y.z**" version in the fork note at the top
 
 ## 4. Test-build (amd64)
 
