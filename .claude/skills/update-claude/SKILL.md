@@ -9,7 +9,7 @@ disable-model-invocation: true
 
 Claude Code is pinned via `ARG CLAUDE_CODE_VERSION` in `addon/Dockerfile`. The HA Supervisor builds with Docker layer cache, so only a changed pin makes it install a new version. Follow these steps in order and stop to report if any step fails.
 
-The GitHub Action `.github/workflows/update-claude-code.yml` runs steps 1 and 3–5 automatically every Saturday 07:30 Europe/Berlin and opens one issue per source for new commits from steps 2/2a. It may have pushed since the last local pull, so run `git pull origin main` first.
+The GitHub Action `.github/workflows/update-claude-code.yml` runs steps 1 and 3–5 automatically every Saturday 05:47 UTC (07:47 CEST / 06:47 CET) and opens one issue per source for new commits from steps 2/2a. It may have pushed since the last local pull, so run `git pull origin main` first.
 
 ## 1. Determine versions
 
@@ -39,7 +39,7 @@ Our pnpm-11 and login-persistence fixes came from this fork. Check it for new fi
 - `addon/Dockerfile`: set `ARG CLAUDE_CODE_VERSION=<VERSION>`
 - `addon/config.yaml`: bump `version` patch level (e.g. 0.1.12 -> 0.1.13) — without this HA offers no update
 - `addon/CHANGELOG.md`: add a new top section `## <new add-on version>` with `- Update Claude Code to <VERSION>`
-- `README.md`: update the "aktuell **x.y.z**" version in the fork note at the top
+- `README.md`: update the "currently **x.y.z**" version in the fork note at the top
 
 ## 4. Test-build (amd64)
 
