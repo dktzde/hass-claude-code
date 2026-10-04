@@ -5,7 +5,7 @@
 > **Why?** The original always installs Claude Code as "latest" at build time. But the HA Supervisor builds add-ons **with the Docker layer cache** (`docker buildx build --pull`, without `--no-cache`) on a pinned base image. As a result the install layer stays cached: even "Rebuild" keeps delivering the old Claude Code version.
 >
 > **What changed?**
-> - `addon/Dockerfile`: Claude Code is installed at a pinned version via `ARG CLAUDE_CODE_VERSION` (currently **2.1.288**). Entering a new version there invalidates the cache, so the new version gets installed.
+> - `addon/Dockerfile`: Claude Code is installed at a pinned version via `ARG CLAUDE_CODE_VERSION` (currently **2.1.289**). Entering a new version there invalidates the cache, so the new version gets installed.
 > - `addon/config.yaml`: add-on version bumped so HA offers the update.
 > - `repository.yaml`, `DOCS_REPO`, links in this README: point to this fork.
 > - `.github/workflows/update-claude-code.yml`: every Saturday at 05:47 UTC (7:47 CEST / 6:47 CET) it checks for a new Claude Code version and performs the update itself (test build, commit, push). These updates are marked as **Automated update** in the changelog. The workflow reports new commits in upstream and in the YangXu fork as issues.

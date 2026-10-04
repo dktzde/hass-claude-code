@@ -1,3 +1,8 @@
+## 0.1.15
+
+- **Automated update** by the GitHub Action "Update Claude Code" ([workflow run](https://github.com/dktzde/hass-claude-code/actions/runs/37191988233)), not made by hand
+- Update Claude Code to 2.1.289
+
 ## 0.1.14
 
 - **Automated update** by the GitHub Action "Update Claude Code" ([workflow run](https://github.com/dktzde/hass-claude-code/actions/runs/37110577797)), not made by hand
