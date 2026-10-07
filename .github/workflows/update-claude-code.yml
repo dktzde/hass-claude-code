@@ -1,8 +1,12 @@
-name: Update Claude Code
+name: Update add-on
 
 # Weekly version of .claude/skills/update-claude/SKILL.md: bumps the pinned
-# Claude Code version when a newer release exists, and reports new commits in
-# upstream and the YangXu1990uiuc fork as issues (merging stays manual).
+# Claude Code version when a newer release exists, picks up Alpine package
+# updates (including Python 3) and regenerates the bundled Home Assistant docs.
+# Each of these busts its own Docker layer via a pinned value in
+# addon/Dockerfile, since the Supervisor builds with the layer cache. Any change
+# is released as one add-on update. It also reports new commits in upstream and
+# the YangXu1990uiuc fork as issues (merging stays manual).
 
 on:
   schedule:
@@ -23,11 +27,13 @@ concurrency:
 jobs:
   update:
     runs-on: ubuntu-latest
+    env:
+      IMAGE: hass-claude-code-test:local
     steps:
       - uses: actions/checkout@v7
 
-      - name: Determine versions
-        id: version
+      - name: Check Claude Code version
+        id: claude
         run: |
           current=$(grep -oP '^ARG CLAUDE_CODE_VERSION=\K.*' addon/Dockerfile)
           latest=$(curl -fsSL https://registry.npmjs.org/@anthropic-ai/claude-code/latest | jq -r .version)
@@ -42,58 +48,123 @@ jobs:
             echo "::error::Claude Code $latest is on npm but has no release manifest on downloads.claude.ai"
             exit 1
           fi
-          addon_current=$(grep -oP '^version: \K.*' addon/config.yaml)
-          {
-            echo "update=true"
-            echo "claude=$latest"
-            echo "addon=${addon_current%.*}.$(( ${addon_current##*.} + 1 ))"
-          } >> "$GITHUB_OUTPUT"
+          sed -i "s/^ARG CLAUDE_CODE_VERSION=.*/ARG CLAUDE_CODE_VERSION=$latest/" addon/Dockerfile
+          sed -i "s/(currently \*\*[0-9.]*\*\*)/(currently **$latest**)/" README.md
+          echo "Claude Code: $current -> $latest" >> "$GITHUB_STEP_SUMMARY"
+          { echo "update=true"; echo "version=$latest"; } >> "$GITHUB_OUTPUT"
 
-      - name: Bump versions and changelog
-        if: steps.version.outputs.update == 'true'
+      - name: Regenerate docs
+        id: docs
+        run: |
+          # A docs failure must not hold back the Claude Code and package updates
+          if ! { python3 -I .claude/skills/hass-dev-docs/scripts/update-docs.py docs/hass-developer &&
+                 python3 -I .claude/skills/hass-dev-docs/scripts/update-user-docs.py docs/hass-user; }; then
+            echo "::warning::Regenerating the docs failed; keeping the current docs."
+            git checkout -- docs
+            git clean -fdq -- docs
+            echo "update=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          # The scripts rewrite their CHANGELOG.md on every run; only content
+          # changes count as a docs update.
+          if [ -z "$(git status --porcelain -- docs ':!docs/*/CHANGELOG.md')" ]; then
+            git checkout -- docs
+            echo "Docs are up to date." >> "$GITHUB_STEP_SUMMARY"
+            echo "update=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          git add docs
+          files=$(git diff --cached --name-only -- docs ':!docs/*/CHANGELOG.md' | wc -l)
+          # Same value as `git rev-parse HEAD:docs` once committed
+          stamp=$(git write-tree --prefix=docs/)
+          sed -i "s/^ARG DOCS_STAMP=.*/ARG DOCS_STAMP=$stamp/" addon/Dockerfile
+          echo "Docs: $files files changed" >> "$GITHUB_STEP_SUMMARY"
+          { echo "update=true"; echo "files=$files"; } >> "$GITHUB_OUTPUT"
+
+      - name: Test-build the add-on (amd64)
+        run: docker buildx build addon --pull --platform linux/amd64 --load -t "$IMAGE"
+
+      - name: Check the built image
+        run: |
+          pinned=$(grep -oP '^ARG CLAUDE_CODE_VERSION=\K.*' addon/Dockerfile)
+          installed=$(docker run --rm --entrypoint /root/.local/bin/claude "$IMAGE" --version | awk '{print $1}')
+          echo "Claude Code installed: $installed, pinned: $pinned"
+          [ "$installed" = "$pinned" ]
+          docker run --rm --entrypoint python3 "$IMAGE" -c 'import json, sqlite3, ssl, sys; print(sys.version)'
+
+      # The test build clones docs from main, which does not have the new docs
+      # yet, so index them separately with the image's own indexer.
+      - name: Index the regenerated docs
+        if: steps.docs.outputs.update == 'true'
+        run: |
+          docker run --rm -v "$PWD/docs:/docs:ro" \
+            -e DOCS_PATH=/docs -e DOCS_DB_PATH=/tmp/docs-check.db -e ENABLE_EMBEDDINGS=false \
+            --entrypoint node "$IMAGE" /opt/mcp-server/dist/build-index.js
+
+      - name: Compare system package versions
+        id: packages
+        run: |
+          docker run --rm --entrypoint apk "$IMAGE" list --installed 2>/dev/null \
+            | awk '{print $1}' | LC_ALL=C sort > "$RUNNER_TEMP/packages.txt"
+          # Also guards against a changed `apk list` output format
+          grep -q '^python3-[0-9]' "$RUNNER_TEMP/packages.txt"
+          touch addon/packages.txt
+          if cmp -s "$RUNNER_TEMP/packages.txt" addon/packages.txt; then
+            echo "System packages are up to date." >> "$GITHUB_STEP_SUMMARY"
+            echo "update=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          mapfile -t new < <(LC_ALL=C comm -13 addon/packages.txt "$RUNNER_TEMP/packages.txt")
+          if [ "${#new[@]}" -eq 0 ]; then
+            list="packages removed only"
+          else
+            list=$(printf '`%s`, ' "${new[@]:0:10}")
+            list=${list%, }
+            if [ "${#new[@]}" -gt 10 ]; then list="$list and $(( ${#new[@]} - 10 )) more"; fi
+          fi
+          mv "$RUNNER_TEMP/packages.txt" addon/packages.txt
+          stamp=$(sha256sum addon/packages.txt | cut -c1-12)
+          sed -i "s/^ARG PACKAGES_STAMP=.*/ARG PACKAGES_STAMP=$stamp/" addon/Dockerfile
+          echo "System packages: $list" >> "$GITHUB_STEP_SUMMARY"
+          { echo "update=true"; echo "list=$list"; } >> "$GITHUB_OUTPUT"
+
+      - name: Bump version, changelog, commit and push
+        if: steps.claude.outputs.update == 'true' || steps.docs.outputs.update == 'true' || steps.packages.outputs.update == 'true'
         env:
-          CLAUDE: ${{ steps.version.outputs.claude }}
-          ADDON: ${{ steps.version.outputs.addon }}
+          CLAUDE_UPDATE: ${{ steps.claude.outputs.update }}
+          CLAUDE: ${{ steps.claude.outputs.version }}
+          DOCS_UPDATE: ${{ steps.docs.outputs.update }}
+          DOCS_FILES: ${{ steps.docs.outputs.files }}
+          PACKAGES_UPDATE: ${{ steps.packages.outputs.update }}
+          PACKAGES: ${{ steps.packages.outputs.list }}
           RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
         run: |
-          sed -i "s/^ARG CLAUDE_CODE_VERSION=.*/ARG CLAUDE_CODE_VERSION=$CLAUDE/" addon/Dockerfile
-          sed -i "s/^version: .*/version: $ADDON/" addon/config.yaml
-          sed -i "s/(currently \*\*[0-9.]*\*\*)/(currently **$CLAUDE**)/" README.md
+          addon_current=$(grep -oP '^version: \K.*' addon/config.yaml)
+          addon="${addon_current%.*}.$(( ${addon_current##*.} + 1 ))"
+          sed -i "s/^version: .*/version: $addon/" addon/config.yaml
+          declare -a parts=()
           # addon/CHANGELOG.md is what HA shows in the update dialog
           {
-            printf '## %s\n\n' "$ADDON"
-            printf -- '- **Automated update** by the GitHub Action "Update Claude Code" ([workflow run](%s)), not made by hand\n' "$RUN_URL"
-            printf -- '- Update Claude Code to %s\n\n' "$CLAUDE"
+            printf '## %s\n\n' "$addon"
+            printf -- '- **Automated update** by the GitHub Action "Update add-on" ([workflow run](%s)), not made by hand\n' "$RUN_URL"
+            if [ "$CLAUDE_UPDATE" = true ]; then printf -- '- Update Claude Code to %s\n' "$CLAUDE"; fi
+            if [ "$PACKAGES_UPDATE" = true ]; then printf -- '- Update system packages: %s\n' "$PACKAGES"; fi
+            if [ "$DOCS_UPDATE" = true ]; then printf -- '- Update the bundled Home Assistant docs (%s files changed)\n' "$DOCS_FILES"; fi
+            printf '\n'
             cat addon/CHANGELOG.md
           } > CHANGELOG.new
           mv CHANGELOG.new addon/CHANGELOG.md
-          git diff
-
-      - name: Test-build the add-on (amd64)
-        if: steps.version.outputs.update == 'true'
-        run: docker buildx build addon --pull --platform linux/amd64 --load -t hass-claude-code-test:local
-
-      - name: Check installed Claude Code version
-        if: steps.version.outputs.update == 'true'
-        env:
-          CLAUDE: ${{ steps.version.outputs.claude }}
-        run: |
-          installed=$(docker run --rm --entrypoint /root/.local/bin/claude hass-claude-code-test:local --version | awk '{print $1}')
-          echo "Installed: $installed"
-          [ "$installed" = "$CLAUDE" ]
-
-      - name: Commit and push
-        if: steps.version.outputs.update == 'true'
-        env:
-          CLAUDE: ${{ steps.version.outputs.claude }}
-          ADDON: ${{ steps.version.outputs.addon }}
-        run: |
+          if [ "$CLAUDE_UPDATE" = true ]; then parts+=("Claude Code to $CLAUDE"); fi
+          if [ "$PACKAGES_UPDATE" = true ]; then parts+=("system packages"); fi
+          if [ "$DOCS_UPDATE" = true ]; then parts+=("docs"); fi
+          message=$(IFS=,; echo "${parts[*]}" | sed 's/,/, /g')
+          git diff --stat
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add addon/Dockerfile addon/config.yaml addon/CHANGELOG.md README.md
-          git commit -m "chore(addon): update Claude Code to $CLAUDE (automated)"
+          git add addon/Dockerfile addon/config.yaml addon/CHANGELOG.md addon/packages.txt README.md docs
+          git commit -m "chore(addon): update $message (automated)"
           git push origin HEAD:main
-          echo "Updated Claude Code to $CLAUDE, add-on version $ADDON." >> "$GITHUB_STEP_SUMMARY"
+          echo "Released add-on version $addon: $message." >> "$GITHUB_STEP_SUMMARY"
 
   check-forks:
     runs-on: ubuntu-latest

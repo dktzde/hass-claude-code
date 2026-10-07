@@ -92,7 +92,7 @@ curl "http://localhost:$PORT/stats"
 - The search service must run under **Node.js** (not Bun) — Transformers.js ONNX runtime has issues with Bun
 - sqlite-vec's vec0 virtual table does **not** support bound `?` parameters for primary key columns when using better-sqlite3. Use template literals for PKs, bound params for embeddings only (see `indexer.ts`)
 - Package manager is **pnpm**
-- The `docs/` directories are auto-generated — edit the update scripts, not the docs directly
+- The `docs/` directories are auto-generated — edit the update scripts, not the docs directly. The weekly workflow `.github/workflows/update-claude-code.yml` regenerates them and bumps `DOCS_STAMP` in `addon/Dockerfile`
 - `resources/` is gitignored — it holds cloned upstream repos that can be re-downloaded
 
 ## Copilot instructions (from upstream HA docs repo)

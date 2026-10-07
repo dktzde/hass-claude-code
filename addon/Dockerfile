@@ -17,13 +17,6 @@ RUN apk add --no-cache nodejs npm git build-base python3 && \
 
 WORKDIR /build
 
-# Clone docs from the repository (same repo, just need the docs/ directory)
-ARG DOCS_REPO=https://github.com/dktzde/hass-claude-code.git
-ARG DOCS_REF=main
-RUN git clone --depth 1 --branch "${DOCS_REF}" "${DOCS_REPO}" /tmp/repo && \
-    cp -r /tmp/repo/docs /build/docs && \
-    rm -rf /tmp/repo
-
 # Install MCP server dependencies
 # pnpm-workspace.yaml carries the allowBuilds allowlist and must be present
 # before install, or pnpm refuses to run dependency build scripts.
@@ -34,6 +27,19 @@ RUN cd mcp-server && \
 
 # Copy MCP server source
 COPY mcp-server/ ./mcp-server/
+
+# Clone docs from the repository (same repo, just need the docs/ directory).
+# DOCS_STAMP is the git tree hash of docs/, refreshed by the weekly workflow
+# when the docs change. A new value busts the Docker layer cache; otherwise the
+# Supervisor keeps the clone from the first install forever. The clone comes
+# after the dependency install so a docs change does not re-resolve npm deps.
+ARG DOCS_REPO=https://github.com/dktzde/hass-claude-code.git
+ARG DOCS_REF=main
+ARG DOCS_STAMP=31e76a949f22daab34b025d9e10827f821efcb4c
+RUN echo "Docs stamp: ${DOCS_STAMP}" && \
+    git clone --depth 1 --branch "${DOCS_REF}" "${DOCS_REPO}" /tmp/repo && \
+    cp -r /tmp/repo/docs /build/docs && \
+    rm -rf /tmp/repo
 
 # Build keyword-only index (needs tsx for TypeScript source)
 RUN cd mcp-server && \
@@ -56,9 +62,16 @@ SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
 ENV TERM="xterm-256color"
 
-# Install system packages
-# hadolint ignore=DL3018
-RUN apk add --no-cache \
+# Install system packages and upgrade the ones from the base image.
+# PACKAGES_STAMP is a hash of addon/packages.txt (the package versions of the
+# last CI build), refreshed by the weekly workflow when Alpine ships updates.
+# A new value busts the Docker layer cache; otherwise the Supervisor keeps the
+# versions from the first install forever.
+ARG PACKAGES_STAMP=none
+# hadolint ignore=DL3017,DL3018
+RUN echo "Packages stamp: ${PACKAGES_STAMP}" && \
+    apk upgrade --no-cache && \
+    apk add --no-cache \
     bash \
     ca-certificates \
     curl \
@@ -66,6 +79,7 @@ RUN apk add --no-cache \
     libgcc \
     libstdc++ \
     nodejs \
+    python3 \
     ripgrep \
     tmux \
     ttyd

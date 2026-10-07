@@ -1,3 +1,11 @@
+## 0.1.16
+
+### Improvements
+
+- Include Python 3 in the add-on image, so Claude Code can run `python3` without the `additional_packages` option
+- Keep system packages up to date: the weekly GitHub Action now also releases Alpine package updates (including Python 3), and the build runs `apk upgrade` so packages from the base image are updated too
+- Keep the bundled Home Assistant docs up to date: the weekly GitHub Action regenerates them from the upstream repositories, and a docs change now reaches the add-on instead of staying in the Docker layer cache
+
 ## 0.1.15
 
 - **Automated update** by the GitHub Action "Update Claude Code" ([workflow run](https://github.com/dktzde/hass-claude-code/actions/runs/37191988233)), not made by hand

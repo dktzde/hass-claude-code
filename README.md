@@ -1,142 +1,135 @@
-# Claude Code for Home Assistant (dktzde fork)
+# Claude Code for Home Assistant
 
-> **Fork of [dkmaker/hass-claude-code](https://github.com/dkmaker/hass-claude-code)**
->
-> **Why?** The original always installs Claude Code as "latest" at build time. But the HA Supervisor builds add-ons **with the Docker layer cache** (`docker buildx build --pull`, without `--no-cache`) on a pinned base image. As a result the install layer stays cached: even "Rebuild" keeps delivering the old Claude Code version.
->
-> **What changed?**
-> - `addon/Dockerfile`: Claude Code is installed at a pinned version via `ARG CLAUDE_CODE_VERSION` (currently **2.1.289**). Entering a new version there invalidates the cache, so the new version gets installed.
-> - `addon/config.yaml`: add-on version bumped so HA offers the update.
-> - `repository.yaml`, `DOCS_REPO`, links in this README: point to this fork.
-> - `.github/workflows/update-claude-code.yml`: every Saturday at 05:47 UTC (7:47 CEST / 6:47 CET) it checks for a new Claude Code version and performs the update itself (test build, commit, push). These updates are marked as **Automated update** in the changelog. The workflow reports new commits in upstream and in the YangXu fork as issues.
->
-> **Taken from [YangXu1990uiuc/hass-claude-code](https://github.com/YangXu1990uiuc/hass-claude-code)** (as of 2026-09):
-> - **pnpm 11 build fix**: The original fails to build with current pnpm (`ERR_PNPM_IGNORED_BUILDS`). Fix: `pnpm-workspace.yaml` with `allowBuilds`, pnpm pinned to major 11.
-> - **Login is preserved**: In the original, a symlink bug kept `/root/.claude` out of `/data`, so login, history and memory were lost after every restart.
->
-> **Updating Claude Code:** happens automatically every week (see above). Manually: bump `CLAUDE_CODE_VERSION` in `addon/Dockerfile` and `version` in `addon/config.yaml`, push, then click "Update" in HA.
+A Home Assistant add-on that runs [Claude Code](https://docs.anthropic.com/en/docs/claude-code) inside your Home Assistant instance. You get a web terminal in the sidebar, full access to your configuration and a built-in MCP server, so Claude can look up entities, call services and search the Home Assistant docs.
 
-A Home Assistant add-on that runs [Claude Code](https://docs.anthropic.com/en/docs/claude-code) inside your HA instance with a web terminal, full API access, and a built-in MCP server providing structured tools for interacting with your smart home.
+> [!WARNING]
+> **Not long-term tested yet.** This fork contains several recent changes that have only been tested briefly:
+> - Weekly automatic updates of Claude Code, the system packages and the bundled docs
+> - Python 3 in the add-on image
+> - A changed Docker build order (cache stamps for packages and docs)
+>
+> If something breaks after an update, please [open an issue](https://github.com/dktzde/hass-claude-code/issues).
+
+## Thanks
+
+This add-on would not exist without two other projects:
+
+- **[dkmaker/hass-claude-code](https://github.com/dkmaker/hass-claude-code)** created the add-on: the web terminal, the MCP server and the documentation search. This fork builds on it.
+- **[YangXu1990uiuc/hass-claude-code](https://github.com/YangXu1990uiuc/hass-claude-code)** fixed the Docker build for pnpm 11 and made the Claude Code login survive add-on restarts. Both fixes are included here.
+
+Thank you both!
 
 ## Features
 
-- **Web terminal** via Home Assistant Ingress (no port forwarding needed)
-- **Full HA API access** — search entities, call services, query devices/areas
-- **Built-in documentation search** — HA developer and user docs indexed and searchable
-- **Session persistence** — tmux keeps your Claude session alive across browser tab closes
-- **MCP server** with 11 tools for Home Assistant interaction
-- **Optional semantic search** — enable embeddings for AI-powered doc search
+- **Web terminal** in the Home Assistant sidebar via Ingress, no port forwarding needed
+- **Home Assistant access** through an MCP server: search entities, devices and areas, read states, call services
+- **Documentation search** across the Home Assistant user and developer docs, bundled with the add-on
+- **Python 3** included, for the scripts Claude likes to run
+- **Persistent sessions**: tmux keeps Claude running when you close the browser tab, and login, history and memory survive restarts
+- **Weekly updates** of Claude Code, system packages and docs (see [Updates](#updates))
+- **Optional semantic search** for the docs with a local embedding model
 
 ## Installation
 
-### 1. Add the repository
+1. Add the repository:
 
-[![Open your Home Assistant instance and show the add add-on repository dialog.](https://my.home-assistant.io/badges/supervisor_add_addon_repository.svg)](https://my.home-assistant.io/redirect/supervisor_add_addon_repository/?repository_url=https%3A%2F%2Fgithub.com%2Fdktzde%2Fhass-claude-code)
+   [![Open your Home Assistant instance and show the add add-on repository dialog.](https://my.home-assistant.io/badges/supervisor_add_addon_repository.svg)](https://my.home-assistant.io/redirect/supervisor_add_addon_repository/?repository_url=https%3A%2F%2Fgithub.com%2Fdktzde%2Fhass-claude-code)
 
-Or manually:
-
-1. Go to **Settings** > **Add-ons** > **Add-on Store**
-2. Click the **three-dot menu** (top right) > **Repositories**
-3. Add: `https://github.com/dktzde/hass-claude-code`
-4. Click **Save**, then refresh
-
-### 2. Install the add-on
-
-1. Find **Claude Code** in the add-on store
-2. Click **Install** (the Docker image builds locally on your device — this takes a few minutes on first install)
-3. Go to the **Configuration** tab and set your **Anthropic API key**
-4. Click **Start**
-5. Open the **Claude Code** panel in the sidebar
-
-### How the build works
-
-Home Assistant builds the Docker image **locally on your device** when you install the add-on. There are no pre-built images to pull. The build process:
-
-1. Installs Node.js dependencies for the MCP server
-2. Clones the HA documentation from this repository
-3. Builds a keyword search index from the docs
-4. Installs Claude Code CLI, ttyd, tmux, and other tools
-5. Sets up s6-overlay services for process management
-
-First install takes several minutes depending on your hardware. Subsequent updates are faster due to Docker layer caching — which is also why the Claude Code version is pinned (see the fork note at the top).
+   Or manually: **Settings** > **Add-ons** > **Add-on Store**, three-dot menu > **Repositories**, add `https://github.com/dktzde/hass-claude-code`.
+2. Find **Claude Code** in the add-on store and select **Install**. Home Assistant builds the image on your device, which takes a few minutes the first time.
+3. Optional: on the **Configuration** tab, enter an Anthropic API key. Without one, log in with `/login` in Claude Code using your Claude subscription.
+4. Select **Start** and open **Claude Code** in the sidebar.
 
 ## Configuration
 
 | Option | Type | Default | Description |
 |--------|------|---------|-------------|
-| `api_key` | password | *required* | Your Anthropic API key |
-| `model` | string | *(empty)* | Claude model to use (leave empty for default) |
-| `yolo_mode` | bool | `false` | Skip permission prompts (use with caution) |
-| `enable_embeddings` | bool | `false` | Download AI model for semantic doc search (~87MB) |
-| `additional_packages` | list | `[]` | Extra Alpine packages to install (e.g. `python3`, `vim`) |
+| `api_key` | password | *(empty)* | Anthropic API key. Leave empty to log in with `/login` instead |
+| `model` | list | `default` | Model to use: `default`, `sonnet`, `opus` or `haiku` |
+| `yolo_mode` | bool | `false` | Allow all tools without asking (use with caution) |
+| `enable_embeddings` | bool | `false` | Download a local model (~87 MB) for semantic doc search |
+| `additional_packages` | list | `[]` | Extra Alpine packages, installed on every start (e.g. `vim`) |
 
-## MCP Tools
+## Updates
 
-The built-in MCP server (`home-assistant`) provides these tools to Claude:
+The Home Assistant Supervisor builds add-ons with the Docker layer cache. A build step only runs again if something in it changes, so a plain "install the latest version" stays at the version of the first install forever, even after a rebuild.
+
+This add-on therefore pins everything that should update in `addon/Dockerfile`:
+
+- `CLAUDE_CODE_VERSION`: the Claude Code version (currently **2.1.289**)
+- `PACKAGES_STAMP`: a hash of `addon/packages.txt`, the list of installed Alpine package versions
+- `DOCS_STAMP`: the git tree hash of the bundled docs
+
+Every Saturday at 05:47 UTC (07:47 CEST / 06:47 CET), the GitHub Action [`update-claude-code.yml`](.github/workflows/update-claude-code.yml) does the following:
+
+1. Checks for a new Claude Code release.
+2. Regenerates the docs from the upstream Home Assistant repositories.
+3. Test-builds the add-on and reads the installed package versions.
+4. If anything changed, updates the pins, bumps the add-on version, writes the changelog and pushes.
+
+Home Assistant then offers a normal add-on update. The changelog marks these updates as **Automated update** and lists what changed. If nothing changed, nothing is released.
+
+The same Action also opens an issue when there are new commits in the two projects above, so useful fixes can be taken over by hand.
+
+To update by hand, run the `/update-claude` skill in this repository, or bump `CLAUDE_CODE_VERSION` in `addon/Dockerfile` and `version` in `addon/config.yaml`.
+
+## MCP tools
+
+The built-in MCP server `home-assistant` gives Claude these tools:
 
 | Tool | Description |
 |------|-------------|
-| `search_entities` | Search entities by name, domain, or area |
-| `get_entity_state` | Get state and attributes of a specific entity |
-| `call_service` | Call any HA service (turn on lights, run automations, etc.) |
-| `search_automations` | Search automation entities |
-| `get_ha_config` | Get Home Assistant core configuration |
-| `list_areas` | List all defined areas |
+| `search_entities` | Search entities by name, domain or area |
+| `get_entity_state` | Get state and attributes of an entity |
+| `call_service` | Call any service (turn on lights, run automations, etc.) |
+| `search_automations` | Search automations |
+| `get_ha_config` | Get the core configuration |
+| `list_areas` | List all areas |
 | `search_devices` | Search the device registry |
 | `get_config_entries` | List integration config entries |
-| `search_docs` | Search HA developer and user documentation |
-| `read_doc` | Read a specific documentation file |
+| `search_docs` | Search the user and developer docs |
+| `read_doc` | Read a documentation file |
 | `get_doc_stats` | Get documentation index statistics |
 
-## File Access
+## File access
 
-The add-on has access to:
-
-| Path | Description | Access |
-|------|-------------|--------|
-| `/homeassistant/` | HA configuration directory (including `.storage/`) | Read/Write |
-| `/config/` | Add-on configuration | Read/Write |
-| `/share/` | Shared storage between add-ons | Read/Write |
-| `/ssl/` | SSL certificates | Read-only |
+| Path | Content | Access |
+|------|---------|--------|
+| `/homeassistant/` | Home Assistant configuration, including `.storage/` | Read/write |
+| `/config/` | Add-on configuration | Read/write |
+| `/share/` | Storage shared between add-ons | Read/write |
+| `/ssl/` | Certificates | Read-only |
 | `/media/` | Media files | Read-only |
 
-## Architecture
+On first start, the add-on creates `/homeassistant/CLAUDE.md` with an overview of the tools and paths, unless the file already exists.
+
+## How it is built
+
+The image is built in two stages:
+
+1. **Builder:** installs the MCP server dependencies, clones the docs from this repository and builds a keyword search index.
+2. **Add-on image:** based on the Home Assistant community add-on base image. Installs Claude Code, Python 3, Node.js, ttyd, tmux and a few tools, and copies in the MCP server, the index and the docs.
+
+s6-overlay starts the services: environment setup, optional packages, the optional embedding model, and finally ttyd, which runs Claude Code inside tmux. Claude Code starts the MCP server itself as a child process over stdio, so it needs no network port.
 
 ```
 addon/
-  config.yaml              # HA add-on manifest
-  Dockerfile               # Multi-stage build
-  build.yaml               # Base images per architecture
-  rootfs/                  # Container filesystem overlay
-    etc/s6-overlay/        # s6 service definitions
-    usr/bin/               # Claude entrypoint script
-  mcp-server/              # Node.js MCP server
-    src/
-      index.ts             # MCP entry point (stdio transport)
-      ha-api.ts            # HA REST API tools
-      ha-websocket.ts      # HA WebSocket API tools
-      docs-search.ts       # Documentation search tools
-      db.ts, search.ts, embeddings.ts, indexer.ts  # Search engine
+  config.yaml          # Add-on manifest
+  Dockerfile           # Two-stage build with version and cache pins
+  packages.txt         # Installed package versions, written by the weekly Action
+  rootfs/              # s6 services and the Claude entrypoint
+  mcp-server/src/      # MCP server: Home Assistant API, WebSocket API, docs search
+docs/                  # Bundled Home Assistant docs, generated weekly
 ```
 
-The MCP server runs as a stdio child process of Claude Code (configured via `.mcp.json`). No separate network port needed.
-
-## Development
-
-To test locally without HA:
+## Local development
 
 ```bash
-# Build the Docker image
 docker build -t claude-code-addon addon/
-
-# Run with your API key
-docker run -it \
-  -e SUPERVISOR_TOKEN=fake \
-  -e ANTHROPIC_API_KEY=your-key \
-  claude-code-addon
+docker run -it -e SUPERVISOR_TOKEN=fake -e ANTHROPIC_API_KEY=your-key claude-code-addon
 ```
 
-## Supported Architectures
+## Supported architectures
 
-- `amd64` (x86_64)
-- `aarch64` (ARM64, e.g. Raspberry Pi 4/5)
+- `amd64`
+- `aarch64` (for example Raspberry Pi 4 and 5)
