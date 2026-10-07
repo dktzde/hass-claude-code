@@ -2,9 +2,8 @@
 # shellcheck shell=bash
 # ==============================================================================
 # Claude Code Add-on: Environment setup
-# Sets up API key, CLAUDE.md, .mcp.json, persistent storage
+# Sets up environment, CLAUDE.md, MCP config, persistent storage
 # ==============================================================================
-declare api_key
 declare model
 declare yolo_mode
 declare enable_embeddings
@@ -12,7 +11,6 @@ declare enable_embeddings
 bashio::log.info 'Setting up Claude Code environment...'
 
 # --- Read config ---
-api_key=$(bashio::config 'api_key')
 model=$(bashio::config 'model')
 yolo_mode=$(bashio::config 'yolo_mode')
 enable_embeddings=$(bashio::config 'enable_embeddings')
@@ -25,20 +23,33 @@ printf '%s' "/data/models" > /var/run/s6/container_environment/MODELS_DIR
 
 # Write all config to /etc/profile.d/ so the entrypoint shell sees them
 {
-    if bashio::var.has_value "${api_key}"; then
-        echo "export ANTHROPIC_API_KEY=\"${api_key}\""
-    else
-        bashio::log.info 'No API key configured — use /login in Claude Code to authenticate via subscription.'
-    fi
     echo "export SUPERVISOR_TOKEN=\"${SUPERVISOR_TOKEN}\""
     echo "export DISABLE_AUTOUPDATER=1"
     echo "export CLAUDE_MODEL=\"${model}\""
     echo "export CLAUDE_YOLO=\"${yolo_mode}\""
+    # Keep the GitHub CLI login and the git config in /data across restarts
+    echo "export GH_CONFIG_DIR=/data/.config/gh"
+    echo "export GIT_CONFIG_GLOBAL=/data/.gitconfig"
 } > /etc/profile.d/claude.sh
+bashio::log.info 'Log in with Claude Code on first start; the login is kept across restarts.'
+
+# --- MQTT broker credentials (config.yaml: services: mqtt:want) ---
+# The Supervisor provides them when the Mosquitto broker add-on is installed.
+mqtt_available=false
+if bashio::services.available 'mqtt'; then
+    bashio::log.info 'MQTT broker found — providing its credentials as MQTT_* variables.'
+    mqtt_available=true
+    {
+        printf 'export MQTT_HOST=%q\n' "$(bashio::services 'mqtt' 'host')"
+        printf 'export MQTT_PORT=%q\n' "$(bashio::services 'mqtt' 'port')"
+        printf 'export MQTT_USERNAME=%q\n' "$(bashio::services 'mqtt' 'username')"
+        printf 'export MQTT_PASSWORD=%q\n' "$(bashio::services 'mqtt' 'password')"
+    } >> /etc/profile.d/claude.sh
+fi
 
 # --- Persistent storage ---
-mkdir -p /data/.claude /data/models
-touch /data/.bash_history
+mkdir -p /data/.claude /data/models /data/.config/gh
+touch /data/.bash_history /data/.gitconfig
 
 # The Claude installer pre-creates /root/.claude as a real directory and writes
 # /root/.claude.json during the image build. `ln -sf` onto an existing directory
@@ -136,36 +147,123 @@ cat > /etc/claude-code/managed-mcp.json << MCPEOF
 }
 MCPEOF
 
-# --- Generate default CLAUDE.md in /homeassistant/ if absent ---
+# --- Generate the managed CLAUDE.md (system-wide, refreshed on every start) ---
+# Claude Code always loads /etc/claude-code/CLAUDE.md, so every install gets
+# the current description of the add-on, including existing ones whose
+# /homeassistant/CLAUDE.md predates it.
+bashio::log.info 'Generating CLAUDE.md for the add-on environment...'
+{
+    cat << 'EOF'
+# Home Assistant add-on environment
+
+You are running inside the Claude Code add-on of a Home Assistant instance. The add-on writes this file on every start; it describes what is available here. The user's own notes for you are in `/homeassistant/CLAUDE.md`.
+
+## Container
+
+- Alpine Linux, you run as `root`. The working directory is `/homeassistant`.
+- Claude Code runs in the tmux session `claude` behind the Claude Code panel in the Home Assistant sidebar.
+- Only these locations survive an add-on restart or update:
+  - `/data`: Claude Code login, history and memory, GitHub CLI login (`GH_CONFIG_DIR`), global git config (`GIT_CONFIG_GLOBAL`)
+  - The mapped folders under [Files](#files)
+- Everything else is lost, for example packages installed with `apk add` or files in `/tmp`. For packages the user needs permanently, ask them to add the package to the add-on option **Additional packages**.
+
+## Files
+
+- `/homeassistant/`: Home Assistant configuration (`configuration.yaml`, `automations.yaml`, `scripts.yaml`, `secrets.yaml`, ...), including `.storage/`. Read/write.
+- `/config/`: this add-on's own configuration folder. Read/write.
+- `/share/`: storage shared between add-ons. Read/write.
+- `/ssl/`: certificates. Read-only.
+- `/media/`: media files. Read-only.
+- `/opt/docs/`: Home Assistant user and developer docs as markdown. Search them with the `search_docs` tool.
+
+Rules for working on the configuration:
+
+- Copy a file before larger edits, for example to `<file>.bak`.
+- Do not edit files in `/homeassistant/.storage/` while Home Assistant is running, unless the user explicitly asks. Home Assistant keeps them in memory and overwrites them. Use the MCP tools or the APIs instead.
+- After changing YAML configuration, run the config check (see below) before reloading.
+- Prefer reloading (for example the service `automation.reload`) over restarting. Never restart Home Assistant, the host or an add-on without asking the user.
+- Never print secrets from `secrets.yaml` or tokens in full.
+
+## MCP tools (server `home-assistant`)
+
+- `search_entities`: search entities by name, domain or area
+- `get_entity_state`: state and attributes of an entity
+- `call_service`: call a service (turns on real devices: ask first when unsure)
+- `search_automations`: search automations
+- `get_ha_config`: core configuration
+- `list_areas`: all areas
+- `search_devices`: device registry
+- `get_config_entries`: integration config entries
+- `search_docs`, `read_doc`, `get_doc_stats`: the bundled Home Assistant docs
+
+## Home Assistant APIs
+
+`$SUPERVISOR_TOKEN` is set and authorizes both APIs below (send it as `Authorization: Bearer $SUPERVISOR_TOKEN`).
+
+- Core REST API at `http://supervisor/core/api/`, for example:
+  - State: `curl -s -H "Authorization: Bearer $SUPERVISOR_TOKEN" http://supervisor/core/api/states/sun.sun`
+  - Config check: `curl -s -X POST -H "Authorization: Bearer $SUPERVISOR_TOKEN" http://supervisor/core/api/config/core/check_config`
+  - Render a template: `POST /core/api/template` with `{"template": "{{ states('sun.sun') }}"}`
+  - Error log: `GET /core/api/error_log`
+- Supervisor API at `http://supervisor/` (this add-on has the admin role), for example `GET /core/info`, `GET /core/logs`, `GET /addons`, `GET /addons/<slug>/logs`. Actions such as `POST /core/restart` need the user's consent first.
+
+## Command line tools
+
+- `python3` with PyYAML. Home Assistant YAML uses custom tags (`!include`, `!secret`, `!input`, `!env_var`, ...), which `yaml.safe_load` rejects. To read such files, keep the tags as text:
+
+  ```python
+  import yaml
+
+  class HALoader(yaml.SafeLoader):
+      pass
+
+  def ha_tag(loader, suffix, node):
+      return f"!{suffix} {loader.construct_scalar(node)}"
+
+  HALoader.add_multi_constructor("!", ha_tag)
+  data = yaml.load(open("/homeassistant/configuration.yaml"), Loader=HALoader)
+  ```
+
+  This only checks the YAML syntax. Whether Home Assistant accepts the configuration is shown by the config check above.
+- `gh` (GitHub CLI): not logged in by default. The user can log in with `gh auth login` (device code in the browser); the login is kept in `/data`. `gh auth setup-git` makes `git push` over HTTPS use it.
+- `mosquitto_pub` and `mosquitto_sub`: MQTT clients, see [MQTT](#mqtt).
+- `git`, `jq`, `curl`, `rg` (ripgrep), `node`, `bash`, `tmux`.
+
+## MQTT
+
+EOF
+    if [[ "${mqtt_available}" == true ]]; then
+        cat << 'EOF'
+The MQTT broker of this Home Assistant (Mosquitto broker add-on) is available. Its connection details are in the environment variables `MQTT_HOST`, `MQTT_PORT`, `MQTT_USERNAME` and `MQTT_PASSWORD`. Use the variables, never write the password into files or print it.
+
+- Always limit subscriptions so they end, with `-W <seconds>` or `-C <count>`, for example: `mosquitto_sub -h "$MQTT_HOST" -p "$MQTT_PORT" -u "$MQTT_USERNAME" -P "$MQTT_PASSWORD" -t 'homeassistant/#' -v -W 10`
+EOF
+    else
+        cat << 'EOF'
+Home Assistant provides no MQTT broker credentials: the Mosquitto broker add-on is not installed. If the user has another broker, ask for host, port, username and password, and do not store them in files.
+
+- Always limit subscriptions so they end, with `-W <seconds>` or `-C <count>`, for example: `mosquitto_sub -h <host> -u <user> -P <password> -t 'homeassistant/#' -v -W 10`
+EOF
+    fi
+    cat << 'EOF'
+- Publishing can switch real devices. Ask before publishing to command topics, and never publish retained messages (`-r`) to discovery topics without being asked.
+EOF
+    printf '\n## Add-on settings\n\n'
+    printf -- '- Model: `%s`\n' "${model}"
+    printf -- '- Yolo mode (all tools allowed without asking): `%s`\n' "${yolo_mode}"
+    printf -- '- Semantic doc search (embeddings): `%s`\n' "${enable_embeddings}"
+} > /etc/claude-code/CLAUDE.md
+
+# --- /homeassistant/CLAUDE.md is for the user's own notes ---
+# Only created when missing; an existing file is never touched.
 if [[ ! -f /homeassistant/CLAUDE.md ]]; then
-    bashio::log.info 'Creating default CLAUDE.md in Home Assistant config...'
+    bashio::log.info 'Creating /homeassistant/CLAUDE.md for your own notes...'
     cat > /homeassistant/CLAUDE.md << 'EOF'
-# Home Assistant Development Environment
+# Notes for Claude Code
 
-You are working inside a Home Assistant instance with full API access.
+The add-on describes its environment, tools and APIs in `/etc/claude-code/CLAUDE.md`. Claude Code loads that file automatically, and the add-on refreshes it on every start.
 
-## Available MCP Tools
-
-The `home-assistant` MCP server provides these tools:
-- `search_entities` - Search entities by name, domain, or area
-- `get_entity_state` - Get state and attributes of an entity
-- `call_service` - Call any HA service (turn on lights, trigger automations, etc.)
-- `search_automations` - Search automation entities
-- `get_ha_config` - Get HA core configuration
-- `list_areas` - List all defined areas
-- `search_devices` - Search device registry
-- `get_config_entries` - List integration config entries
-- `search_docs` - Search HA developer and user documentation
-- `read_doc` - Read a specific documentation file
-- `get_doc_stats` - Get documentation index statistics
-
-## File Locations
-
-- `/homeassistant/` - Home Assistant configuration directory
-- `/homeassistant/.storage/` - Internal registry and state data
-- `/share/` - Shared storage between add-ons
-- `/ssl/` - SSL certificates (read-only)
-- `/media/` - Media files (read-only)
+Add your own notes for Claude here, for example which integrations matter to you or conventions for your configuration.
 EOF
 fi
 

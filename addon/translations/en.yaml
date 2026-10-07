@@ -1,0 +1,20 @@
+---
+configuration:
+  model:
+    name: Model
+    description: >-
+      Login: Claude Code asks you to log in on first start, no token is needed
+      here. This option selects the Claude model.
+  yolo_mode:
+    name: Yolo mode
+    description: >-
+      Allow all tools without asking. Use with caution.
+  enable_embeddings:
+    name: Semantic doc search
+    description: >-
+      Download a local model (about 87 MB) for semantic search in the
+      Home Assistant docs. Keyword search works without it.
+  additional_packages:
+    name: Additional packages
+    description: >-
+      Extra Alpine packages, installed on every start (for example vim).

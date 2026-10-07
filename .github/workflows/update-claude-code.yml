@@ -130,7 +130,8 @@ jobs:
           installed=$(docker run --rm --entrypoint /root/.local/bin/claude "$IMAGE" --version | awk '{print $1}')
           echo "Claude Code installed: $installed, pinned: $pinned"
           [ "$installed" = "$pinned" ]
-          docker run --rm --entrypoint python3 "$IMAGE" -c 'import json, sqlite3, ssl, sys; print(sys.version)'
+          docker run --rm --entrypoint python3 "$IMAGE" -c 'import json, sqlite3, ssl, sys, yaml; print(sys.version, "PyYAML", yaml.__version__)'
+          docker run --rm --entrypoint sh "$IMAGE" -c 'command -v mosquitto_pub && command -v mosquitto_sub && gh --version'
           bash .github/scripts/mcp-smoke-test.sh "$IMAGE"
 
       # The test build clones docs from main, which does not have the new docs
@@ -210,6 +211,11 @@ jobs:
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add addon/Dockerfile addon/config.yaml addon/CHANGELOG.md addon/packages.txt addon/mcp-server/pnpm-lock.yaml README.md docs
           git commit -m "chore(addon): update $message (automated)"
+          # A manual run on another branch is a test run: never push it to main
+          if [ "$GITHUB_REF" != refs/heads/main ]; then
+            echo "Test run on $GITHUB_REF: would release add-on version $addon ($message), not pushed." >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
           git push origin HEAD:main
           echo "Released add-on version $addon: $message." >> "$GITHUB_STEP_SUMMARY"
 
@@ -250,77 +256,63 @@ jobs:
           sync_issue "Neue Commits in dkmaker/hass-claude-code (upstream)" "$(commits_body "$upstream")" "Keine offenen Commits mehr."
           sync_issue "Neue Commits im Fork YangXu1990uiuc/hass-claude-code" "$(commits_body "$yangxu")" "Keine offenen Commits mehr."
 
-      - name: Report a new base image
+      - name: Report base image updates and support end
         if: ${{ !cancelled() }}
         run: |
           source .github/scripts/sync-issue.sh
-          current=$(grep -oP '^\s*amd64: ghcr.io/hassio-addons/base:\K\S+' addon/build.yaml)
-          read -r tag url < <(gh release view --repo hassio-addons/addon-base --json tagName,url --jq '"\(.tagName) \(.url)"')
-          latest=${tag#v}
-          if ! [[ "$latest" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-            echo "::warning::Unexpected latest base image tag: $tag"
-            exit 0
-          fi
-          echo "Base image: $current, latest: $latest" >> "$GITHUB_STEP_SUMMARY"
-          body=""
-          if [ "$latest" != "$current" ] && [ "$(printf '%s\n' "$current" "$latest" | sort -V | tail -1)" = "$latest" ]; then
-            builder=$(grep -oP '^FROM alpine:\K\S+(?= AS mcp-builder)' addon/Dockerfile)
-            alpine=$(docker run --rm --entrypoint cat "ghcr.io/hassio-addons/base:$latest" /etc/alpine-release 2>/dev/null || echo unbekannt)
-            if [ "$alpine" = unbekannt ]; then change="unbekannt"
-            elif [ "${alpine%.*}" = "$builder" ]; then change="nein, bleibt $builder"
-            else change="**ja**, $builder → ${alpine%.*}"; fi
-            body=$(cat <<EOF
-          Für das Add-on gibt es eine neue Version des Basis-Images \`ghcr.io/hassio-addons/base\`.
-
-          - Aktuell: \`$current\`
-          - Neu: \`$latest\` (Alpine \`$alpine\`), [Release notes]($url)
-          - Wechselt die Alpine-Version: $change
-
-          Der Wechsel passiert bewusst nicht automatisch. Mit einer neuen Alpine-Version ändern sich oft die Versionen von Python und Node.js, und die Builder-Stage muss dieselbe Alpine-Version nutzen, sonst passt das native Modul better-sqlite3 nicht zum Node.js im Add-on.
-
-          Zu ändern:
-          - \`addon/build.yaml\` (beide Architekturen) und \`ARG BUILD_FROM\` in \`addon/Dockerfile\`
-          - Bei neuer Alpine-Version: \`FROM alpine:…\` der Builder-Stage in \`addon/Dockerfile\`
-          - Add-on-Version in \`addon/config.yaml\` und \`addon/CHANGELOG.md\`
-
-          Danach testen, z. B. mit einem manuellen Lauf der Action „Update add-on“ auf einem Branch.
-          EOF
-            )
-          fi
-          sync_issue "Neues Basis-Image hassio-addons/base verfügbar" "$body" "Das Basis-Image ist aktuell."
+          title="Basis-Image: neue Version oder Support-Ende"
+          # Assigned first so a failing script stops the step instead of closing the issue
+          body=$(bash .github/scripts/base-image-report.sh)
+          # Carry on an open issue with the earlier title instead of opening a new one
+          old=$(gh issue list --state open --limit 100 --json number,title \
+            --jq '.[] | select(.title == "Neues Basis-Image hassio-addons/base verfügbar") | .number' | head -1)
+          if [ -n "$old" ]; then gh issue edit "$old" --title "$title"; fi
+          sync_issue "$title" "$body" "Das Basis-Image ist aktuell und sein Support läuft noch."
 
       - name: Report new major versions of npm dependencies
         if: ${{ !cancelled() }}
         run: |
           source .github/scripts/sync-issue.sh
-          lines=""
-          while read -r name range; do
-            latest=$(curl -fsSL "https://registry.npmjs.org/$name/latest" | jq -r .version)
-            if [ -z "$latest" ] || [ "$latest" = null ]; then
-              echo "::warning::Could not look up $name on npm"
-              continue
-            fi
-            base=${range#[\^~]}
-            # The major for ^1.2.3, the minor for ^0.1.2 (caret pins it for 0.x)
-            if [ "${base%%.*}" = 0 ]; then
-              allowed=$(cut -d. -f1-2 <<< "$base"); newest=$(cut -d. -f1-2 <<< "$latest")
-            else
-              allowed=${base%%.*}; newest=${latest%%.*}
-            fi
-            if [ "$newest" != "$allowed" ] && [ "$(printf '%s\n' "$allowed" "$newest" | sort -V | tail -1)" = "$newest" ]; then
-              lines+="- \`$name\`: erlaubt \`$range\`, neueste \`$latest\`"$'\n'
-            fi
-          done < <(jq -r '(.dependencies + .devDependencies) | to_entries[] | "\(.key) \(.value)"' addon/mcp-server/package.json)
-          {
-            echo "### npm major versions"
-            echo "${lines:-Keine neuen Hauptversionen.}"
-          } >> "$GITHUB_STEP_SUMMARY"
-          body=""
-          if [ -n "$lines" ]; then
-            body=$(printf '%s\n\n%s\n%s\n\n%s' \
-              "Für diese npm-Pakete des MCP-Servers gibt es neue Hauptversionen:" \
-              "$lines" \
-              "Kleine Updates innerhalb der erlaubten Hauptversion übernimmt die wöchentliche Action „Update add-on“ automatisch. Hauptversionen können Code-Änderungen brauchen und werden deshalb nur gemeldet." \
-              'Zum Übernehmen: Version in `addon/mcp-server/package.json` anheben, das Lockfile mit pnpm 11 neu erzeugen (`pnpm install --lockfile-only`), Code anpassen, Testbuild.')
-          fi
+          body=$(bash .github/scripts/npm-report.sh)
           sync_issue "Neue Hauptversionen von npm-Paketen" "$body" "Keine neuen Hauptversionen mehr."
+
+  failure-issue:
+    # One open issue while runs fail: opened on the first failure, commented on
+    # each further failure (so it notifies again), closed by the next good run.
+    needs: [update, report]
+    if: ${{ !cancelled() }}
+    runs-on: ubuntu-latest
+    env:
+      GH_REPO: ${{ github.repository }}
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - name: Open, update or close the failure issue
+        env:
+          UPDATE: ${{ needs.update.result }}
+          REPORT: ${{ needs.report.result }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          title="Update add-on fehlgeschlagen"
+          number=$(gh issue list --state open --limit 100 --json number,title \
+            --jq ".[] | select(.title == \"$title\") | .number" | head -1)
+          if [ "$UPDATE" != failure ] && [ "$REPORT" != failure ]; then
+            if [ -n "$number" ]; then
+              gh issue close "$number" --comment "Der Lauf vom $(date -u +%d.%m.%Y) war wieder erfolgreich: $RUN_URL"
+            fi
+            exit 0
+          fi
+          failed=""
+          if [ "$UPDATE" = failure ]; then
+            failed="- **update** (Claude Code, Pakete, Doku, Testbuild): Es wurde nichts veröffentlicht, HA bietet kein Update an."
+          fi
+          if [ "$REPORT" = failure ]; then
+            failed="${failed:+$failed
+          }- **report** (Issues zu Forks, Basis-Image, npm): Mindestens ein Issue wurde nicht aktualisiert."
+          fi
+          body=$(printf 'Der Lauf vom %s ist fehlgeschlagen: [Log ansehen](%s)\n\nFehlgeschlagen:\n%s\n\nDas Add-on auf deinem Gerät ist davon nicht betroffen. Dieses Issue schließt sich beim nächsten erfolgreichen Lauf von selbst.' \
+            "$(date -u +%d.%m.%Y)" "$RUN_URL" "$failed")
+          if [ -n "$number" ]; then
+            gh issue comment "$number" --body "$body"
+          else
+            gh issue create --title "$title" --body "$body"
+          fi

@@ -76,9 +76,12 @@ RUN echo "Packages stamp: ${PACKAGES_STAMP}" && \
     ca-certificates \
     curl \
     git \
+    github-cli \
     libgcc \
     libstdc++ \
+    mosquitto-clients \
     nodejs \
+    py3-yaml \
     python3 \
     ripgrep \
     tmux \
