@@ -7,7 +7,9 @@ source "$(dirname "$0")/support-lib.sh"
 notice_main=${NOTICE_DAYS_MAIN:-90}
 notice_community=${NOTICE_DAYS_COMMUNITY:-30}
 
-current=$(grep -oP '^\s*amd64: ghcr.io/hassio-addons/base:\K\S+' addon/build.yaml)
+# The current Supervisor builder only reads the Dockerfile (build.yaml is kept
+# in sync for older Supervisors)
+current=$(grep -oP '^ARG BUILD_FROM=ghcr.io/hassio-addons/base:\K\S+' addon/Dockerfile)
 builder=$(grep -oP '^FROM alpine:\K\S+(?= AS mcp-builder)' addon/Dockerfile)
 alpine=$(grep -oP '^alpine-release-\K[0-9]+\.[0-9]+' addon/packages.txt 2>/dev/null || echo "$builder")
 python=$(grep -oP '^python3-\K[0-9]+\.[0-9]+' addon/packages.txt 2>/dev/null || true)
@@ -16,7 +18,7 @@ node=$(grep -oP '^nodejs-\K[0-9]+' addon/packages.txt 2>/dev/null || true)
 # --- Newer base image? ---
 newer=false
 latest_line="- Neueste Version: unbekannt (Abfrage fehlgeschlagen)"
-if read -r tag url < <(gh release view --repo hassio-addons/addon-base --json tagName,url \
+if read -r tag url < <(gh release view --repo hassio-addons/app-base --json tagName,url \
                          --jq '"\(.tagName) \(.url)"' 2>/dev/null) &&
    [[ "${tag#v}" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
   latest=${tag#v}
@@ -33,7 +35,7 @@ if read -r tag url < <(gh release view --repo hassio-addons/addon-base --json ta
   fi
 else
   # Fail instead of printing nothing, which would close an open issue
-  echo "::error::Could not read the latest hassio-addons/addon-base release" >&2
+  echo "::error::Could not read the latest hassio-addons/app-base release" >&2
   exit 1
 fi
 
@@ -122,7 +124,7 @@ ${waiting:+$waiting
 
 }Der Wechsel passiert bewusst nicht automatisch. Mit einer neuen Alpine-Version ändern sich oft die Versionen von Python und Node.js, und die Builder-Stage muss dieselbe Alpine-Version nutzen, sonst passt das native Modul better-sqlite3 nicht zum Node.js im Add-on.
 
-- \`addon/build.yaml\` (beide Architekturen) und \`ARG BUILD_FROM\` in \`addon/Dockerfile\` auf die neue Version setzen
+- \`ARG BUILD_FROM\` in \`addon/Dockerfile\` auf die neue Version setzen, \`addon/build.yaml\` (beide Architekturen) gleich mitziehen
 - Bei neuer Alpine-Version: \`FROM alpine:…\` der Builder-Stage in \`addon/Dockerfile\` anpassen
 - Add-on-Version in \`addon/config.yaml\` und \`addon/CHANGELOG.md\`
 

@@ -1,4 +1,6 @@
-## 0.1.19
+## 0.2.0
+
+New minor version because of the many changes since 0.1.15: Python 3 and more tools, weekly updates of packages, npm dependencies and docs, a generated `CLAUDE.md` and login only through Claude Code.
 
 ### Breaking change
 
@@ -14,6 +16,10 @@
 - `/homeassistant/CLAUDE.md` is now for your own notes. The add-on creates it only when it is missing and never changes an existing one
 - With the Mosquitto broker add-on installed, the add-on gets the broker credentials from Home Assistant and passes them to Claude Code as `MQTT_HOST`, `MQTT_PORT`, `MQTT_USERNAME` and `MQTT_PASSWORD`
 - The configuration tab has names and descriptions in English and German
+
+### Bug fixes
+
+- Fix the dead "more information" link on the add-on page in Home Assistant: `config.yaml` had no `url`, it now points to the GitHub repository
 
 ## 0.1.18
 

@@ -255,11 +255,14 @@ jobs:
         if: ${{ !cancelled() }}
         run: |
           source .github/scripts/sync-issue.sh
-          # Earlier title of this issue; close it if it is still open
-          sync_issue "Neues Basis-Image hassio-addons/base verfügbar" "" "Ersetzt durch das Issue „Basis-Image: neue Version oder Support-Ende“."
+          title="Basis-Image: neue Version oder Support-Ende"
           # Assigned first so a failing script stops the step instead of closing the issue
           body=$(bash .github/scripts/base-image-report.sh)
-          sync_issue "Basis-Image: neue Version oder Support-Ende" "$body" "Das Basis-Image ist aktuell und sein Support läuft noch."
+          # Carry on an open issue with the earlier title instead of opening a new one
+          old=$(gh issue list --state open --limit 100 --json number,title \
+            --jq '.[] | select(.title == "Neues Basis-Image hassio-addons/base verfügbar") | .number' | head -1)
+          if [ -n "$old" ]; then gh issue edit "$old" --title "$title"; fi
+          sync_issue "$title" "$body" "Das Basis-Image ist aktuell und sein Support läuft noch."
 
       - name: Report new major versions of npm dependencies
         if: ${{ !cancelled() }}
@@ -267,3 +270,44 @@ jobs:
           source .github/scripts/sync-issue.sh
           body=$(bash .github/scripts/npm-report.sh)
           sync_issue "Neue Hauptversionen von npm-Paketen" "$body" "Keine neuen Hauptversionen mehr."
+
+  failure-issue:
+    # One open issue while runs fail: opened on the first failure, commented on
+    # each further failure (so it notifies again), closed by the next good run.
+    needs: [update, report]
+    if: ${{ !cancelled() }}
+    runs-on: ubuntu-latest
+    env:
+      GH_REPO: ${{ github.repository }}
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - name: Open, update or close the failure issue
+        env:
+          UPDATE: ${{ needs.update.result }}
+          REPORT: ${{ needs.report.result }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          title="Update add-on fehlgeschlagen"
+          number=$(gh issue list --state open --limit 100 --json number,title \
+            --jq ".[] | select(.title == \"$title\") | .number" | head -1)
+          if [ "$UPDATE" != failure ] && [ "$REPORT" != failure ]; then
+            if [ -n "$number" ]; then
+              gh issue close "$number" --comment "Der Lauf vom $(date -u +%d.%m.%Y) war wieder erfolgreich: $RUN_URL"
+            fi
+            exit 0
+          fi
+          failed=""
+          if [ "$UPDATE" = failure ]; then
+            failed="- **update** (Claude Code, Pakete, Doku, Testbuild): Es wurde nichts veröffentlicht, HA bietet kein Update an."
+          fi
+          if [ "$REPORT" = failure ]; then
+            failed="${failed:+$failed
+          }- **report** (Issues zu Forks, Basis-Image, npm): Mindestens ein Issue wurde nicht aktualisiert."
+          fi
+          body=$(printf 'Der Lauf vom %s ist fehlgeschlagen: [Log ansehen](%s)\n\nFehlgeschlagen:\n%s\n\nDas Add-on auf deinem Gerät ist davon nicht betroffen. Dieses Issue schließt sich beim nächsten erfolgreichen Lauf von selbst.' \
+            "$(date -u +%d.%m.%Y)" "$RUN_URL" "$failed")
+          if [ -n "$number" ]; then
+            gh issue comment "$number" --body "$body"
+          else
+            gh issue create --title "$title" --body "$body"
+          fi
