@@ -79,6 +79,7 @@ RUN echo "Packages stamp: ${PACKAGES_STAMP}" && \
     libgcc \
     libstdc++ \
     nodejs \
+    py3-yaml \
     python3 \
     ripgrep \
     tmux \

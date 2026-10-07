@@ -5,7 +5,7 @@ A Home Assistant add-on that runs [Claude Code](https://docs.anthropic.com/en/do
 > [!WARNING]
 > **Not long-term tested yet.** This fork contains several recent changes that have only been tested briefly:
 > - Weekly automatic updates of Claude Code, the system packages and the bundled docs
-> - Python 3 in the add-on image
+> - Python 3 with PyYAML in the add-on image
 > - A changed Docker build order (cache stamps for packages and docs)
 >
 > The weekly test build only covers `amd64`. **Raspberry Pi and other `aarch64` devices are not tested.**
@@ -26,7 +26,7 @@ Thank you both!
 - **Web terminal** in the Home Assistant sidebar via Ingress, no port forwarding needed
 - **Home Assistant access** through an MCP server: search entities, devices and areas, read states, call services
 - **Documentation search** across the Home Assistant user and developer docs, bundled with the add-on
-- **Python 3** included, for the scripts Claude likes to run
+- **Python 3 with PyYAML** included, for the scripts Claude likes to run, for example to read YAML configuration
 - **Persistent sessions**: tmux keeps Claude running when you close the browser tab, and login, history and memory survive restarts
 - **Weekly updates** of Claude Code, system packages and docs (see [Updates](#updates))
 - **Optional semantic search** for the docs with a local embedding model
@@ -117,7 +117,7 @@ On first start, the add-on creates `/homeassistant/CLAUDE.md` with an overview o
 The image is built in two stages:
 
 1. **Builder:** installs the MCP server dependencies, clones the docs from this repository and builds a keyword search index.
-2. **Add-on image:** based on the Home Assistant community add-on base image. Installs Claude Code, Python 3, Node.js, ttyd, tmux and a few tools, and copies in the MCP server, the index and the docs.
+2. **Add-on image:** based on the Home Assistant community add-on base image. Installs Claude Code, Python 3 with PyYAML, Node.js, ttyd, tmux and a few tools, and copies in the MCP server, the index and the docs.
 
 s6-overlay starts the services: environment setup, optional packages, the optional embedding model, and finally ttyd, which runs Claude Code inside tmux. Claude Code starts the MCP server itself as a child process over stdio, so it needs no network port.
 

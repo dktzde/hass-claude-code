@@ -130,7 +130,7 @@ jobs:
           installed=$(docker run --rm --entrypoint /root/.local/bin/claude "$IMAGE" --version | awk '{print $1}')
           echo "Claude Code installed: $installed, pinned: $pinned"
           [ "$installed" = "$pinned" ]
-          docker run --rm --entrypoint python3 "$IMAGE" -c 'import json, sqlite3, ssl, sys; print(sys.version)'
+          docker run --rm --entrypoint python3 "$IMAGE" -c 'import json, sqlite3, ssl, sys, yaml; print(sys.version, "PyYAML", yaml.__version__)'
           bash .github/scripts/mcp-smoke-test.sh "$IMAGE"
 
       # The test build clones docs from main, which does not have the new docs

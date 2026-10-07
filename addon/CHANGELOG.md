@@ -1,3 +1,9 @@
+## 0.1.19
+
+### Improvements
+
+- Include PyYAML (`py3-yaml`), so Claude Code can read and check YAML files with Python. It is an Alpine package, so the weekly GitHub Action keeps it up to date like Python 3 itself
+
 ## 0.1.18
 
 ### Improvements
