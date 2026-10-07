@@ -1,6 +1,6 @@
 ## 0.1.17
 
-- **Automated update** by the GitHub Action "Update add-on" ([workflow run](https://github.com/dktzde/hass-claude-code/actions/runs/37606435542)), not made by hand
+- **Automated update** by the GitHub Action "Update add-on" ([workflow run](https://github.com/dktzde/hass-claude-code/actions/runs/37606435542))
 - Update Claude Code to 2.1.292
 - Update system packages: `ada-libs-3.3.0-r0`, `alpine-baselayout-3.7.2-r0`, `alpine-baselayout-data-3.7.2-r0`, `alpine-keys-2.6-r0`, `alpine-release-3.23.6-r0`, `apk-tools-3.0.8-r0`, `bash-5.3.3-r1`, `brotli-libs-1.2.0-r0`, `busybox-1.37.0-r30`, `busybox-binsh-1.37.0-r30` and 55 more
 - Update the bundled Home Assistant docs (320 files changed)
@@ -15,12 +15,12 @@
 
 ## 0.1.15
 
-- **Automated update** by the GitHub Action "Update Claude Code" ([workflow run](https://github.com/dktzde/hass-claude-code/actions/runs/37191988233)), not made by hand
+- **Automated update** by the GitHub Action "Update Claude Code" ([workflow run](https://github.com/dktzde/hass-claude-code/actions/runs/37191988233))
 - Update Claude Code to 2.1.289
 
 ## 0.1.14
 
-- **Automated update** by the GitHub Action "Update Claude Code" ([workflow run](https://github.com/dktzde/hass-claude-code/actions/runs/37110577797)), not made by hand
+- **Automated update** by the GitHub Action "Update Claude Code" ([workflow run](https://github.com/dktzde/hass-claude-code/actions/runs/37110577797))
 - Update Claude Code to 2.1.288
 
 ## 0.1.13
