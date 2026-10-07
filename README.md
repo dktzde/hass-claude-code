@@ -5,8 +5,9 @@ A Home Assistant add-on that runs [Claude Code](https://docs.anthropic.com/en/do
 > [!WARNING]
 > **Not long-term tested yet.** This fork contains several recent changes that have only been tested briefly:
 > - Weekly automatic updates of Claude Code, the system packages and the bundled docs
-> - Python 3 with PyYAML and the MQTT clients `mosquitto_pub`/`mosquitto_sub` in the add-on image
+> - Python 3 with PyYAML, the MQTT clients `mosquitto_pub`/`mosquitto_sub` and the GitHub CLI `gh` in the add-on image
 > - A changed Docker build order (cache stamps for packages and docs)
+> - Login only through Claude Code (the API key option is gone) and a generated `CLAUDE.md` describing the add-on
 >
 > The weekly test build only covers `amd64`. **Raspberry Pi and other `aarch64` devices are not tested.**
 >
@@ -28,7 +29,9 @@ Thank you both!
 - **Documentation search** across the Home Assistant user and developer docs, bundled with the add-on
 - **Python 3 with PyYAML** included, for the scripts Claude likes to run, for example to read YAML configuration
 - **MQTT clients** `mosquitto_pub` and `mosquitto_sub`, to inspect and test MQTT devices
-- **Persistent sessions**: tmux keeps Claude running when you close the browser tab, and login, history and memory survive restarts
+- **GitHub CLI** `gh`, for example to keep your configuration in a GitHub repository
+- **Knows its environment**: on every start the add-on writes `/etc/claude-code/CLAUDE.md`, which Claude Code loads automatically. It lists the paths, MCP tools, APIs and command line tools. Your own notes for Claude go into `/homeassistant/CLAUDE.md`
+- **Persistent sessions**: tmux keeps Claude running when you close the browser tab. The Claude Code login, history and memory, the GitHub CLI login and the git config survive restarts
 - **Weekly updates** of Claude Code, system packages and docs (see [Updates](#updates))
 - **Optional semantic search** for the docs with a local embedding model
 
@@ -40,14 +43,13 @@ Thank you both!
 
    Or manually: **Settings** > **Add-ons** > **Add-on Store**, three-dot menu > **Repositories**, add `https://github.com/dktzde/hass-claude-code`.
 2. Find **Claude Code** in the add-on store and select **Install**. Home Assistant builds the image on your device, which takes a few minutes the first time.
-3. Optional: on the **Configuration** tab, enter an Anthropic API key. Without one, log in with `/login` in Claude Code using your Claude subscription.
-4. Select **Start** and open **Claude Code** in the sidebar.
+3. Select **Start** and open **Claude Code** in the sidebar.
+4. Log in when Claude Code asks for it on first start, with your Claude subscription or an Anthropic Console account. The login is kept across restarts and updates.
 
 ## Configuration
 
 | Option | Type | Default | Description |
 |--------|------|---------|-------------|
-| `api_key` | password | *(empty)* | Anthropic API key. Leave empty to log in with `/login` instead |
 | `model` | list | `default` | Model to use: `default`, `sonnet`, `opus` or `haiku` |
 | `yolo_mode` | bool | `false` | Allow all tools without asking (use with caution) |
 | `enable_embeddings` | bool | `false` | Download a local model (~87 MB) for semantic doc search |
@@ -111,7 +113,7 @@ The built-in MCP server `home-assistant` gives Claude these tools:
 | `/ssl/` | Certificates | Read-only |
 | `/media/` | Media files | Read-only |
 
-On first start, the add-on creates `/homeassistant/CLAUDE.md` with an overview of the tools and paths, unless the file already exists.
+On every start, the add-on writes `/etc/claude-code/CLAUDE.md` with an overview of the paths, tools and APIs, which Claude Code loads automatically. `/homeassistant/CLAUDE.md` is for your own notes: the add-on creates it if it is missing, and replaces it only while it is still the unchanged default of earlier versions.
 
 ## How it is built
 

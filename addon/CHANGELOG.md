@@ -1,10 +1,18 @@
 ## 0.1.19
 
+### Breaking change
+
+- Remove the API key option. Claude Code asks you to log in on first start, with a Claude subscription or an Anthropic Console account. If you used an API key, log in once after this update; the login is kept across restarts
+
 ### Improvements
 
 - Include PyYAML (`py3-yaml`), so Claude Code can read and check YAML files with Python
 - Include the MQTT clients `mosquitto_pub` and `mosquitto_sub` (`mosquitto-clients`), to inspect and test MQTT devices
-- Both are Alpine packages, so the weekly GitHub Action keeps them up to date like Python 3 itself
+- Include the GitHub CLI (`gh`). Its login and the global git config are now kept in `/data` across restarts
+- All three are Alpine packages, so the weekly GitHub Action keeps them up to date like Python 3 itself
+- Claude Code now knows its environment: on every start the add-on writes `/etc/claude-code/CLAUDE.md` with the paths, MCP tools, APIs, command line tools and rules for editing the configuration. Claude Code loads it automatically, also on existing installs
+- `/homeassistant/CLAUDE.md` is now for your own notes. The add-on replaces it only while it is still the unchanged default of earlier versions
+- The configuration tab has names and descriptions in English and German
 
 ## 0.1.18
 

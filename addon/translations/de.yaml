@@ -1,0 +1,20 @@
+---
+configuration:
+  model:
+    name: Modell
+    description: >-
+      Login: Claude Code fragt beim ersten Start nach der Anmeldung, hier ist
+      kein Token nötig. Diese Option wählt das Claude-Modell.
+  yolo_mode:
+    name: Yolo-Modus
+    description: >-
+      Alle Werkzeuge ohne Nachfrage erlauben. Mit Vorsicht verwenden.
+  enable_embeddings:
+    name: Semantische Doku-Suche
+    description: >-
+      Lädt ein lokales Modell (ca. 87 MB) für die semantische Suche in der
+      Home-Assistant-Doku. Die Stichwortsuche funktioniert auch ohne.
+  additional_packages:
+    name: Zusätzliche Pakete
+    description: >-
+      Weitere Alpine-Pakete, die bei jedem Start installiert werden (z. B. vim).

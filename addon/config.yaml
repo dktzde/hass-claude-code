@@ -23,13 +23,11 @@ map:
   - ssl:ro
   - media:ro
 options:
-  api_key: ""
   model: "default"
   yolo_mode: false
   enable_embeddings: false
   additional_packages: []
 schema:
-  api_key: "password?"
   model: "list(default|sonnet|opus|haiku)"
   yolo_mode: bool
   enable_embeddings: bool
