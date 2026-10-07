@@ -34,7 +34,7 @@ class MyConfigFlow(ConfigFlow, domain=DOMAIN):
             )
         return self.async_show_form(
             step_id="user",
-            data_schema=vol.Schema({vol.Required(CONF_HOST): str}),
+            data_schema=probatio.Schema({probatio.Required(CONF_HOST): str}),
             errors=errors,
         )
 ```
@@ -59,7 +59,7 @@ class MyConfigFlow(ConfigFlow, domain=DOMAIN):
 
 ## Additional resources
 
-More information about config flows can be found in the [config flow documentation](/docs/config_entries_config_flow_handler).
+More information about config flows can be found in the [config flow documentation](/docs/core/integration/config_flow).
 More information about the architecture decision around config flows can be found in [ADR-0010](https://github.com/home-assistant/architecture/blob/master/adr/0010-integration-configuration.md)
 
 ## Exceptions

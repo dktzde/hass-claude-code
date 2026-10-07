@@ -35,7 +35,7 @@ COPY mcp-server/ ./mcp-server/
 # after the dependency install so a docs change does not re-resolve npm deps.
 ARG DOCS_REPO=https://github.com/dktzde/hass-claude-code.git
 ARG DOCS_REF=main
-ARG DOCS_STAMP=31e76a949f22daab34b025d9e10827f821efcb4c
+ARG DOCS_STAMP=62d5d0f7334772a208c38fc91c4b336c418a400e
 RUN echo "Docs stamp: ${DOCS_STAMP}" && \
     git clone --depth 1 --branch "${DOCS_REF}" "${DOCS_REPO}" /tmp/repo && \
     cp -r /tmp/repo/docs /build/docs && \
@@ -67,7 +67,7 @@ ENV TERM="xterm-256color"
 # last CI build), refreshed by the weekly workflow when Alpine ships updates.
 # A new value busts the Docker layer cache; otherwise the Supervisor keeps the
 # versions from the first install forever.
-ARG PACKAGES_STAMP=none
+ARG PACKAGES_STAMP=6602a926df3b
 # hadolint ignore=DL3017,DL3018
 RUN echo "Packages stamp: ${PACKAGES_STAMP}" && \
     apk upgrade --no-cache && \
@@ -86,7 +86,7 @@ RUN echo "Packages stamp: ${PACKAGES_STAMP}" && \
 
 # Pinned so a version change busts the Docker layer cache; the Supervisor
 # builds without --no-cache, so an unpinned install would stay stale forever.
-ARG CLAUDE_CODE_VERSION=2.1.289
+ARG CLAUDE_CODE_VERSION=2.1.292
 RUN curl -fsSL https://claude.ai/install.sh | bash -s "${CLAUDE_CODE_VERSION}"
 
 # Add Claude Code to PATH and disable auto-updater

@@ -1,11 +1,9 @@
-Automations support the advanced features of [templating](/docs/configuration/templating/) in the same way as scripts do. In addition to the [Home Assistant template extensions](/docs/configuration/templating/#home-assistant-template-extensions) available to scripts, the `trigger` and `this` template variables are available for automations.
+Automations support [templating](/docs/templating/) in the same way as scripts do. In addition to the [Home Assistant template extensions](/docs/templating/) available to scripts, the `trigger` and `this` template variables are available for automations.
 
 Example of variables used in templates:
 
-{% raw %}
 - `{{ this.name }}` is the name of the automation executing from this trigger
 - `{{ trigger.platform }}` is the type of trigger object, like `calendar`
-{% endraw %}
 
 ## Available state data
 
@@ -41,8 +39,8 @@ These are the properties available for a [Calendar trigger](/docs/automation/tri
 | `trigger.event`                      | The trigger event type, either `start`  or `end`.
 | `trigger.calendar_event`             | The calendar event object matched. 
 | `trigger.calendar_event.summary`     | The title or summary of the calendar event.
-| `trigger.calendar_event.start`       | String representation of the start date or date time of the calendar event e.g. `2022-04-10`, or `2022-04-10 11:30:00-07:00`
-| `trigger.calendar_event.end`         | String representation of the end time of date time the calendar event in UTC  e.g. `2022-04-11`, or `2022-04-10 11:45:00-07:00`
+| `trigger.calendar_event.start`       | String representation of the start date or date time of the calendar event, for example `2022-04-10`, or `2022-04-10 11:30:00-07:00`
+| `trigger.calendar_event.end`         | String representation of the end time of date time the calendar event in UTC, for example `2022-04-11`, or `2022-04-10 11:45:00-07:00`
 | `trigger.calendar_event.all_day`     | Indicates the event spans the entire day.
 | `trigger.calendar_event.description` | A detailed description of the calendar event, if available.
 | `trigger.calendar_event.location`    | Location information for the calendar event, if available. 
@@ -73,12 +71,15 @@ These are the properties available for an [Event trigger](/docs/automation/trigg
 
 ### Geolocation
 
-These are the properties available for a [Geolocation trigger](/docs/automation/trigger/#geolocation-trigger). 
+These are the properties available for a [Geolocation trigger](/triggers/geo_location/). 
 
 | Template variable | Data |
 | ---- | ---- |
 | `trigger.platform` | Hardcoded: `geo_location`
-| `trigger.event` | The trigger event type, either `enter`  or `leave`.
+| `trigger.entity_id` | Entity ID of the geolocation entity.
+| `trigger.from_state` | Previous [state object] of the entity. `None` if the entity was just created.
+| `trigger.to_state` | New [state object] of the entity. `None` if the entity was removed.
+| `trigger.event` | The trigger event type, either `enter` or `leave`.
 | `trigger.source` | The Geolocation platform creating the trigger event.
 | `trigger.zone` | State object of the zone.
 
@@ -107,7 +108,7 @@ These are the properties available for an [MQTT trigger](/docs/automation/trigge
 
 ### Numeric state
 
-These are the properties available for a [numeric state trigger](/docs/automation/trigger/#numeric-state-trigger).
+These are the properties available for a [Numeric state crossed threshold trigger](/docs/automation/trigger/#numeric-state-trigger).
 
 | Template variable | Data |
 | ---- | ---- |
@@ -128,13 +129,13 @@ These are the properties available for a [Sentence trigger](/docs/automation/tri
 | `trigger.platform` | Hardcoded: `conversation`
 | `trigger.sentence` | Text of the sentence that was matched.
 | `trigger.slots`    | Object with matched slot values.
-| `trigger.details`  | Object with matched slot details by name, such as [wildcards](/docs/automation/trigger/#sentence-wildcards). Each detail contains: `name` - name of the slot`text` - matched text`value` - output value (see [lists](/docs/voice/intent-recognition/template-sentence-syntax/#lists)).
+| `trigger.details`  | Object with matched slot details by name, such as [wildcards](/docs/automation/trigger/#sentence-wildcards). Each detail contains: `name` - name of the slot`text` - matched text`value` - output value (see [lists](https://developers.home-assistant.io/docs/voice/intent-recognition/template-sentence-syntax/#lists)).
 | `trigger.device_id` | The device ID that captured the command, if any.
 | `trigger.satellite_id` | The entity ID of the satellite that captured the command, if any.
 
 ### State
 
-These are the properties available for a [State trigger](/docs/automation/trigger/#state-trigger).
+These are the properties available for a [State changed trigger](/docs/automation/trigger/#state-trigger).
 
 | Template variable | Data |
 | ---- | ---- |
@@ -162,7 +163,7 @@ These are the properties available for a [Tag trigger](/docs/automation/trigger/
 | ---- | ---- |
 | `trigger.platform` | Hardcoded: `tag`
 | `trigger.tag_id` | The tag ID captured.
-| `trigger.device_id` | Optional device ID that captured the tag.
+| `trigger.event.data.device_id` | Optional device ID that captured the tag.
 
 ### Template
 
@@ -235,8 +236,6 @@ These are the properties available for a [Zone trigger](/docs/automation/trigger
 
 ## Examples
 
-{% raw %}
-
 ```yaml
 # Example configuration.yaml entries
 automation:
@@ -303,7 +302,5 @@ automation 4:
           - light.bedroom
           - light.living_room
 ```
-
-{% endraw %}
 
 [state object]: /docs/configuration/state_object/

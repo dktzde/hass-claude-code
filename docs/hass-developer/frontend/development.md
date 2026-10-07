@@ -33,21 +33,22 @@ Node.js is required to build the frontend. The preferred method of installing no
 nvm install
 ```
 
-[Yarn](https://yarnpkg.com/en/) is used as the package manager for node modules. [Install yarn using the instructions here.](https://yarnpkg.com/getting-started/install)
+[pnpm](https://pnpm.io/) is used as the package manager for node modules. The frontend repository pins the version it expects in its `packageManager` field, so enabling [Corepack](https://nodejs.org/api/corepack.html) is enough to get a matching pnpm:
 
-### Install development dependencies and fetch latest translations
+```shell
+corepack enable pnpm
+```
 
-Bootstrap the frontend development environment by installing development dependencies and downloading the latest translations.
+If `corepack` is not available in your Node.js installation, install it with `npm install -g corepack`, or [install pnpm directly](https://pnpm.io/installation).
+
+### Install development dependencies
+
+Bootstrap the frontend development environment by installing development dependencies.
 
 ```shell
 nvm use
 script/bootstrap
-script/setup_translations
 ```
-
-This needs to be done manually, even if you are using dev containers. Also, you will be asked to enter a code and authorize the script to fetch the latest translations.
-
-In case a previous authorization no longer works (e.g. you see a "Bad Credentials" error during translation fetching), delete the `token.json` file in the `translations` folder and execute `script/setup_translations` again to retrigger the authorization process.
 
 If you are using a development container, run these commands inside the container.
 
@@ -55,14 +56,16 @@ If you are using a development container, run these commands inside the containe
 
 ### Run development server
 
-Run this script to build the frontend and run a development server:
+Run this command to build the frontend and run a development server:
 
 ```shell
 nvm use
-script/develop
+pnpm dev --fetch-translations
 ```
 
-When the script has completed building the frontend, and Home Assistant Core has been set up correctly, the frontend will be accessible at `http://localhost:8123`. The server will automatically rebuild the frontend when you make changes to the source files.
+When the build has completed, and Home Assistant Core has been set up correctly, the frontend will be accessible at `http://localhost:8123`. The server will automatically rebuild the frontend when you make changes to the source files.
+
+`pnpm dev` is a wrapper around the `script/develop` script. Both still work, but `pnpm dev` adds the background lifecycle flags described below.
 
 ### Run development frontend over existing HA instance
 
@@ -70,16 +73,57 @@ Run this command to start the development server:
 
 ```shell
 nvm use
-script/develop_and_serve -c https://homeassistant.local:8123
+pnpm dev:serve --fetch-translations -c http://homeassistant.local
 ```
 
-You may need to replace "https://homeassistant.local:8123" with your local Home Assistant url.
+You may need to replace `http://homeassistant.local` with your local Home Assistant url. `http://homeassistant.local` assumes a Home Assistant OS installation using the default port 80; older installations and other installation types typically use port 8123 (e.g. `http://homeassistant.local:8123`).
+
+### Managing the dev server in the background
+
+Both dev servers above (along with the demo, gallery, and end-to-end test app dev servers below) accept a set of lifecycle flags. This lets you start a server, leave it running, and manage it later without keeping a terminal session attached:
+
+| Flag                | What it does                                                                                                                |
+| ------------------- | --------------------------------------------------------------------------------------------------------------------------- |
+| `--background`      | Start the server detached, wait until it is ready, print its URL (when it has one) and pid, then exit and leave it running. |
+| `--status`          | Report whether the dev server is running.                                                                                   |
+| `--logs [--follow]` | Print the dev server log, or tail it with `--follow`.                                                                       |
+| `--stop`            | Stop a running background dev server.                                                                                       |
+
+The app, locally served app, demo, and gallery commands also accept `--fetch-translations`. This fetches the latest translations before starting the server and prompts for GitHub authorization when no saved token is available. Translation fetching runs under the same workflow lock in foreground and background modes.
+
+If a previous authorization no longer works (for example, you see a "Bad Credentials" error), delete `translations/token.json` and start one of these commands with `--fetch-translations` again.
+
+For example:
+
+```shell
+pnpm dev:serve --background    # start it and detach
+pnpm dev:serve --logs --follow # watch the output
+pnpm dev:serve --stop          # stop it again
+```
+
+Each dev server listens on its own port:
+
+| Command                 | Port | Purpose                                                                  |
+| ----------------------- | ---- | ------------------------------------------------------------------------ |
+| `pnpm dev`              | 8123 | The app, served by a running Home Assistant Core (`development_repo`).   |
+| `pnpm dev:serve`        | 8124 | The app, served locally over an existing Home Assistant instance.        |
+| `pnpm dev:demo`         | 8090 | The [demo](https://demo.home-assistant.io/).                             |
+| `pnpm dev:gallery`      | 8100 | The [design gallery](/docs/frontend/design).                             |
+| `pnpm test:e2e:app:dev` | 8095 | The stripped-down app used by the [end-to-end tests](#end-to-end-tests). |
+
+These managed pnpm development workflows, together with `pnpm build` and `pnpm build --modern`, share one workflow lock. Starting the same development workflow again reports the running server and succeeds. Starting another managed workflow while one is active is blocked and reports the active workflow with the relevant status, logs, or stop command.
+
+When a coding agent is detected, `pnpm dev:*` runs in the background automatically so it does not block the agent's session. Set `HA_DEV_BACKGROUND=0` to force the dev server to run in the foreground.
+
+A cold build waits up to 180 seconds to become ready; override this with `HA_DEV_SERVER_TIMEOUT` (in seconds).
+
+Background logs are written under `node_modules/.cache/ha-dev-server/`.
 
 ### Browser settings
 
 Open Google Chrome's Developer tools, and make sure you have cache disabled and correct settings to avoid stale content:
 
-Instructions are for Google Chrome
+Instructions are for Google Chrome based browsers but are applicable to other browsers as well. You should find similar settings in your browser of choice.
 
 1. Disable cache by ticking the box in **Network** > **Disable cache**
 
@@ -88,6 +132,68 @@ Instructions are for Google Chrome
 2. Enable Bypass for network in **Application** > **Service Workers** > **Bypass for network**
 
   
+
+## Testing
+
+Before opening a pull request, run the linters and tests. These commands are all run from the frontend repository.
+
+### Linting and formatting
+
+```shell
+pnpm lint       # ESLint, Prettier, TypeScript, and Lit analyzer
+pnpm format     # auto-fix ESLint and Prettier issues
+pnpm lint:types # run only the TypeScript compiler
+```
+
+Always run `pnpm lint:types` (and `tsc`) without file arguments. Passing a filename (for example `pnpm lint:types src/file.ts`) makes `tsc` ignore `tsconfig.json` and emit a compiled `.js` file next to each `.ts` source in `src/`, polluting the source tree. If this happens, delete the stray files with `git clean -fd src/`.
+
+### Unit tests
+
+Unit tests run with [Vitest](https://vitest.dev/):
+
+```shell
+pnpm test            # run the unit tests
+pnpm test:coverage   # run them with a coverage report
+```
+
+### End-to-end tests
+
+End-to-end tests run with [Playwright](https://playwright.dev/), split into three suites that each have their own dev server:
+
+- **App**: the main app, tested against a stripped-down harness built just for the end-to-end tests.
+- **Demo**: the [demo](https://demo.home-assistant.io/).
+- **Gallery**: the [design gallery](/docs/frontend/design).
+
+| Suite   | Dev server              | Test command            | Runs on Port |
+| ------- | ----------------------- | ----------------------- | ------------ |
+| App     | `pnpm test:e2e:app:dev` | `pnpm test:e2e:app`     | 8095         |
+| Demo    | `pnpm dev:demo`         | `pnpm test:e2e:demo`    | 8090         |
+| Gallery | `pnpm dev:gallery`      | `pnpm test:e2e:gallery` | 8100         |
+
+Start the suite's dev server first (ideally with [background lifecycle flags](#managing-the-dev-server-in-the-background)), then run the suite. Playwright reuses a dev server already running on the port instead of doing a slow full build, and the watcher recompiles on save, so you can iterate without restarting anything:
+
+```shell
+# App
+pnpm test:e2e:app:dev --background   # start the dev server and detach
+pnpm test:e2e:app                    # run the suite
+
+# Demo
+pnpm dev:demo --background
+pnpm test:e2e:demo
+
+# Gallery
+pnpm dev:gallery --background
+pnpm test:e2e:gallery
+```
+
+Narrow a run to matching tests with `-g`, and to a single project with `--project`:
+
+```shell
+pnpm test:e2e:app -g "more-info" --project=chromium       # Desktop Chromium (matching "more-info")
+pnpm test:e2e:app -g "more-info" --project=mobile-chrome  # Pixel 7 (matching "more-info")
+```
+
+`pnpm test:e2e` runs all three suites, and `pnpm test:e2e:show-report` opens the combined HTML report.
 
 ## Creating pull requests
 
@@ -107,7 +213,25 @@ git push -u fork HEAD
 
 ## Building the frontend
 
-If you're making changes to the way the frontend is packaged, it might be necessary to try out a new packaged build of the frontend in the main repository (instead of pointing it at the frontend repo). To do so, first build a production version of the frontend by running `script/build_frontend`.
+If you're making changes to the way the frontend is packaged, it might be necessary to try out a new packaged build of the frontend in the main repository (instead of pointing it at the frontend repo). Run a full production build from the frontend repository with:
+
+```shell
+pnpm build
+```
+
+Production builds can also run as managed background processes:
+
+```shell
+pnpm build --background    # start a full build and detach
+pnpm build --status        # report whether a build is running
+pnpm build --logs          # print the background build log
+pnpm build --logs --follow # follow the background build log
+pnpm build --stop          # stop a running background build
+```
+
+Use `pnpm build --modern` when packaging, bundle-size, or browser performance work only needs the modern `frontend_latest` bundle. Add `--background` to run the modern-only build as a managed background process.
+
+A managed production build cannot run at the same time as a managed development server. Before starting a different managed workflow, stop the active workflow with its corresponding `--stop` command.
 
 To test it out inside Home Assistant, run the following command from the main Home Assistant repository:
 
@@ -117,3 +241,88 @@ hass --skip-pip-packages home-assistant-frontend
 ```
 
 [hass-frontend]: https://github.com/home-assistant/frontend
+
+## Test an existing PR
+
+Sometimes you need to test frontend changes on different environments or without setting up a full development environment. For example, you may want to test changes on a Home Assistant OS instance, or verify a fix works in your specific setup before the PR is merged.
+
+The `development_pr` option allows you to easily test frontend PRs by automatically downloading and using the frontend artifact from GitHub.
+
+### Configuration
+
+To use this feature, you need both a PR number and a GitHub token.
+
+#### Creating a GitHub token
+
+1. Go to [GitHub Settings > Developer Settings > Personal Access Tokens > Fine-grained tokens](https://github.com/settings/personal-access-tokens)
+2. Click "Generate new token"
+3. Give it a descriptive name like "Home Assistant Frontend Testing"
+4. Set the expiration date (recommended: 90 days or less)
+5. Under "Repository access", select "Public Repositories (read-only)"
+6. Skip the 'Permissions' section (leave it empty)
+7. Click "Generate token"
+8. Copy the token immediately (you won't be able to see it again)
+
+#### Configuration in Home Assistant
+
+Add the following to your `configuration.yaml`:
+
+```yaml
+frontend:
+  development_pr: <PR_NUMBER>
+  github_token: <YOUR_GITHUB_TOKEN>
+```
+
+For example, to test PR #12345:
+
+```yaml
+frontend:
+  development_pr: 12345
+  github_token: ghp_your_token_here
+```
+
+After adding this configuration, restart Home Assistant for the changes to take effect.
+
+Keep your GitHub token secure. Do not commit it to version control or share it publicly.
+
+#### Reverting to the production frontend
+
+To stop using the PR build and return to the standard Home Assistant frontend:
+
+1. Remove the `development_pr` and `github_token` lines from your `configuration.yaml`
+2. Restart Home Assistant
+
+Home Assistant will automatically return to using the built-in production frontend.
+
+### How it works
+
+When you configure `development_pr`, Home Assistant downloads the frontend build artifact from the specified PR on GitHub during startup and uses it instead of the production version. The artifact is cached locally and, on subsequent restarts, Home Assistant checks if the PR has new commits by comparing SHA sums. If a newer version is found, it downloads the updated artifact automatically.
+
+If you have both `development_repo` and `development_pr` configured, `development_repo` takes precedence. The local development repository will be used instead of the PR build.
+
+### Use cases
+
+This is particularly useful for:
+
+- **Testing on HAOS**: Test PRs on Home Assistant OS without needing a development setup
+- **Environment-specific testing**: Verify that a fix works on your specific hardware, network, or browser configuration
+- **Quick verification**: Test a fix or feature without cloning repositories and building the frontend locally
+
+### Limitations
+
+- The PR must have a successful build with artifacts available on GitHub
+- Frontend artifacts are only available for 7 days after the PR build completes
+- This is intended for testing only and should not be used in production
+
+#### Recreating the artifact
+
+This can be useful if the artifact isn't available anymore, because it's older then 7 days or you want to test new upstream changes in the PR.
+
+If you are the author of the PR, you can trigger a new artifact by:
+
+- Update your branch — either by merging the `dev` branch into it or rebasing on top of the latest `dev` branch. This will trigger the build pipeline and create a new artifact that Home Assistant can download.
+- Close and reopen the PR to trigger a new build.
+
+If you are not the author, you can ask them to update their PR branch to trigger a new build.
+
+To use the new artifact you have to restart Home Assistant core

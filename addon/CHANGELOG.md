@@ -1,10 +1,17 @@
-## 0.1.17
+## 0.1.18
 
 ### Improvements
 
 - Pin the npm dependencies of the MCP server with a lockfile, so every device builds exactly the versions that were tested instead of whatever npm offers at build time
 - The weekly GitHub Action now also updates these dependencies within their major versions and checks the MCP server after each test build (tool list and a docs search)
 - New major versions of npm dependencies and new versions of the base image are reported as issues in this repository; switching to them stays a manual step
+
+## 0.1.17
+
+- **Automated update** by the GitHub Action "Update add-on" ([workflow run](https://github.com/dktzde/hass-claude-code/actions/runs/37606435542)), not made by hand
+- Update Claude Code to 2.1.292
+- Update system packages: `ada-libs-3.3.0-r0`, `alpine-baselayout-3.7.2-r0`, `alpine-baselayout-data-3.7.2-r0`, `alpine-keys-2.6-r0`, `alpine-release-3.23.6-r0`, `apk-tools-3.0.8-r0`, `bash-5.3.3-r1`, `brotli-libs-1.2.0-r0`, `busybox-1.37.0-r30`, `busybox-binsh-1.37.0-r30` and 55 more
+- Update the bundled Home Assistant docs (320 files changed)
 
 ## 0.1.16
 

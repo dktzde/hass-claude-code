@@ -78,9 +78,7 @@ profile ADDON_SLUG flags=(attach_disconnected,mediate_deleted) {
   /run/{s6,s6-rc*,service}/** ix,
   /package/** ix,
   /command/** ix,
-  /etc/services.d/** rwix,
-  /etc/cont-init.d/** rwix,
-  /etc/cont-finish.d/** rwix,
+  /etc/s6-overlay/** rwix,
   /run/{,**} rwk,
   /dev/tty rw,
 
@@ -88,7 +86,7 @@ profile ADDON_SLUG flags=(attach_disconnected,mediate_deleted) {
   /usr/lib/bashio/** ix,
   /tmp/** rwk,
 
-  # Access to options.json and other files within your addon
+  # Access to options.json and other files within your app
   /data/** rw,
 
   # Start new profile for service
@@ -134,11 +132,11 @@ Ingress allows users to access the app web interface via the Home Assistant UI. 
 
 Here are the requirements of Ingress:
 - Ingress must be enabled. Set `ingress: true` in [`config.yaml`](/docs/apps/configuration#optional-configuration-options).
-- Your server may run on port 8099. If it does not run on 8099, you must set `ingress_port: PORT_NUMBER` in [`config.yaml`](/docs/apps/configuration#app-config) to match your configuration.
+- Your server may run on port 8099. If it does not run on 8099, you must set `ingress_port: PORT_NUMBER` in [`config.yaml`](/docs/apps/configuration#app-configuration) to match your configuration.
 - Only connections from `172.30.32.2` must be allowed. You should deny access to all other IP addresses within your app server. 
 - Users are previously authenticated via Home Assistant. Authentication is not required. 
 
-Configuration of path and port information may be queried via [apps info API endpoint](/docs/api/supervisor/endpoints/#addons). If the Home Assistant URL is required by your addon, Ingress adds a request header `X-Ingress-Path` which may be filtered to obtain the base URL. 
+Configuration of path and port information may be queried via [apps info API endpoint](/docs/api/supervisor/endpoints/#apps). If the Home Assistant URL is required by your app, Ingress adds a request header `X-Ingress-Path` which may be filtered to obtain the base URL. 
 
 Ingress API gateway supports the following:
 
@@ -167,8 +165,7 @@ Our example `Dockerfile` is configured to support only our Nginx server and does
 Dockerfile
 
 ```dockerfile
-ARG BUILD_FROM
-FROM $BUILD_FROM
+FROM ghcr.io/home-assistant/base:latest
 
 #Add nginx and create the run folder for nginx.
 RUN \
@@ -194,10 +191,8 @@ version: "1.0.0"
 slug: "nginx-ingress-example"
 description: "Ingress testing"
 arch:
+  - aarch64
   - amd64
-  - armhf
-  - armv7
-  - i386
 ingress: true
 ```
 
@@ -213,7 +208,6 @@ Each app starts with a base rating of 5, on a scale of 1 to 6. Depending on deci
 |---|---|---|
 | Use `ingress: true` in [`config.yaml`](/docs/apps/configuration#optional-configuration-options) | +2 | overrides `auth_api` rating |
 | Use `auth_api: true` in [`config.yaml`](/docs/apps/configuration#optional-configuration-options) | +1 | overridden by `ingress` |
-| App is signed with [CodeNotary](https://cas.codenotary.com/)| +1||
 | Use custom [`apparmor.txt`](/docs/apps/presentation#apparmor)| +1| Rating applied after installation |
 | Set `apparmor: false` in [`config.yaml`](/docs/apps/configuration#optional-configuration-options) | -1 | |
 | Use `privileged: NET_ADMIN`, `SYS_ADMIN`, `SYS_RAWIO`, `SYS_PTRACE`, `SYS_MODULE`, or `DAC_READ_SEARCH`, or `kernel_modules:` used in [`config.yaml`](/docs/apps/configuration#optional-configuration-options)| -1 | Rating applied only once if multiple are used. |

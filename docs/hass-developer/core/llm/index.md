@@ -1,10 +1,37 @@
-Home Assistant can interact with large language models (LLMs). By exposing a Home Assistant API to an LLM, the LLM can fetch data or control Home Assistant to better assist the user. Home Assistant comes with a built-in LLM API, but custom integrations can register their own to provide more advanced functionality.
+Home Assistant can interact with large language models (LLMs). By exposing a Home Assistant API to an LLM, the LLM can fetch data or control Home Assistant to better assist the user. Home Assistant comes with a built-in LLM API, but custom integrations can register their own to provide additional functionality.
 
 ## Built-in Assist API
 
 Home Assistant has a built-in API which exposes the Assist API to LLMs. This API allows LLMs to interact with Home Assistant via [intents](../../intent_builtin), and can be extended by registering intents.
 
 The Assist API is equivalent to the capabilities and exposed entities that are also accessible to the built-in conversation agent. No administrative tasks can be performed.
+
+## Contributing tools
+
+Integrations can contribute tools to an LLM API without owning a full API. The `llm` integration discovers an `<integration>/llm.py` platform that exposes an `async_get_tools` hook. The platform is imported lazily and queried only when an LLM request needs its tools.
+
+`async_get_tools` is a callback that is evaluated for each request with the request's `LLMContext` and the `api_id` of the API being assembled. It returns the tools to expose, together with an optional prompt fragment that travels with those tools, or `None` when the integration has nothing to contribute to that API. Because it runs per request, it can return a different set of tools depending on the context, such as the assistant or device making the request, or the selected API.
+
+```python
+# example_integration/llm.py
+from homeassistant.components import llm
+from homeassistant.core import HomeAssistant, callback
+from homeassistant.helpers.llm import LLMContext
+
+@callback
+def async_get_tools(
+    hass: HomeAssistant, llm_context: LLMContext, api_id: str
+) -> llm.LLMTools | None:
+    """Return the tools to expose to the LLM."""
+    return llm.LLMTools(
+        tools=[MyTool()],
+        prompt="Use MyTool to ...",  # Optional prompt fragment
+    )
+```
+
+The hook is only called once the `llm` integration is set up, so the platform does not need to depend on `llm` itself.
+
+See [Tools](#tools) for how to implement the `Tool` objects returned by the platform.
 
 ## Supporting LLM APIs
 
@@ -32,7 +59,7 @@ from homeassistant.helpers.selector import (
 def async_get_options_schema(
     hass: HomeAssistant,
     options: MappingProxyType[str, Any],
-) -> vol.Schema:
+) -> probatio.Schema:
     """Return the options schema."""
     apis: list[SelectOptionDict] = [
         SelectOptionDict(
@@ -42,9 +69,9 @@ def async_get_options_schema(
         for api in llm.async_get_apis(hass)
     ]
 
-    return vol.Schema(
+    return probatio.Schema(
         {
-            vol.Optional(
+            probatio.Optional(
                 CONF_LLM_HASS_API,
                 description={"suggested_value": options.get(CONF_LLM_HASS_API)},
             ): SelectSelector(SelectSelectorConfig(options=apis, multiple=True)),
@@ -130,7 +157,7 @@ class MyConversationEntity(conversation.ConversationEntity):
 
 ## Creating your own API
 
-To create your own API, you need to create a class that inherits from `API` and implement the `async_get_tools` method. The `async_get_tools` method should return a list of `Tool` objects that represent the functionality that you want to expose to the LLM.
+To create your own API, you need to create a class that inherits from `API` and implement the `async_get_api_instance` method. It returns an `APIInstance` holding the list of `Tool` objects that represent the functionality you want to expose to the LLM, together with the prompt that tells the LLM how to use them.
 
 ### Tools
 
@@ -138,31 +165,38 @@ The `llm.Tool` class represents a tool that can be called by the LLM.
 
 ```python
 from homeassistant.core import HomeAssistant
-from homeassistant.helper import llm
+from homeassistant.helpers import llm
+from homeassistant.helpers.llm import LLMContext, ToolAnnotations, ToolInput, ToolResult
 from homeassistant.util import dt as dt_util
-from homeassistant.util.json import JsonObjectType
+
+from .const import DOMAIN
 
 class TimeTool(llm.Tool):
     """Tool to get the current time."""
 
     name = "GetTime"
-    description: "Returns the current time."
+    title = "Get the time"
+    description = "Returns the current time."
+    integration = DOMAIN
+    annotations = ToolAnnotations(
+        read_only=True, destructive=False, idempotent=True, open_world=False
+    )
 
-    # Optional. A voluptuous schema of the input parameters.
-    parameters = vol.Schema({
-      vol.Optional('timezone'): str,
+    # Optional. A probatio schema of the input parameters.
+    parameters = probatio.Schema({
+      probatio.Optional('timezone'): str,
     })
 
     async def async_call(
         self, hass: HomeAssistant, tool_input: ToolInput, llm_context: LLMContext
-    ) -> JsonObjectType:
+    ) -> ToolResult:
         """Call the tool."""
         if "timezone" in tool_input.tool_args:
             tzinfo = dt_util.get_time_zone(tool_input.tool_args["timezone"])
         else:
             tzinfo = dt_util.DEFAULT_TIME_ZONE
 
-        return dt_util.now(tzinfo).isoformat()
+        return ToolResult(data={"time": dt_util.now(tzinfo).isoformat()})
 ```
 
 The `llm.Tool` class has the following attributes:
@@ -170,18 +204,29 @@ The `llm.Tool` class has the following attributes:
 | Name                | Type       | Description                                                                                                    |
 |---------------------|------------|----------------------------------------------------------------------------------------------------------------|
 | `name`              | string     | The name of the tool. Required.                                                                                |
+| `title`             | string     | A name for the tool to show to people. Optional.                                                               |
 | `description`       | string     | Description of the tool to help the LLM understand when and how it should be called. Optional but recommended. |
-| `parameters`        | vol.Schema | The voluptuous schema of the parameters. Defaults to vol.Schema({})                                            |
+| `parameters`        | probatio.Schema | The probatio schema of the parameters. Defaults to probatio.Schema({})                                            |
+| `annotations`       | ToolAnnotations | Properties describing how the tool behaves. Defaults to `ToolAnnotations()`                                  |
+| `integration`       | string     | The domain of the integration that provides the tool. Required.                                                |
+
+A tool that does not set `integration` is reported. A tool from a core integration raises an error. A tool from a custom integration gets a warning in the log, and stops working in Home Assistant Core 2027.10.
 
 The `llm.Tool` class has the following methods:
 
 #### `async_call`
 
-Perform the actual operation of the tool when called by the LLM. This must be an async method. Its arguments are `hass` and an instance of `llm.ToolInput`.
+Perform the actual operation of the tool when called by the LLM. This must be an async method. Its arguments are `hass`, an instance of `llm.ToolInput`, and the `llm.LLMContext` of the request.
 
-Response data must be a dict and serializable in JSON [`homeassistant.util.json.JsonObjectType`](https://github.com/home-assistant/home-assistant/blob/master/homeassistant/util/json.py).
+The method returns an `llm.ToolResult`. Its `data` holds the response of the tool, which must be a dict and serializable in JSON [`homeassistant.util.json.JsonObjectType`](https://github.com/home-assistant/core/blob/dev/homeassistant/util/json.py). Its `error` says whether the call failed.
 
-Errors must be raised as `HomeAssistantError` exceptions (or its subclasses). The response data should not contain error codes used for error handling.
+Returning a plain dict instead of a `ToolResult` is deprecated. It keeps working for custom integrations with a warning in the log, and stops working in Home Assistant Core 2027.11.
+
+Raise a `HomeAssistantError` (or a subclass) when the tool cannot do its work. Home Assistant catches it and returns a `ToolResult` that names the exception and has `error` set. Return a `ToolResult` with `error` set yourself when you want to word the failure for the LLM:
+
+```python
+return ToolResult(data={"error": "Calendar not found"}, error=True)
+```
 
 The `ToolInput` has following attributes:
 
@@ -189,12 +234,33 @@ The `ToolInput` has following attributes:
 |-------------------|---------|---------------------------------------------------------------------------------------------------------|
 | `tool_name`       | string  | The name of the tool being called                                                                       |
 | `tool_args`       | dict    | The arguments provided by the LLM. The arguments are converted and validated using `parameters` schema. |
-| `platform`        | string  | The DOMAIN of the conversation agent using the tool                                                     |
-| `context`         | Context | The `homeassistant.core.Context` of the conversation                                                    |
-| `user_prompt`     | string  | The raw text input that initiated the tool call                                                         |
+| `id`              | string  | Unique identifier for the tool call. Defaults to a newly generated ULID.                                 |
+| `external`        | bool    | Whether the tool call is executed outside of Home Assistant (for example by the model provider). External tool calls are not dispatched to the API's tools. Defaults to `False`. |
+
+Context that is shared across all tools of a request (the conversation agent, the requesting device, etc.) is provided separately as the `llm.LLMContext` passed to `async_call`.
+
+The `LLMContext` has following attributes:
+
+| Name              | Type    | Description                                                                                             |
+|-------------------|---------|---------------------------------------------------------------------------------------------------------|
+| `platform`        | string  | The DOMAIN of the conversation agent handling the LLM request                                           |
+| `context`         | Context | The `homeassistant.core.Context` of the request                                                         |
 | `language`        | string  | The language of the conversation agent, or "*" for any language                                         |
 | `assistant`       | string  | The assistant name used to control exposed entities. Currently, only `conversation` is supported.        |
 | `device_id`       | string  | The device_id of the device the user used to initiate the conversation.                                 |
+
+#### `ToolAnnotations`
+
+The annotations tell the LLM how a tool behaves, so it can decide when to call it. They match the tool annotations of the Model Context Protocol, and the MCP Server integration passes them on to MCP clients.
+
+| Name          | Type | Description                                                                                 |
+|---------------|------|-----------------------------------------------------------------------------------------------|
+| `read_only`   | bool | The tool only reads. It changes nothing. Defaults to `False`.                                  |
+| `destructive` | bool | The tool can change or remove something that already exists. Defaults to `True`.               |
+| `idempotent`  | bool | Calling the tool again with the same arguments has no further effect. Defaults to `False`.     |
+| `open_world`  | bool | The tool reaches outside Home Assistant. Defaults to `True`.                                   |
+
+The defaults describe the least safe case. A tool that declares nothing is taken to write, to be destructive, and to reach outside Home Assistant. All fields are keyword-only, and `ToolAnnotations` is immutable.
 
 ### API
 
@@ -203,11 +269,10 @@ The API object allows creating API instances. An API Instance represents a colle
 ```python
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
-from homeassistant.helper import llm
-from homeassistant.util import dt as dt_util
-from homeassistant.util.json import JsonObjectType
+from homeassistant.helpers import llm
+from homeassistant.helpers.llm import APIInstance, LLMContext
 
-class MyAPI(API):
+class MyAPI(llm.API):
     """My own API for LLMs."""
 
     async def async_get_api_instance(self, llm_context: LLMContext) -> APIInstance:
@@ -225,7 +290,11 @@ async def async_setup_api(hass: HomeAssistant, entry: ConfigEntry) -> None:
     # unregistered when the config entry is unloaded.
     unreg = llm.async_register_api(
         hass,
-        MyAPI(hass, f"my_unique_key-{entry.entry_id}", entry.title)
+        MyAPI(
+            hass=hass,
+            id=f"my_unique_key-{entry.entry_id}",
+            name=entry.title,
+        ),
     )
     entry.async_on_unload(unreg)
 ```
@@ -234,8 +303,11 @@ The `llm.API` class has the following attributes:
 
 | Name              | Type    | Description                                                                                             |
 |-------------------|---------|---------------------------------------------------------------------------------------------------------|
+| `hass`            | HomeAssistant | The Home Assistant instance. Required.                                                            |
 | `id`              | string  | A unique identifier for the API. Required.                                                              |
 | `name`            | string  | The name of the API. Required.                                                                          |
+
+All fields are keyword-only, so the API must be instantiated with keyword arguments.
 
 The `llm.APIInstance` class has the following attributes:
 
@@ -245,3 +317,49 @@ The `llm.APIInstance` class has the following attributes:
 | `api_prompt`      | string  | Instructions for LLM on how to use the LLM tools. Required.                                      |
 | `llm_context`    | LLMContext | The context of the tool call. Required.                                                                 |
 | `tools`           | list[Tool] | The tools that are available in this API. Required.                                                     |
+| `custom_serializer` | Callable | Optional function to convert probatio schemas (for example selectors) into the JSON schema the LLM expects. Defaults to `None`. |
+
+## Exposing an API over MCP
+
+You do not need to do anything special to make your API available over the [Model Context Protocol (MCP)](https://modelcontextprotocol.io). Once the user sets up the [MCP Server integration](https://www.home-assistant.io/integrations/mcp_server/), every registered LLM API is automatically served over MCP.
+
+Each API is reachable at its own Streamable HTTP endpoint, addressed by its API ID:
+
+```text
+/api/mcp/<API ID>
+```
+
+For example, the built-in Assist API is available at `/api/mcp/assist`, and a custom API registered with `llm.async_register_api` is available at `/api/mcp/<your API ID>`.
+
+These per-API endpoints require an admin access token, except for the Assist API. The MCP Server integration also exposes a single configured API at `/api/mcp` for clients that do not target a specific API by ID.
+
+### Listing the registered APIs
+
+Because these endpoints are addressed by API ID, clients need a way to find out which IDs exist. The registered APIs can be listed over the [WebSocket API](../../api/websocket):
+
+```json
+{
+  "id": 1,
+  "type": "llm/api/list"
+}
+```
+
+The server responds with the ID and name of every registered API, in registration order:
+
+```json
+{
+  "id": 1,
+  "type": "result",
+  "success": true,
+  "result": {
+    "apis": [
+      {
+        "id": "assist",
+        "name": "Assist"
+      }
+    ]
+  }
+}
+```
+
+The `id` of an API is the value used in `/api/mcp/<API ID>`, and the `name` is the name shown to the user. This command requires an admin user.

@@ -20,8 +20,6 @@ For this tutorial, we use a simple automation. The process for converting a comp
 
 The automation we're going to use in this tutorial controls a light based on a motion sensor:
 
-{% raw %}
-
 ```yaml
 triggers:
   - trigger: state
@@ -38,10 +36,8 @@ actions:
       entity_id: light.kitchen
 ```
 
-{% endraw %}
-
 The options that can be used with the `trigger` object are listed under [automation trigger variables](/docs/automation/templating/#available-trigger-data).
-In this example, a [state trigger](/docs/automation/templating/#state) is used.
+In this example, a [State changed trigger](/docs/automation/templating/#state) is used.
 `turn_on` and `turn_off` are [`homeassistant` actions](/docs/scripts/perform-actions/#homeassistant-actions). They are not tied to a specific domain. You can use them on lights, switches, and other domains.
 
 ### Creating the blueprint file
@@ -79,8 +75,6 @@ For the light, we can offer some more flexibility. We want to allow the user to 
 
 Inputs are not limited to strings. They can contain complex objects too. So in this case, we're going to mark the whole `target` as input:
 
-{% raw %}
-
 ```yaml
 actions:
   - action: >
@@ -91,8 +85,6 @@ actions:
       {% endif %}
     target: !input target_light
 ```
-
-{% endraw %}
 
 #### Add the inputs to the metadata
 
@@ -130,7 +122,7 @@ Reload automations and your new automation should pop up. Because we configured 
 
 ## Improving the inputs
 
-Blueprints are easier to use if it's easy to see what each field is used for. 
+Blueprints are easier to use if it's easy to see what each field is used for.
 
 ### Add a user friendly names to the inputs
 
@@ -188,8 +180,6 @@ By limiting our blueprint to working with lights and motion sensors, we unlock a
 
 After we have added all the steps, our blueprint will look like this:
 
-{% raw %}
-
 ```yaml
 blueprint:
   name: Motion Light Tutorial
@@ -225,8 +215,6 @@ actions:
       {% endif %}
     target: !input target_light
 ```
-
-{% endraw %}
 
 ## Using the blueprint via the UI
 

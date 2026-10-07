@@ -54,6 +54,10 @@ In countries like Germany, SML (Smart Message Language) is used typically. ESPHo
 
 ![Photo of the AI-on-the-edge-device Workflow](/images/docs/energy/ai-on-the-edge-device.jpg)
 
+#### Reading the meter wirelessly via RTL-SDR
+
+{% include energy/rtl_sdr.md %}
+
 ### Using a CT clamp sensor
 
 {% include energy/ct_clamp.md %}
@@ -65,6 +69,18 @@ Some energy providers will provide you real-time information about your usage an
 ### Manual integration
 
 If you manually integrate your sensors, for example, using the [MQTT](/integrations/mqtt) or [Template](/integrations/template) integrations: Make sure you set and provide the `device_class`, `state_class`, and `unit_of_measurement` for those sensors.
+
+## Add the data to the Energy dashboard
+
+Once your energy data is available in Home Assistant, add it to the Energy dashboard:
+
+1. Go to **Settings** > **Dashboards** > **Energy**.
+2. Under **Electricity grid**, select **Add grid connection**.
+3. Select the statistic that represents the energy consumed from the grid.
+4. If applicable, also select the statistic for energy returned to the grid.
+5. Save the grid connection.
+
+Only compatible statistics are available for selection.
 
 ### Troubleshooting
 

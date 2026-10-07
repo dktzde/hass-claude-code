@@ -39,7 +39,7 @@ class MyCoordinator(DataUpdateCoordinator[dict[str, MyDevice]]):
 async def async_setup_entry(
     hass: HomeAssistant,
     entry: MyConfigEntry,
-    async_add_entities: AddEntitiesCallback,
+    async_add_entities: AddConfigEntryEntitiesCallback,
 ) -> None:
     """Set up My integration from a config entry."""
     coordinator = entry.runtime_data
@@ -61,6 +61,6 @@ async def async_setup_entry(
 
 ## Exceptions
 
-There are no exceptions to this rule.
+Integrations that manage only a single, static device per config entry, that is tied to the lifecycle to the config entry are exempt from this rule.
 
 ## Related rules

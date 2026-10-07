@@ -77,6 +77,6 @@ For more information about managing integration state, see the [documentation](/
 
 ## Exceptions
 
-There are no exceptions to this rule.
+If the integration does not have any entities this rule does not apply.
 
 ## Related rules

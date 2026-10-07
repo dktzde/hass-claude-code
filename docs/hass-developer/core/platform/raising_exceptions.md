@@ -1,6 +1,6 @@
 ## Raising exceptions in service action handlers
 
-Operations like service action calls and entity methods (e.g. *Set HVAC Mode*) should raise exceptions properly.
+Operations like service action calls and entity methods (for example, *Set HVAC Mode*) should raise exceptions properly.
 
 Integrations should raise `ServiceValidationError` (instead of `ValueError`) in case when the user did something wrong. In this case a stack trace will only be printed at debug level.
 

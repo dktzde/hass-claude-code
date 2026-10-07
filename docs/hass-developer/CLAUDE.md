@@ -7,6 +7,7 @@ Use the `hass-docs-search` subagent to search these docs efficiently.
 
 ### (root)
 
+- `ai_policy.md` — AI Policy
 - `android.md` — Home Assistant Android
 - `api_lib_auth.md` — Python library: authentication
 - `api_lib_data_models.md` — Python library: modelling data
@@ -29,20 +30,16 @@ Use the `hass-docs-search` subagent to search these docs efficiently.
 - `auth_permissions.md` — Permissions
 - `automations.md` — Automations
 - `bluetooth.md` — Bluetooth
-- `config_entries_config_flow_handler.md` — Config flow
 - `config_entries_index.md` — Config entries
-- `config_entries_options_flow_handler.md` — Options flow
-- `configuration_yaml_index.md` — Integration configuration via YAML
-- `creating_component_code_review.md` — Checklist for creating a component
 - `creating_component_generic_discovery.md` — Integration with multiple platforms
 - `creating_component_index.md` — Creating your first integration
 - `creating_integration_brand.md` — Brands
 - `creating_integration_file_structure.md` — Integration file structure
 - `creating_integration_manifest.md` — Integration manifest
 - `creating_integration_tests_file_structure.md` — Integration tests file structure
-- `creating_platform_code_review.md` — Checklist for creating a platform
 - `creating_platform_index.md` — Integration platforms
 - `data_entry_flow_index.md` — Data entry flow
+- `deprecating.md` — Deprecating
 - `dev_101_config.md` — Config
 - `dev_101_events.md` — Events
 - `dev_101_hass.md` — Hass object
@@ -63,7 +60,7 @@ Use the `hass-docs-search` subagent to search these docs efficiently.
 - `device_automation_index.md` — Device automations
 - `device_automation_trigger.md` — Device triggers
 - `device_registry_index.md` — Device registry
-- `documenting.md` — Documentation
+- `documenting.md` — Contributing to documentation
 - `entity_registry_disabled_by.md` — Entity registry and disabling entities
 - `entity_registry_index.md` — Entity registry
 - `frontend.md` — Home Assistant Frontend
@@ -80,16 +77,20 @@ Use the `hass-docs-search` subagent to search these docs efficiently.
 - `internationalization.md` — Internationalization
 - `misc.md` — Miscellaneous
 - `network_discovery.md` — Networking and discovery
+- `oauth2.md` — OAuth 2.0 support
 - `operating-system.md` — Home Assistant Operating System
 - `review-process.md` — Pull request review process
 - `setup_devcontainer_environment.md` — Setting Up a Devcontainer Development Environment
 - `supervisor.md` — Home Assistant Supervisor
 - `translations.md` — Contributing translation
+- `versioning.md` — Versioning
 
 ### android
 
 - `android/app_flavors.md` — Android flavors
-- `android/architecture.md` — Android architecture
+- `android/architecture/frontend_screen.md` — Frontend screen
+- `android/architecture/overview.md` — Android architecture
+- `android/architecture/ui_architecture.md` — UI architecture
 - `android/best_practices.md` — Android best practices
 - `android/ci.md` — Android continuous integration and delivery
 - `android/codestyle.md` — Android code style
@@ -98,6 +99,7 @@ Use the `hass-docs-search` subagent to search these docs efficiently.
 - `android/release.md` — Android release process
 - `android/submit.md` — Android submit contribution
 - `android/targets.md` — Android targets
+- `android/testing/e2e_testing.md` — Android end-to-end testing
 - `android/testing/integration_testing.md` — Android integration testing
 - `android/testing/introduction.md` — Android testing
 - `android/testing/screenshot_testing.md` — Android screenshot testing
@@ -115,6 +117,7 @@ Use the `hass-docs-search` subagent to search these docs efficiently.
 
 ### api
 
+- `api/instance_discovery.md` — Instance discovery
 - `api/native-app-integration.md` — Native app integration
 - `api/native-app-integration/notifications.md` — Push notifications
 - `api/native-app-integration/sending-data.md` — Sending data home
@@ -126,6 +129,17 @@ Use the `hass-docs-search` subagent to search these docs efficiently.
 - `api/supervisor/examples.md` — Examples
 - `api/supervisor/models.md` — Models
 - `api/websocket.md` — WebSocket API
+
+### apple
+
+- `apple/architecture.md` — Architecture
+- `apple/ci.md` — Continuous integration
+- `apple/codestyle.md` — Code style
+- `apple/get_started.md` — Get started
+- `apple/index.md` — Home Assistant Apple Platforms
+- `apple/submit.md` — Submit a contribution
+- `apple/targets.md` — Targets
+- `apple/testing.md` — Testing
 
 ### apps
 
@@ -164,14 +178,17 @@ Use the `hass-docs-search` subagent to search these docs efficiently.
 - `core/entity/device-tracker.md` — Device tracker entity
 - `core/entity/event.md` — Event entity
 - `core/entity/fan.md` — Fan entity
+- `core/entity/geo-location.md` — Geolocation entity
 - `core/entity/humidifier.md` — Humidifier entity
 - `core/entity/image.md` — Image entity
+- `core/entity/infrared.md` — Infrared entity
 - `core/entity/lawn-mower.md` — Lawn mower entity
 - `core/entity/light.md` — Light entity
 - `core/entity/lock.md` — Lock entity
 - `core/entity/media-player.md` — Media player entity
 - `core/entity/notify.md` — Notify entity
 - `core/entity/number.md` — Number entity
+- `core/entity/radio-frequency.md` — Radio frequency entity
 - `core/entity/remote.md` — Remote entity
 - `core/entity/scene.md` — Scene entity
 - `core/entity/select.md` — Select entity
@@ -207,6 +224,7 @@ Use the `hass-docs-search` subagent to search these docs efficiently.
 - `core/integration-quality-scale/rules/discovery-update-info.md` — Integration uses discovery info to update network information
 - `core/integration-quality-scale/rules/discovery.md` — Devices can be discovered
 - `core/integration-quality-scale/rules/docs-actions.md` — The documentation describes the provided service actions that can be used
+- `core/integration-quality-scale/rules/docs-conditions.md` — The documentation describes the provided conditions that can be used
 - `core/integration-quality-scale/rules/docs-configuration-parameters.md` — The documentation describes all integration configuration options
 - `core/integration-quality-scale/rules/docs-data-update.md` — The documentation describes how data is updated
 - `core/integration-quality-scale/rules/docs-examples.md` — The documentation provides automation examples the user can use.
@@ -217,6 +235,7 @@ Use the `hass-docs-search` subagent to search these docs efficiently.
 - `core/integration-quality-scale/rules/docs-removal-instructions.md` — The documentation provides removal instructions
 - `core/integration-quality-scale/rules/docs-supported-devices.md` — The documentation describes known supported / unsupported devices
 - `core/integration-quality-scale/rules/docs-supported-functions.md` — The documentation describes the supported functionality, including entities, and platforms
+- `core/integration-quality-scale/rules/docs-triggers.md` — The documentation describes the provided triggers that can be used
 - `core/integration-quality-scale/rules/docs-troubleshooting.md` — The documentation provides troubleshooting information
 - `core/integration-quality-scale/rules/docs-use-cases.md` — The documentation describes use cases to illustrate how this integration can be used
 - `core/integration-quality-scale/rules/dynamic-devices.md` — Devices added after integration setup
@@ -244,15 +263,22 @@ Use the `hass-docs-search` subagent to search these docs efficiently.
 - `core/integration-quality-scale/rules/test-before-setup.md` — Check during integration initialization if we are able to set it up correctly
 - `core/integration-quality-scale/rules/test-coverage.md` — Above 95% test coverage for all integration modules
 - `core/integration-quality-scale/rules/unique-config-entry.md` — Don't allow the same device or service to be able to be set up twice
-- `core/integration_diagnostics.md` — Integration diagnostics
-- `core/integration_system_health.md` — Integration system health
+- `core/integration/brand_images.md` — Brand images
+- `core/integration/config_flow.md` — Config flow
+- `core/integration/contributing_to_core.md` — Contributing an integration to core
+- `core/integration/diagnostics.md` — Integration diagnostics
+- `core/integration/options_flow.md` — Options flow
+- `core/integration/system_health.md` — Integration system health
+- `core/integration/yaml_configuration.md` — Integration configuration via YAML
 - `core/llm/index.md` — Home Assistant API for Large Language Models
 - `core/platform/application_credentials.md` — Application credentials
 - `core/platform/backup.md` — Backup
+- `core/platform/media_source.md` — Media source
 - `core/platform/raising_exceptions.md` — Raising exceptions
 - `core/platform/repairs.md` — Repairs
 - `core/platform/reproduce_state.md` — Reproduce state
 - `core/platform/significant_change.md` — Significant change
+- `core/pr_review_guide.md` — pr_review_guide
 
 ### development
 
@@ -261,10 +287,12 @@ Use the `hass-docs-search` subagent to search these docs efficiently.
 ### documenting
 
 - `documenting/create-page.md` — Adding an integration page
-- `documenting/general-style-guide.md` — General style guide
-- `documenting/integration-docs-examples.md` — Documentation structure and example text
+- `documenting/general-style-guide.md` — Documentation style guide
+- `documenting/integration-docs-examples.md` — Integration page structure
 - `documenting/remove-page.md` — Removing an integration page
 - `documenting/standards.md` — Standards
+- `documenting/testing.md` — Documentation testing
+- `documenting/topic-based-authoring.md` — Topic-based authoring
 - `documenting/yaml-style-guide.md` — YAML Style Guide
 
 ### frontend
@@ -274,8 +302,8 @@ Use the `hass-docs-search` subagent to search these docs efficiently.
 - `frontend/custom-ui/custom-badge.md` — Custom badge
 - `frontend/custom-ui/custom-card-feature.md` — Custom card feature
 - `frontend/custom-ui/custom-card.md` — Custom card
-- `frontend/custom-ui/custom-strategy.md` — Custom strategies
-- `frontend/custom-ui/custom-view.md` — Custom view layout
+- `frontend/custom-ui/custom-strategy.md` — Custom dashboard strategies
+- `frontend/custom-ui/custom-view.md` — Custom views
 - `frontend/custom-ui/registering-resources.md` — Registering resources
 - `frontend/data.md` — Frontend data
 - `frontend/design.md` — Frontend design
@@ -290,6 +318,10 @@ Use the `hass-docs-search` subagent to search these docs efficiently.
 
 - `internationalization/core.md` — Backend localization
 - `internationalization/custom_integration.md` — Custom integration localization
+
+### modbus
+
+- `modbus/introduction.md` — Modbus in Home Assistant
 
 ### operating-system
 

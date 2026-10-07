@@ -1,4 +1,4 @@
-Derive entity platforms from [`homeassistant.components.vacuum.StateVacuumEntity`](https://github.com/home-assistant/home-assistant/blob/master/homeassistant/components/vacuum/__init__.py)
+Derive entity platforms from [`homeassistant.components.vacuum.StateVacuumEntity`](https://github.com/home-assistant/core/blob/dev/homeassistant/components/vacuum/__init__.py)
 
 ## Properties
 
@@ -33,6 +33,7 @@ must set the `VacuumEntityFeature.STATE` flag.
 
 | Value          | Description                                          |
 | -------------- | ---------------------------------------------------- |
+| `CLEAN_AREA`   | The vacuum supports cleaning specific areas.         |
 | `CLEAN_SPOT`   | The vacuum supports spot cleaning.                   |
 | `FAN_SPEED`    | The vacuum supports setting fan speed.               |
 | `LOCATE`       | The vacuum supports locating.                        |
@@ -45,6 +46,58 @@ must set the `VacuumEntityFeature.STATE` flag.
 | `STOP`         | The vacuum supports the stop command.                |
 
 ## Methods
+
+### `async_get_segments`
+
+Return a list of `Segment` objects representing the cleanable segments reported by the vacuum. Integration platforms are required to implement this method when supporting `CLEAN_AREA`. It is called when configuring the area mapping, so it should return fully up-to-date information.
+
+```python
+async def async_get_segments(self) -> list[Segment]:
+    """Get the segments that can be cleaned."""
+```
+
+The `Segment` dataclass is defined as:
+
+```python
+@dataclass(slots=True)
+class Segment:
+    """Represents a cleanable segment reported by a vacuum."""
+
+    id: str
+    name: str
+    group: str | None = None
+```
+
+The `id` must be globally unique across all segments for a given vacuum entity, regardless of group. The `group` field is used only for grouping segments in the mapping UI.
+
+### `clean_segments` or `async_clean_segments`
+
+Clean the specified segments by their IDs. Integration platforms are required to implement this method when supporting `CLEAN_AREA`. It is called internally by the `clean_area` service after resolving targeted areas to segments using the area mapping.
+
+```python
+async def async_clean_segments(self, segment_ids: list[str], **kwargs: Any) -> None:
+    """Perform an area clean."""
+```
+
+### `last_seen_segments`
+
+A property that returns the segments reported by the vacuum that were available when last configuring the area mapping. Integrations can compare this against current device segments during their update cycle to detect changes and call `async_create_segments_issue` when appropriate. Returns `None` if no mapping has been saved yet, in which case the issue should not be raised.
+
+```python
+@property
+def last_seen_segments(self) -> list[Segment] | None:
+    """Return segments as seen by the user, when last mapping the areas."""
+```
+
+### `async_create_segments_issue`
+
+A helper method that creates a repair issue when the vacuum reports different segments than what was available when last configuring the area mapping. Integrations should call this when segment changes require the area mapping to be adjusted. The resulting repair issue prompts the user to re-configure the area mapping, which will update `last_seen_segments` accordingly.
+
+```python
+@callback
+def async_create_segments_issue(self) -> None:
+    """Create a repair issue when vacuum segments have changed."""
+```
 
 ### `clean_spot` or `async_clean_spot`
 
@@ -65,6 +118,8 @@ Set the vacuum cleaner to return to the dock.
 ### `send_command` or `async_send_command`
 
 Send a command to a vacuum cleaner.
+
+Using the `send_command` service is discouraged as it requires yaml input from the user and is in general less user-friendly. Preferred option is to create an integration-specific service that can provide a nicer UI experience and specific documentation.
 
 ### `set_fan_speed` or `async_set_fan_speed`
 

@@ -1,5 +1,7 @@
 The frontend passes a single `hass` object around. This object contains the latest state, allows you to send commands back to the server and provides helpers to format entity state.
 
+Components that only need part of this data should consume the relevant [context](#context) instead.
+
 Whenever a state changes, a new version of the objects that changed are created. So you can easily see if something has changed by doing a strict equality check:
 
 ```js
@@ -15,6 +17,38 @@ $0.hass
 This method of reading the `hass` object should only be used as a reference. In order to interact with `hass` in your code, make sure it is passed to your code correctly.
 
 ## Data
+
+### Context
+
+The recommended way for a component to get a specific part of Home Assistant data is to consume one of the available Lit contexts. You can also create local contexts to pass data within a component tree.
+
+Use Lit's `@consume` decorator to register with the context provider. The provider sends the initial value and, when `subscribe: true` is set, sends updates whenever the value changes.
+
+#### Available contexts
+
+Contexts are exported from `src/data/context/index.ts`:
+
+- `statesContext`: states of all entities
+- `servicesContext`: available service actions
+- `registriesContext`: entity, device, area, and floor registries
+- `entitiesContext`, `devicesContext`, `areasContext`, and `floorsContext`: individual registry data
+- `internationalizationContext`: localization, locale settings, translation metadata, and translation loaders
+- `apiContext`: HTTP and WebSocket API methods
+- `connectionContext`: WebSocket connection state
+- `uiContext`: themes, panels, sidebar settings, and other global UI state
+- `configContext`: Home Assistant configuration, authentication, and user data
+- `formattersContext`: entity state, attribute, and name formatting methods
+- `narrowViewportContext`: whether the main viewport uses the narrow layout
+
+Some contexts are loaded only when a component first consumes them. These include `labelsContext`, `fullEntitiesContext`, `configEntriesContext`, `manifestsContext`, `triggerDescriptionsContext`, and `conditionDescriptionsContext`. Their backend subscriptions are removed after the last subscribing component disconnects.
+
+#### Consume a context in lit
+
+```ts
+@consume({ context: labelsContext, subscribe: true })
+@state()
+private _labels?: LabelRegistryEntry[];
+```
 
 ### `hass.states`
 
@@ -179,3 +213,128 @@ Format the attribute name of an entity. You need to pass the entity state object
 ```js
 hass.formatEntityAttributeName(hass.states["climate.thermostat"], "current_temperature"); // "Current temperature"
 ```
+
+### `hass.formatEntityName(stateObj, name, options)`
+
+_Available since Home Assistant 2026.4._
+
+Format the display name of an entity using its registry context (entity, device, parent device, area, floor). This is the same helper used by the built-in cards (tile, entity rows, etc.) so custom cards can produce consistent labels.
+
+The `name` argument can be:
+
+- A plain `string` — returned as-is. Use this to honor a user-provided override.
+- A single name item, like `{ type: "entity" }`.
+- An array of name items, joined with the separator. Items can reference registry data (`entity`, `device`, `parent_device`, `area`, `floor`) or be literal `text`.
+- `undefined` — falls back to the entity's friendly name.
+
+```ts
+type EntityNameItem =
+  | { type: "entity" | "device" | "parent_device" | "area" | "floor" }
+  | { type: "text"; text: string };
+
+interface EntityNameOptions {
+  separator?: string; // defaults to " "
+}
+```
+
+For the examples below, assume `sensor.living_room_thermostat_temperature` is the temperature sensor of a thermostat device, where:
+
+- entity name: `Temperature`
+- device name: `Thermostat`
+- area: `Living room`
+- floor: `Ground floor`
+
+```js
+const stateObj = hass.states["sensor.living_room_thermostat_temperature"];
+
+// Friendly name fallback
+hass.formatEntityName(stateObj, undefined); // "Thermostat Temperature"
+
+// User-provided override
+hass.formatEntityName(stateObj, "Indoor temperature"); // "Indoor temperature"
+
+// Single registry item
+hass.formatEntityName(stateObj, { type: "entity" }); // "Temperature"
+hass.formatEntityName(stateObj, { type: "area" }); // "Living room"
+
+// Composed display with a custom separator
+hass.formatEntityName(
+  stateObj,
+  [{ type: "device" }, { type: "entity" }],
+  { separator: " · " }
+); // "Thermostat · Temperature"
+
+// Mix literal text and registry items
+hass.formatEntityName(
+  stateObj,
+  [{ type: "text", text: "Floor:" }, { type: "floor" }]
+); // "Floor: Ground floor"
+```
+
+`parent_device` resolves only for entities that belong to a sub-device, and is empty
+for every other entity. For a `switch.power_strip_outlet_1` on the sub-device `Outlet 1`,
+whose parent device is `Power strip`:
+
+```js
+hass.formatEntityName(
+  hass.states["switch.power_strip_outlet_1"],
+  [{ type: "parent_device" }, { type: "device" }, { type: "entity" }]
+); // "Power strip Outlet 1 Switch"
+```
+
+Items that resolve to nothing are dropped, so the same configuration on an entity
+without a parent device returns just "Outlet 1 Switch". That makes
+`[{ type: "parent_device" }, { type: "device" }, { type: "entity" }]` a safe default
+for a card that wants the full device context.
+
+#### Using it in a custom card
+
+A common pattern is to accept a `name` option in the card configuration and forward it directly to `formatEntityName`. This lets users either provide a string or use the structured form to combine registry data.
+
+```yaml
+type: custom:my-card
+entity: sensor.living_room_thermostat_temperature
+name:
+  - type: area
+  - type: entity
+```
+
+Inside your card class:
+
+```js
+setConfig(config) {
+  if (!config.entity) {
+    throw new Error("You need to define an entity");
+  }
+  this._config = config;
+}
+
+render() {
+  const stateObj = this.hass.states[this._config.entity];
+  const name = this.hass.formatEntityName(stateObj, this._config.name);
+  return html`${name}`;
+}
+```
+
+#### Editing it in the visual editor
+
+The frontend ships an `entity_name` selector that produces values in the shape `formatEntityName` accepts. In a card using the [built-in form editor](/docs/frontend/custom-ui/custom-card#using-the-built-in-form-editor), reference the entity field through `context` so the selector knows which entity to resolve the registry context against:
+
+```js
+{
+  name: "name",
+  selector: {
+    entity_name: {},
+  },
+  context: {
+    entity: "entity",
+  },
+}
+```
+
+The value produced by the selector matches what `formatEntityName` accepts: either a plain string (free-form custom name) or one or more `EntityNameItem` entries (composed from registry data). The selector UI lets users switch between the two modes.
+
+The selector accepts two options:
+
+- `entity_id`: hardcode the entity used to preview names (overrides `context.entity`).
+- `default_name`: the value shown when the field is empty. Accepts the same `string | EntityNameItem | EntityNameItem[]` shape.

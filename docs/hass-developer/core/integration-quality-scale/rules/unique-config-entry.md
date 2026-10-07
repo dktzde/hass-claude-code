@@ -48,7 +48,7 @@ If it does, the flow will abort and show an error message to the user.
                 )
         return self.async_show_form(
             step_id="user",
-            data_schema=vol.Schema({vol.Required(CONF_HOST): TextSelector()}),
+            data_schema=probatio.Schema({probatio.Required(CONF_HOST): TextSelector()}),
             errors=errors,
         )
 ```
@@ -83,10 +83,10 @@ If a configuration entry already exists for the same host, the flow will abort a
                 )
         return self.async_show_form(
             step_id="user",
-            data_schema=vol.Schema(
+            data_schema=probatio.Schema(
                 {
-                    vol.Required(CONF_HOST): TextSelector(),
-                    vol.Required(CONF_PASSWORD): TextSelector(),
+                    probatio.Required(CONF_HOST): TextSelector(),
+                    probatio.Required(CONF_PASSWORD): TextSelector(),
                 }
             ),
             errors=errors,
@@ -95,11 +95,11 @@ If a configuration entry already exists for the same host, the flow will abort a
 
 ## Additional resources
 
-More information about config flows can be found in the [config flow documentation](/docs/config_entries_config_flow_handler).
+More information about config flows can be found in the [config flow documentation](/docs/core/integration/config_flow).
 More information about the requirements for a unique identifier can be found in the [documentation](/docs/entity_registry_index#unique-id-requirements).
 
 ## Exceptions
 
-There are no exceptions to this rule.
+Integrations that only support a single config entry are exempt from this rule.
 
 ## Related rules

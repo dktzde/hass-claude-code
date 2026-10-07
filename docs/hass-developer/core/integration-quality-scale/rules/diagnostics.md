@@ -31,8 +31,8 @@ async def async_get_config_entry_diagnostics(
 
 ## Additional resources
 
-To learn more information about diagnostics, check out the [diagnostics documentation](/docs/core/integration_diagnostics).
+To learn more information about diagnostics, check out the [diagnostics documentation](/docs/core/integration/diagnostics.md).
 
 ## Exceptions
 
-There are no exceptions to this rule.
+If the integration has no data that would be useful for diagnostics (for example, it has no runtime data and its configuration contains only sensitive information), this rule does not apply.
