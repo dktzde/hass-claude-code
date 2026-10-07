@@ -1,60 +1,29 @@
-import { getDb, isVecLoaded } from './db.js';
-import { embed, isEnabled as embeddingsEnabled } from './embeddings.js';
+import { getDb } from './db.js';
 import type { SearchResult } from './types.js';
 
-export async function semanticSearch(query: string, limit = 10, docSet?: string): Promise<SearchResult[]> {
-  if (!embeddingsEnabled() || !isVecLoaded()) {
-    // Fall back to keyword search when embeddings/vec are unavailable
-    return keywordSearch(query, limit, docSet);
+/**
+ * Full-text search over the docs. The query is first used as FTS5 syntax, so
+ * phrases like "options flow" work. Queries FTS5 cannot parse, such as
+ * identifiers with dots or dashes (light.turn_on, config-flow), are split into
+ * words instead: all words must match, or failing that, any of them.
+ */
+export async function keywordSearch(query: string, limit = 10, docSet?: string): Promise<SearchResult[]> {
+  try {
+    return runMatch(query, limit, docSet);
+  } catch (e: any) {
+    if (e?.code !== 'SQLITE_ERROR') throw e;
   }
 
-  const db = getDb();
-  const [queryEmbedding] = await embed([query]);
+  const words = query.match(/[\p{L}\p{N}_]+/gu) ?? [];
+  if (words.length === 0) return [];
+  const quoted = words.map(w => `"${w}"`);
 
-  const buffer = Buffer.from(queryEmbedding.buffer, queryEmbedding.byteOffset, queryEmbedding.byteLength);
-
-  const knnResults = db.prepare(
-    `SELECT chunk_id, distance FROM chunk_embeddings WHERE embedding MATCH ? AND k = ?`
-  ).all(buffer, limit) as Array<{ chunk_id: number; distance: number }>;
-
-  if (knnResults.length === 0) return [];
-
-  const chunkIds = knnResults.map(r => r.chunk_id);
-  const distanceMap = new Map(knnResults.map(r => [r.chunk_id, r.distance]));
-
-  const placeholders = chunkIds.map(() => '?').join(', ');
-
-  let sql = `
-    SELECT c.id, c.chunk_text, c.section_heading, f.file_path, f.title
-    FROM chunks c
-    JOIN files f ON f.id = c.file_id
-    WHERE c.id IN (${placeholders})`;
-
-  const params: Array<string | number> = [...chunkIds];
-
-  if (docSet) {
-    sql += ` AND f.doc_set = ?`;
-    params.push(docSet);
-  }
-
-  const rows = db.prepare(sql).all(...params) as Array<{
-    id: number;
-    chunk_text: string;
-    section_heading: string | null;
-    file_path: string;
-    title: string | null;
-  }>;
-
-  return rows.map(row => ({
-    chunk_text: row.chunk_text,
-    section_heading: row.section_heading,
-    file_path: row.file_path,
-    title: row.title,
-    score: distanceMap.get(row.id) ?? Infinity,
-  })).sort((a, b) => a.score - b.score);
+  const allWords = runMatch(quoted.join(' AND '), limit, docSet);
+  if (allWords.length > 0 || words.length === 1) return allWords;
+  return runMatch(quoted.join(' OR '), limit, docSet);
 }
 
-export async function keywordSearch(query: string, limit = 10, docSet?: string): Promise<SearchResult[]> {
+function runMatch(match: string, limit: number, docSet?: string): SearchResult[] {
   const db = getDb();
 
   let sql = `
@@ -64,7 +33,7 @@ export async function keywordSearch(query: string, limit = 10, docSet?: string):
     JOIN files f ON f.id = c.file_id
     WHERE chunks_fts MATCH ?`;
 
-  const params: Array<string | number> = [query];
+  const params: Array<string | number> = [match];
 
   if (docSet) {
     sql += ` AND f.doc_set = ?`;

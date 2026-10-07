@@ -140,7 +140,7 @@ jobs:
         if: steps.docs.outputs.update == 'true'
         run: |
           docker run --rm -v "$PWD/docs:/docs:ro" \
-            -e DOCS_PATH=/docs -e DOCS_DB_PATH=/tmp/docs-check.db -e ENABLE_EMBEDDINGS=false \
+            -e DOCS_PATH=/docs -e DOCS_DB_PATH=/tmp/docs-check.db \
             --entrypoint node "$IMAGE" /opt/mcp-server/dist/build-index.js
 
       - name: Compare system package versions

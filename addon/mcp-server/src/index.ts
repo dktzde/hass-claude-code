@@ -2,7 +2,6 @@ import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 import { z } from 'zod';
 import { initDb } from './db.js';
-import { warmup as warmupEmbeddings } from './embeddings.js';
 import { searchEntities, getEntityState, callService, searchAutomations, getConfig } from './ha-api.js';
 import { listAreas, searchDevices, getConfigEntries } from './ha-websocket.js';
 import { searchDocs, readDoc, getDocStats } from './docs-search.js';
@@ -197,12 +196,11 @@ server.tool(
 
 server.tool(
   'search_docs',
-  'Search Home Assistant documentation (developer and user docs)',
+  'Search Home Assistant documentation (developer and user docs) with keyword full-text search',
   {
-    query: z.string().describe('Search query'),
+    query: z.string().describe('Search keywords'),
     doc_set: z.enum(['hass-developer', 'hass-user']).optional().describe('Filter by doc set'),
     limit: z.number().optional().describe('Max results (default 10)'),
-    mode: z.enum(['semantic', 'keyword', 'auto']).optional().describe('Search mode (default auto: tries semantic, falls back to keyword)'),
   },
   async (args) => {
     const results = await searchDocs(args);
@@ -254,11 +252,6 @@ async function main() {
   console.error('Initializing Home Assistant MCP server...');
 
   initDb();
-
-  // Warm up embeddings model if enabled (non-blocking)
-  warmupEmbeddings().catch(err => {
-    console.error('Embedding warmup failed (keyword search still available):', err);
-  });
 
   const transport = new StdioServerTransport();
   await server.connect(transport);

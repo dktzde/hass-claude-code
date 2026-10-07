@@ -1,23 +1,16 @@
 import Database from 'better-sqlite3';
-import { createRequire } from 'node:module';
 import { mkdirSync } from 'node:fs';
 import { dirname } from 'node:path';
 
 const DB_PATH = process.env.DOCS_DB_PATH || '/opt/mcp-server/data/docs-search.db';
-const ENABLE_EMBEDDINGS = process.env.ENABLE_EMBEDDINGS === 'true';
 
 let db: Database.Database | null = null;
-let vecLoaded = false;
 
 export function getDb(): Database.Database {
   if (!db) {
     throw new Error('Database not initialized. Call initDb() first.');
   }
   return db;
-}
-
-export function isVecLoaded(): boolean {
-  return vecLoaded;
 }
 
 export function initDb(): void {
@@ -27,18 +20,6 @@ export function initDb(): void {
 
   db = new Database(DB_PATH);
   db.defaultSafeIntegers(false);
-
-  // Only load sqlite-vec when embeddings are enabled
-  if (ENABLE_EMBEDDINGS) {
-    try {
-      const require = createRequire(import.meta.url);
-      const sqliteVec = require('sqlite-vec');
-      sqliteVec.load(db);
-      vecLoaded = true;
-    } catch (e: any) {
-      console.error('sqlite-vec not available, vector search disabled:', e.message);
-    }
-  }
 
   db.pragma('journal_mode = WAL');
   db.pragma('busy_timeout = 5000');
@@ -71,20 +52,6 @@ export function initDb(): void {
       section TEXT
     );
   `);
-
-  // sqlite-vec virtual table (only when vec extension is loaded)
-  if (vecLoaded) {
-    try {
-      db.exec(`
-        CREATE VIRTUAL TABLE chunk_embeddings USING vec0(
-          chunk_id INTEGER PRIMARY KEY,
-          embedding FLOAT[384]
-        );
-      `);
-    } catch (e: any) {
-      if (!e.message.includes('already exists')) throw e;
-    }
-  }
 
   // FTS5 virtual table
   try {

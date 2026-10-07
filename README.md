@@ -33,7 +33,6 @@ Thank you both!
 - **Knows its environment**: on every start the add-on writes `/etc/claude-code/CLAUDE.md`, which Claude Code loads automatically. It lists the paths, MCP tools, APIs and command line tools. Your own notes for Claude go into `/homeassistant/CLAUDE.md`
 - **Persistent sessions**: tmux keeps Claude running when you close the browser tab. The Claude Code login, history and memory, the GitHub CLI login and the git config survive restarts
 - **Weekly updates** of Claude Code, system packages and docs (see [Updates](#updates))
-- **Optional semantic search** for the docs with a local embedding model
 
 ## Installation
 
@@ -52,7 +51,6 @@ Thank you both!
 |--------|------|---------|-------------|
 | `model` | list | `default` | Model to use: `default`, `sonnet`, `opus` or `haiku` |
 | `yolo_mode` | bool | `false` | Allow all tools without asking (use with caution) |
-| `enable_embeddings` | bool | `false` | Download a local model (~87 MB) for semantic doc search |
 | `additional_packages` | list | `[]` | Extra Alpine packages, installed on every start (e.g. `vim`) |
 
 ## Updates
@@ -124,7 +122,7 @@ The image is built in two stages:
 1. **Builder:** installs the MCP server dependencies, clones the docs from this repository and builds a keyword search index.
 2. **Add-on image:** based on the Home Assistant community add-on base image. Installs Claude Code, Python 3 with PyYAML, the MQTT clients, Node.js, ttyd, tmux and a few tools, and copies in the MCP server, the index and the docs.
 
-s6-overlay starts the services: environment setup, optional packages, the optional embedding model, and finally ttyd, which runs Claude Code inside tmux. Claude Code starts the MCP server itself as a child process over stdio, so it needs no network port.
+s6-overlay starts the services: environment setup, optional packages, and finally ttyd, which runs Claude Code inside tmux. Claude Code starts the MCP server itself as a child process over stdio, so it needs no network port.
 
 ```
 addon/

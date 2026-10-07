@@ -9,11 +9,6 @@ configuration:
     name: Yolo-Modus
     description: >-
       Alle Werkzeuge ohne Nachfrage erlauben. Mit Vorsicht verwenden.
-  enable_embeddings:
-    name: Semantische Doku-Suche
-    description: >-
-      Lädt ein lokales Modell (ca. 87 MB) für die semantische Suche in der
-      Home-Assistant-Doku. Die Stichwortsuche funktioniert auch ohne.
   additional_packages:
     name: Zusätzliche Pakete
     description: >-
