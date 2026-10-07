@@ -2,7 +2,9 @@
 
 ### Improvements
 
-- Include PyYAML (`py3-yaml`), so Claude Code can read and check YAML files with Python. It is an Alpine package, so the weekly GitHub Action keeps it up to date like Python 3 itself
+- Include PyYAML (`py3-yaml`), so Claude Code can read and check YAML files with Python
+- Include the MQTT clients `mosquitto_pub` and `mosquitto_sub` (`mosquitto-clients`), to inspect and test MQTT devices
+- Both are Alpine packages, so the weekly GitHub Action keeps them up to date like Python 3 itself
 
 ## 0.1.18
 

@@ -131,6 +131,7 @@ jobs:
           echo "Claude Code installed: $installed, pinned: $pinned"
           [ "$installed" = "$pinned" ]
           docker run --rm --entrypoint python3 "$IMAGE" -c 'import json, sqlite3, ssl, sys, yaml; print(sys.version, "PyYAML", yaml.__version__)'
+          docker run --rm --entrypoint sh "$IMAGE" -c 'command -v mosquitto_pub && command -v mosquitto_sub'
           bash .github/scripts/mcp-smoke-test.sh "$IMAGE"
 
       # The test build clones docs from main, which does not have the new docs
