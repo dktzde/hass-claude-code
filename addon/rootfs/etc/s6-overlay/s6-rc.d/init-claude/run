@@ -13,6 +13,29 @@ bashio::log.info 'Setting up Claude Code environment...'
 model=$(bashio::config 'model')
 yolo_mode=$(bashio::config 'yolo_mode')
 
+# --- Drop stored values of removed options ---
+# The configuration form only shows options of the current schema, but Home
+# Assistant keeps the saved values of removed ones (api_key until 0.1.x,
+# enable_embeddings until 0.2.x; visible in the YAML editor) until the
+# configuration is saved again. Remove them once through the Supervisor API.
+# A failure only logs a warning, it never stops the add-on.
+declare stored_options
+declare removed_options='["api_key","enable_embeddings"]'
+if stored_options=$(curl -fsS -H "Authorization: Bearer ${SUPERVISOR_TOKEN}" \
+        http://supervisor/addons/self/info | jq -c '.data.options') &&
+   jq -e --argjson removed "${removed_options}" \
+        'any(keys[]; IN($removed[]))' <<< "${stored_options}" > /dev/null; then
+    if jq -c --argjson removed "${removed_options}" \
+            '{options: with_entries(select(.key | IN($removed[]) | not))}' <<< "${stored_options}" |
+       curl -fsS -X POST -H "Authorization: Bearer ${SUPERVISOR_TOKEN}" \
+            -H 'Content-Type: application/json' --data @- \
+            http://supervisor/addons/self/options > /dev/null; then
+        bashio::log.info 'Removed the stored values of removed options (api_key, enable_embeddings).'
+    else
+        bashio::log.warning 'Could not remove old options; saving the add-on configuration once removes them too.'
+    fi
+fi
+
 # --- Set environment variables for all services (s6 convention: one file per var) ---
 printf '%s' "/opt/mcp-server/data/docs-search.db" > /var/run/s6/container_environment/DOCS_DB_PATH
 printf '%s' "/opt/docs" > /var/run/s6/container_environment/DOCS_PATH

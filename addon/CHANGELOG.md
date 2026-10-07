@@ -8,6 +8,8 @@
 
 - The add-on image is about 350 MB smaller: the embedding libraries (Transformers.js, ONNX Runtime, sharp, sqlite-vec) are gone
 - The keyword search now handles queries with dots and dashes, such as `light.turn_on`, `ConfigEntry.runtime_data` or `config-flow`. They used to fail with an FTS5 syntax error; now they are split into words (all words first, then any word)
+- The keyword search corrects typos when nothing matches: words that do not occur in the docs are replaced by the closest word that does (`light.tun_on` → `light turn_on`, `automaton` → `automation`), and the result says which query was used
+- Stored values of removed options (`api_key` from 0.1.x, `enable_embeddings` from 0.2.x) are removed from the add-on configuration on start. Before, Home Assistant kept them, for example in the YAML editor of the configuration tab, until the configuration was saved again
 
 ## 0.2.1
 
