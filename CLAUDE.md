@@ -2,9 +2,19 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-## Project overview
+## Start here: current state and next steps
 
-This repository provides Claude Code with Home Assistant documentation search capabilities. It contains:
+**Read [`STATUS.md`](STATUS.md) first.** It holds the current state, open decisions, the agreed next step (plan B: base image switch to Alpine 3.24 plus all npm major updates in one PR, with extended tests) and the conventions of this repository. Update it after every step, so the next session can continue without the chat history.
+
+## Home Assistant add-on (`addon/`)
+
+The main product of this fork: a Home Assistant add-on that runs Claude Code with a web terminal (ttyd + tmux via Ingress) and a built-in MCP server (`addon/mcp-server/`) for Home Assistant APIs and docs search. The Supervisor builds the image on the user's device with the Docker layer cache, so everything that must update is pinned in `addon/Dockerfile` and refreshed by the weekly workflow `.github/workflows/update-claude-code.yml` (helper scripts in `.github/scripts/`). Never edit `PACKAGES_STAMP`, `DOCS_STAMP` or `addon/packages.txt` by hand. Details are in `STATUS.md` and `README.md`.
+
+The rest of this file describes the docs tooling used during development.
+
+## Docs tooling overview
+
+This repository also provides Claude Code with Home Assistant documentation search capabilities. It contains:
 
 - **Local doc mirrors** of HA user and developer documentation (cleaned markdown)
 - **A semantic search service** for querying those docs via vector + keyword search
