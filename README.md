@@ -8,13 +8,14 @@
 > - `addon/Dockerfile`: Claude Code is installed at a pinned version via `ARG CLAUDE_CODE_VERSION` (currently **2.1.289**). Entering a new version there invalidates the cache, so the new version gets installed.
 > - `addon/config.yaml`: add-on version bumped so HA offers the update.
 > - `repository.yaml`, `DOCS_REPO`, links in this README: point to this fork.
-> - `.github/workflows/update-claude-code.yml`: every Saturday at 05:47 UTC (7:47 CEST / 6:47 CET) it checks for a new Claude Code version and performs the update itself (test build, commit, push). These updates are marked as **Automated update** in the changelog. The workflow reports new commits in upstream and in the YangXu fork as issues.
+> - `addon/Dockerfile`: **Python 3** is included, so Claude Code no longer complains that `python3` is missing.
+> - `.github/workflows/update-claude-code.yml`: every Saturday at 05:47 UTC (7:47 CEST / 6:47 CET) it checks for a new Claude Code version, for Alpine package updates (including Python 3) and for changes in the upstream Home Assistant docs, and performs the update itself (test build, commit, push). Packages and docs are pinned via `PACKAGES_STAMP` (hash of `addon/packages.txt`) and `DOCS_STAMP` in the Dockerfile for the same layer cache reason. These updates are marked as **Automated update** in the changelog. The workflow reports new commits in upstream and in the YangXu fork as issues.
 >
 > **Taken from [YangXu1990uiuc/hass-claude-code](https://github.com/YangXu1990uiuc/hass-claude-code)** (as of 2026-09):
 > - **pnpm 11 build fix**: The original fails to build with current pnpm (`ERR_PNPM_IGNORED_BUILDS`). Fix: `pnpm-workspace.yaml` with `allowBuilds`, pnpm pinned to major 11.
 > - **Login is preserved**: In the original, a symlink bug kept `/root/.claude` out of `/data`, so login, history and memory were lost after every restart.
 >
-> **Updating Claude Code:** happens automatically every week (see above). Manually: bump `CLAUDE_CODE_VERSION` in `addon/Dockerfile` and `version` in `addon/config.yaml`, push, then click "Update" in HA.
+> **Updating Claude Code, system packages and docs:** happens automatically every week (see above). Manually: bump `CLAUDE_CODE_VERSION` in `addon/Dockerfile` and `version` in `addon/config.yaml`, push, then click "Update" in HA.
 
 A Home Assistant add-on that runs [Claude Code](https://docs.anthropic.com/en/docs/claude-code) inside your HA instance with a web terminal, full API access, and a built-in MCP server providing structured tools for interacting with your smart home.
 
@@ -55,7 +56,7 @@ Home Assistant builds the Docker image **locally on your device** when you insta
 1. Installs Node.js dependencies for the MCP server
 2. Clones the HA documentation from this repository
 3. Builds a keyword search index from the docs
-4. Installs Claude Code CLI, ttyd, tmux, and other tools
+4. Installs Claude Code CLI, Python 3, ttyd, tmux, and other tools
 5. Sets up s6-overlay services for process management
 
 First install takes several minutes depending on your hardware. Subsequent updates are faster due to Docker layer caching — which is also why the Claude Code version is pinned (see the fork note at the top).
@@ -68,7 +69,7 @@ First install takes several minutes depending on your hardware. Subsequent updat
 | `model` | string | *(empty)* | Claude model to use (leave empty for default) |
 | `yolo_mode` | bool | `false` | Skip permission prompts (use with caution) |
 | `enable_embeddings` | bool | `false` | Download AI model for semantic doc search (~87MB) |
-| `additional_packages` | list | `[]` | Extra Alpine packages to install (e.g. `python3`, `vim`) |
+| `additional_packages` | list | `[]` | Extra Alpine packages to install on every start (e.g. `vim`) |
 
 ## MCP Tools
 
