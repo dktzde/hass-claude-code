@@ -1,3 +1,8 @@
+## 0.2.1
+
+- **Automated update** by the GitHub Action "Update add-on" ([workflow run](https://github.com/dktzde/hass-claude-code/actions/runs/37633199475))
+- Update system packages: `cjson-1.7.19-r1`, `github-cli-2.83.0-r6`, `mosquitto-clients-2.0.22-r0`, `mosquitto-libs-2.0.22-r0`, `py3-yaml-6.0.3-r0`, `py3-yaml-pyc-6.0.3-r0`, `yaml-0.2.5-r2`
+
 ## 0.2.0
 
 New minor version because of the many changes since 0.1.15: Python 3 and more tools, weekly updates of packages, npm dependencies and docs, a generated `CLAUDE.md` and login only through Claude Code.

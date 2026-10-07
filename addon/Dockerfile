@@ -67,7 +67,7 @@ ENV TERM="xterm-256color"
 # last CI build), refreshed by the weekly workflow when Alpine ships updates.
 # A new value busts the Docker layer cache; otherwise the Supervisor keeps the
 # versions from the first install forever.
-ARG PACKAGES_STAMP=6602a926df3b
+ARG PACKAGES_STAMP=24249db91d79
 # hadolint ignore=DL3017,DL3018
 RUN echo "Packages stamp: ${PACKAGES_STAMP}" && \
     apk upgrade --no-cache && \
