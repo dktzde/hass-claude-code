@@ -1,3 +1,16 @@
+## 0.3.0
+
+### Breaking change
+
+- Remove the semantic doc search and its option **Semantic doc search** (`enable_embeddings`). It never worked: the model was downloaded, but the docs were never indexed with it, so the search always fell back to keyword search. The downloaded model (about 87 MB in `/data/models`) is deleted on the first start of this version
+
+### Improvements
+
+- The add-on image is about 350 MB smaller: the embedding libraries (Transformers.js, ONNX Runtime, sharp, sqlite-vec) are gone
+- The keyword search now handles queries with dots and dashes, such as `light.turn_on`, `ConfigEntry.runtime_data` or `config-flow`. They used to fail with an FTS5 syntax error; now they are split into words (all words first, then any word)
+- The keyword search corrects typos when nothing matches: words that do not occur in the docs are replaced by the closest word that does (`light.tun_on` → `light turn_on`, `automaton` → `automation`), and the result says which query was used
+- Stored values of removed options (`api_key` from 0.1.x, `enable_embeddings` from 0.2.x) are removed from the add-on configuration on start. Before, Home Assistant kept them, for example in the YAML editor of the configuration tab, until the configuration was saved again
+
 ## 0.2.1
 
 - **Automated update** by the GitHub Action "Update add-on" ([workflow run](https://github.com/dktzde/hass-claude-code/actions/runs/37633199475))

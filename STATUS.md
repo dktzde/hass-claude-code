@@ -7,6 +7,11 @@ Last updated: 2026-10-07
 ## Current state
 
 - **Add-on version on `main`: 0.2.1** (0.2.0 plus the automated package refresh). It runs on the maintainer's device (an old x86 laptop, `amd64`).
+- **In review: 0.3.0** (dktzde/hass-claude-code#9):
+  - Removes the semantic doc search. It never worked, see the changelog. The image gets about 350 MB smaller, and `search_docs` becomes keyword-only (SQLite FTS5) with no embedding or vector dependencies.
+  - Makes the keyword search robust, in `src/search.ts`. It tries the query as FTS5 syntax first, then all words, then all words with typos corrected, then any word. Typos are corrected against the FTS5 vocabulary (`chunks_vocab`, an `fts5vocab` table) with an edit distance of 1–2, preferring the same first letter and then the more common word. The tool output then carries a second text item with the corrected query.
+  - Removes stored values of removed options (`api_key`, `enable_embeddings`) from the add-on configuration on start through the Supervisor API (`init-claude`). **When an option is removed in future, add it to `removed_options` there.**
+  - Before merging: test run of the Action on the branch. After merging: run on `main`, then update in Home Assistant with "backup before update", and check that the YAML editor of the configuration tab no longer shows `api_key` or `enable_embeddings`.
 - **Contents of the image:**
   - Claude Code 2.1.292 (pinned)
   - Python 3.12 with PyYAML, `mosquitto_pub` and `mosquitto_sub`, the GitHub CLI `gh`
@@ -51,7 +56,6 @@ The Node.js major decides the `@types/node` range, and a Python change is worth 
 | `better-sqlite3` | ^11 | ^13 | Needs Node >= 22. Uses `node-addon-api` (ABI-stable), which removes the risk of a Node major change. `pnpm-workspace.yaml` `allowBuilds` keeps `better-sqlite3: true`. |
 | `zod` | ^3.23 | ^4 | **Code change needed:** `src/index.ts`, `call_service` uses `z.record(z.unknown())`; zod 4 needs `z.record(z.string(), z.unknown())`. `@modelcontextprotocol/sdk` 1.32 accepts `zod ^3.25 \|\| ^4`. Check all tool schemas still produce the same JSON schema in `tools/list`. |
 | `glob` | ^11 | ^13 | Used once in `src/indexer.ts` (`glob('**/*.md', ...)`). The named export `glob` still exists; verify the options. |
-| `@huggingface/transformers` | ^3 | ^4 | Only used when the option `enable_embeddings` is on (`src/embeddings.ts`: `pipeline('feature-extraction', 'Xenova/all-MiniLM-L6-v2', { dtype: 'fp32' })`, `env.cacheDir`). New dependencies `@huggingface/tokenizers`, `onnxruntime-node` and `sharp`: check whether `allowBuilds` (now `onnxruntime-node: false`, `sharp: false`) still works. Read the v4 release notes for API changes. |
 | `typescript` (dev) | ^5 | **^6** | TypeScript 7 is the new native compiler with platform binaries. Take 6 as the safe step; 7 is optional. |
 | `@types/node` (dev) | ^22 | Node major of Alpine 3.24 | Match the runtime, not the latest version. |
 | `@types/better-sqlite3` (dev) | ^7 | ^9 | Must compile against better-sqlite3 13. |
@@ -66,11 +70,11 @@ Extend `.github/scripts/mcp-smoke-test.sh` or add a script next to it:
   - Check that `tools/list` describes `call_service.data` as an object.
   - Call `call_service` with valid input (`{"domain":"light","service":"turn_on","data":{"entity_id":"light.smoke_test"}}`). There is no Home Assistant in CI, so the call must fail with a connection error, **not** with an input validation error.
   - Call it with invalid input (no `domain`), which must give a validation error. Together they prove that zod validates and accepts correctly.
-- **Embeddings:** run the image with `ENABLE_EMBEDDINGS=true MODELS_DIR=/tmp/models`. `node /opt/mcp-server/dist/warmup-model.js` must load the model (about 87 MB download from Hugging Face), and an embedding of a test text must have 384 dimensions, which needs a small Node one-liner or script using `dist/embeddings.js`.
+- **Docs search:** already covered. The smoke test also runs a dotted query (`light.turn_on`) and a typo (`automaton trigger`, which must be corrected to `automation trigger`).
 
 ### 5. Release
 
-- Version **0.3.0**: new minor version because of the Alpine switch and the dependency majors. Changelog with the new Python and Node.js versions.
+- Version **0.4.0**: new minor version because of the Alpine switch and the dependency majors. Changelog with the new Python and Node.js versions.
 - Test run of the Action on the branch, then merge, then run the Action on `main`, then update in Home Assistant with "backup before update".
 - Manual check on the device:
   - The add-on starts.
@@ -80,10 +84,11 @@ Extend `.github/scripts/mcp-smoke-test.sh` or add a script next to it:
 
 ## Known issues and backlog
 
-- **`enable_embeddings` has no effect** (inherited from upstream). The model is downloaded, but the docs index is built at image build time with embeddings off, and nothing fills `chunk_embeddings` at runtime. `semanticSearch` therefore finds nothing and `search_docs` falls back to keyword search. Options: index with embeddings on first start into a database under `/data` when the option is on, or remove the option. Decide with the maintainer; it fits plan B because the embeddings test touches the same code.
 - **`aarch64` (Raspberry Pi) is never test-built.** CI builds `amd64` only. A QEMU arm64 build would work but is slow. The README says it is untested.
 - `addon/README.md` and `addon/DOCS.md` do not exist, so the add-on overview and the Documentation tab in Home Assistant are empty. `url` in `config.yaml` links to this repository instead.
 - The option `additional_packages` installs packages on every start (needs internet, start fails if a package is missing).
+- **Docs search** is SQLite FTS5 with the fallbacks and typo correction above. Alternatives such as MiniSearch, Fuse.js or Typesense were considered; FTS5 plus its own vocabulary needs no new dependency and keeps the index built at image build time.
+- The semantic doc search was **removed** in 0.3.0 at the maintainer's request (Claude does not need it; it never worked because the docs were never indexed with embeddings). Do not bring back Transformers.js, ONNX Runtime or sqlite-vec without a new decision.
 - Prebuilt images (building in CI and pulling instead of building on the device) were considered and **rejected** for now. Building on the device works, and the stamps solve the layer cache problem.
 
 ## Decisions and conventions

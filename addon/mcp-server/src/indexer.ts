@@ -2,8 +2,7 @@ import { createHash } from 'node:crypto';
 import { readFile } from 'node:fs/promises';
 import { glob } from 'glob';
 import { join, relative, dirname, resolve } from 'node:path';
-import { getDb, isVecLoaded } from './db.js';
-import { embed, isEnabled as embeddingsEnabled } from './embeddings.js';
+import { getDb } from './db.js';
 
 let indexingInProgress = false;
 
@@ -127,11 +126,6 @@ export async function indexDocSet(docSetPath: string, docSetName: string): Promi
       console.error(`[indexer] Removing ${deletedFiles.length} deleted files from index`);
       const deleteTransaction = db.transaction(() => {
         for (const file of deletedFiles) {
-          if (isVecLoaded()) {
-            db.prepare(
-              'DELETE FROM chunk_embeddings WHERE chunk_id IN (SELECT id FROM chunks WHERE file_id = ?)',
-            ).run(file.id);
-          }
           db.prepare('DELETE FROM links WHERE source_file = ?').run(file.file_path);
           db.prepare('DELETE FROM files WHERE id = ?').run(file.id);
         }
@@ -157,24 +151,8 @@ export async function indexDocSet(docSetPath: string, docSetName: string): Promi
       const chunks = chunkByHeadings(content);
       const links = extractLinks(content, filePath, basePath);
 
-      // Generate embeddings only when enabled
-      const chunkTexts = chunks.map((c) => c.text);
-      const embeddings: Float32Array[] = [];
-      if (embeddingsEnabled()) {
-        for (let i = 0; i < chunkTexts.length; i += 32) {
-          const batch = chunkTexts.slice(i, i + 32);
-          const batchEmbeddings = await embed(batch);
-          embeddings.push(...batchEmbeddings);
-        }
-      }
-
       const writeTransaction = db.transaction(() => {
         if (existing) {
-          if (isVecLoaded()) {
-            db.prepare(
-              'DELETE FROM chunk_embeddings WHERE chunk_id IN (SELECT id FROM chunks WHERE file_id = ?)',
-            ).run(existing.id);
-          }
           db.prepare('DELETE FROM links WHERE source_file = ?').run(filePath);
           db.prepare('DELETE FROM files WHERE id = ?').run(existing.id);
         }
@@ -190,21 +168,8 @@ export async function indexDocSet(docSetPath: string, docSetName: string): Promi
         const insertChunk = db.prepare(
           'INSERT INTO chunks (file_id, section_heading, chunk_text, position) VALUES (?, ?, ?, ?)',
         );
-        for (let i = 0; i < chunks.length; i++) {
-          const chunk = chunks[i];
-          const chunkResult = insertChunk.run(fileId, chunk.heading, chunk.text, chunk.position);
-          const chunkId = Number(chunkResult.lastInsertRowid);
-
-          if (embeddings[i]) {
-            const embedding = embeddings[i];
-            const buffer = Buffer.from(
-              embedding.buffer,
-              embedding.byteOffset,
-              embedding.byteLength,
-            );
-            // Use literal PK — sqlite-vec doesn't support bound PK params with better-sqlite3
-            db.prepare(`INSERT INTO chunk_embeddings (chunk_id, embedding) VALUES (${chunkId}, ?)`).run(buffer);
-          }
+        for (const chunk of chunks) {
+          insertChunk.run(fileId, chunk.heading, chunk.text, chunk.position);
         }
 
         const insertLink = db.prepare(

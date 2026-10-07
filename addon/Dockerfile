@@ -45,7 +45,6 @@ RUN echo "Docs stamp: ${DOCS_STAMP}" && \
 RUN cd mcp-server && \
     DOCS_DB_PATH=/build/mcp-server/data/docs-search.db \
     DOCS_PATH=/build/docs \
-    ENABLE_EMBEDDINGS=false \
     node --import tsx src/build-index.ts
 
 # Compile TypeScript to JavaScript

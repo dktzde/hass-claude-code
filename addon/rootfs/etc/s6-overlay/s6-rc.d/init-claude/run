@@ -6,20 +6,39 @@
 # ==============================================================================
 declare model
 declare yolo_mode
-declare enable_embeddings
 
 bashio::log.info 'Setting up Claude Code environment...'
 
 # --- Read config ---
 model=$(bashio::config 'model')
 yolo_mode=$(bashio::config 'yolo_mode')
-enable_embeddings=$(bashio::config 'enable_embeddings')
+
+# --- Drop stored values of removed options ---
+# The configuration form only shows options of the current schema, but Home
+# Assistant keeps the saved values of removed ones (api_key until 0.1.x,
+# enable_embeddings until 0.2.x; visible in the YAML editor) until the
+# configuration is saved again. Remove them once through the Supervisor API.
+# A failure only logs a warning, it never stops the add-on.
+declare stored_options
+declare removed_options='["api_key","enable_embeddings"]'
+if stored_options=$(curl -fsS -H "Authorization: Bearer ${SUPERVISOR_TOKEN}" \
+        http://supervisor/addons/self/info | jq -c '.data.options') &&
+   jq -e --argjson removed "${removed_options}" \
+        'any(keys[]; IN($removed[]))' <<< "${stored_options}" > /dev/null; then
+    if jq -c --argjson removed "${removed_options}" \
+            '{options: with_entries(select(.key | IN($removed[]) | not))}' <<< "${stored_options}" |
+       curl -fsS -X POST -H "Authorization: Bearer ${SUPERVISOR_TOKEN}" \
+            -H 'Content-Type: application/json' --data @- \
+            http://supervisor/addons/self/options > /dev/null; then
+        bashio::log.info 'Removed the stored values of removed options (api_key, enable_embeddings).'
+    else
+        bashio::log.warning 'Could not remove old options; saving the add-on configuration once removes them too.'
+    fi
+fi
 
 # --- Set environment variables for all services (s6 convention: one file per var) ---
-printf '%s' "${enable_embeddings}" > /var/run/s6/container_environment/ENABLE_EMBEDDINGS
 printf '%s' "/opt/mcp-server/data/docs-search.db" > /var/run/s6/container_environment/DOCS_DB_PATH
 printf '%s' "/opt/docs" > /var/run/s6/container_environment/DOCS_PATH
-printf '%s' "/data/models" > /var/run/s6/container_environment/MODELS_DIR
 
 # Write all config to /etc/profile.d/ so the entrypoint shell sees them
 {
@@ -48,7 +67,13 @@ if bashio::services.available 'mqtt'; then
 fi
 
 # --- Persistent storage ---
-mkdir -p /data/.claude /data/models /data/.config/gh
+mkdir -p /data/.claude /data/.config/gh
+# Versions before 0.3.0 downloaded an embedding model for the removed
+# semantic search here (about 87 MB); it is not used anymore.
+if [[ -d /data/models ]]; then
+    bashio::log.info 'Removing the unused embedding model from /data/models...'
+    rm -rf /data/models
+fi
 touch /data/.bash_history /data/.gitconfig
 
 # The Claude installer pre-creates /root/.claude as a real directory and writes
@@ -137,10 +162,8 @@ cat > /etc/claude-code/managed-mcp.json << MCPEOF
       "args": ["/opt/mcp-server/dist/index.js"],
       "env": {
         "SUPERVISOR_TOKEN": "${SUPERVISOR_TOKEN}",
-        "ENABLE_EMBEDDINGS": "${enable_embeddings}",
         "DOCS_DB_PATH": "/opt/mcp-server/data/docs-search.db",
-        "DOCS_PATH": "/opt/docs",
-        "MODELS_DIR": "/data/models"
+        "DOCS_PATH": "/opt/docs"
       }
     }
   }
@@ -251,7 +274,6 @@ EOF
     printf '\n## Add-on settings\n\n'
     printf -- '- Model: `%s`\n' "${model}"
     printf -- '- Yolo mode (all tools allowed without asking): `%s`\n' "${yolo_mode}"
-    printf -- '- Semantic doc search (embeddings): `%s`\n' "${enable_embeddings}"
 } > /etc/claude-code/CLAUDE.md
 
 # --- /homeassistant/CLAUDE.md is for the user's own notes ---

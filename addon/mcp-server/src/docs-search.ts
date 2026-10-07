@@ -1,9 +1,8 @@
 import { readFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { existsSync } from 'node:fs';
-import { semanticSearch, keywordSearch } from './search.js';
+import { keywordSearch, type KeywordSearchResult } from './search.js';
 import { getDb } from './db.js';
-import type { SearchResult } from './types.js';
 
 const DOCS_BASE_PATH = process.env.DOCS_PATH || '/opt/docs';
 
@@ -11,24 +10,8 @@ export async function searchDocs(args: {
   query: string;
   doc_set?: string;
   limit?: number;
-  mode?: 'semantic' | 'keyword' | 'auto';
-}): Promise<SearchResult[]> {
-  const limit = args.limit || 10;
-  const mode = args.mode || 'auto';
-
-  if (mode === 'keyword') {
-    return keywordSearch(args.query, limit, args.doc_set);
-  }
-
-  if (mode === 'semantic') {
-    return semanticSearch(args.query, limit, args.doc_set);
-  }
-
-  // Auto mode: try semantic first, fall back to keyword
-  const results = await semanticSearch(args.query, limit, args.doc_set);
-  if (results.length > 0) return results;
-
-  return keywordSearch(args.query, limit, args.doc_set);
+}): Promise<KeywordSearchResult> {
+  return keywordSearch(args.query, args.limit || 10, args.doc_set);
 }
 
 export async function readDoc(args: {
