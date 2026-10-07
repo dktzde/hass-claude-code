@@ -211,6 +211,11 @@ jobs:
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add addon/Dockerfile addon/config.yaml addon/CHANGELOG.md addon/packages.txt addon/mcp-server/pnpm-lock.yaml README.md docs
           git commit -m "chore(addon): update $message (automated)"
+          # A manual run on another branch is a test run: never push it to main
+          if [ "$GITHUB_REF" != refs/heads/main ]; then
+            echo "Test run on $GITHUB_REF: would release add-on version $addon ($message), not pushed." >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
           git push origin HEAD:main
           echo "Released add-on version $addon: $message." >> "$GITHUB_STEP_SUMMARY"
 

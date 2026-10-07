@@ -128,5 +128,5 @@ ${waiting:+$waiting
 - Bei neuer Alpine-Version: \`FROM alpine:…\` der Builder-Stage in \`addon/Dockerfile\` anpassen
 - Add-on-Version in \`addon/config.yaml\` und \`addon/CHANGELOG.md\`
 
-Danach testen, zum Beispiel mit einem manuellen Lauf der Action „Update add-on“ auf einem Branch.
+Danach testen: auf einem Branch die Action „Update add-on“ manuell starten (Run workflow → Branch auswählen). Läufe auf anderen Branches als main sind reine Testläufe und veröffentlichen nichts.
 EOF
