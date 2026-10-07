@@ -64,6 +64,13 @@ export function initDb(): void {
     if (!e.message.includes('already exists')) throw e;
   }
 
+  // Vocabulary of the FTS5 index, used to correct typos in search queries
+  try {
+    db.exec(`CREATE VIRTUAL TABLE chunks_vocab USING fts5vocab(chunks_fts, 'row');`);
+  } catch (e: any) {
+    if (!e.message.includes('already exists')) throw e;
+  }
+
   // FTS sync triggers
   db.exec(`
     CREATE TRIGGER IF NOT EXISTS chunks_ai AFTER INSERT ON chunks BEGIN

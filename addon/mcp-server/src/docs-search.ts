@@ -1,9 +1,8 @@
 import { readFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { existsSync } from 'node:fs';
-import { keywordSearch } from './search.js';
+import { keywordSearch, type KeywordSearchResult } from './search.js';
 import { getDb } from './db.js';
-import type { SearchResult } from './types.js';
 
 const DOCS_BASE_PATH = process.env.DOCS_PATH || '/opt/docs';
 
@@ -11,7 +10,7 @@ export async function searchDocs(args: {
   query: string;
   doc_set?: string;
   limit?: number;
-}): Promise<SearchResult[]> {
+}): Promise<KeywordSearchResult> {
   return keywordSearch(args.query, args.limit || 10, args.doc_set);
 }
 

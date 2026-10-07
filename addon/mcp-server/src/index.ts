@@ -196,20 +196,25 @@ server.tool(
 
 server.tool(
   'search_docs',
-  'Search Home Assistant documentation (developer and user docs) with keyword full-text search',
+  'Search Home Assistant documentation (developer and user docs) with keyword full-text search. Typos are corrected when nothing matches.',
   {
     query: z.string().describe('Search keywords'),
     doc_set: z.enum(['hass-developer', 'hass-user']).optional().describe('Filter by doc set'),
     limit: z.number().optional().describe('Max results (default 10)'),
   },
   async (args) => {
-    const results = await searchDocs(args);
-    return {
-      content: [{
+    const { results, correctedQuery } = await searchDocs(args);
+    const content = [{
+      type: 'text' as const,
+      text: JSON.stringify(results, null, 2),
+    }];
+    if (correctedQuery) {
+      content.push({
         type: 'text' as const,
-        text: JSON.stringify(results, null, 2),
-      }],
-    };
+        text: `No exact match for "${args.query}"; these results are for "${correctedQuery}".`,
+      });
+    }
+    return { content };
   },
 );
 
