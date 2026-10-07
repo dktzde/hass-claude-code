@@ -1,3 +1,11 @@
+## 0.1.18
+
+### Improvements
+
+- Pin the npm dependencies of the MCP server with a lockfile, so every device builds exactly the versions that were tested instead of whatever npm offers at build time
+- The weekly GitHub Action now also updates these dependencies within their major versions and checks the MCP server after each test build (tool list and a docs search)
+- New major versions of npm dependencies and new versions of the base image are reported as issues in this repository; switching to them stays a manual step
+
 ## 0.1.17
 
 - **Automated update** by the GitHub Action "Update add-on" ([workflow run](https://github.com/dktzde/hass-claude-code/actions/runs/37606435542))

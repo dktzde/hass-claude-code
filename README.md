@@ -62,16 +62,23 @@ This add-on therefore pins everything that should update in `addon/Dockerfile`:
 - `PACKAGES_STAMP`: a hash of `addon/packages.txt`, the list of installed Alpine package versions
 - `DOCS_STAMP`: the git tree hash of the bundled docs
 
+The npm dependencies of the MCP server are pinned by `addon/mcp-server/pnpm-lock.yaml`, which the build installs with `--frozen-lockfile`.
+
 Every Saturday at 05:47 UTC (07:47 CEST / 06:47 CET), the GitHub Action [`update-claude-code.yml`](.github/workflows/update-claude-code.yml) does the following:
 
 1. Checks for a new Claude Code release.
 2. Regenerates the docs from the upstream Home Assistant repositories.
-3. Test-builds the add-on and reads the installed package versions.
-4. If anything changed, updates the pins, bumps the add-on version, writes the changelog and pushes.
+3. Updates the npm dependencies within their major versions.
+4. Test-builds the add-on, reads the installed package versions and checks that the MCP server answers.
+5. If anything changed, updates the pins, bumps the add-on version, writes the changelog and pushes.
 
 Home Assistant then offers a normal add-on update. The changelog marks these updates as **Automated update** and lists what changed. If nothing changed, nothing is released.
 
-The same Action also opens an issue when there are new commits in the two projects above, so useful fixes can be taken over by hand.
+Some updates stay a manual decision because they can need code changes. The same Action opens an issue for each of them:
+
+- New commits in the two projects above, so useful fixes can be taken over by hand
+- A new version of the base image `ghcr.io/hassio-addons/base`, including whether it switches to a new Alpine version
+- New major versions of npm dependencies
 
 To update by hand, run the `/update-claude` skill in this repository, or bump `CLAUDE_CODE_VERSION` in `addon/Dockerfile` and `version` in `addon/config.yaml`.
 
