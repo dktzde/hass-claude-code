@@ -2,11 +2,13 @@ name: Update add-on
 
 # Weekly version of .claude/skills/update-claude/SKILL.md: bumps the pinned
 # Claude Code version when a newer release exists, picks up Alpine package
-# updates (including Python 3) and regenerates the bundled Home Assistant docs.
-# Each of these busts its own Docker layer via a pinned value in
-# addon/Dockerfile, since the Supervisor builds with the layer cache. Any change
-# is released as one add-on update. It also reports new commits in upstream and
-# the YangXu1990uiuc fork as issues (merging stays manual).
+# updates (including Python 3), updates the MCP server's npm dependencies within
+# their major versions and regenerates the bundled Home Assistant docs. Each of
+# these busts its own Docker layer via a pinned value in addon/Dockerfile or the
+# lockfile, since the Supervisor builds with the layer cache. Any change is
+# released as one add-on update. As issues it reports what stays manual: new
+# commits in upstream and the YangXu1990uiuc fork, a new base image, and new
+# major versions of npm dependencies.
 
 on:
   schedule:
@@ -81,6 +83,44 @@ jobs:
           echo "Docs: $files files changed" >> "$GITHUB_STEP_SUMMARY"
           { echo "update=true"; echo "files=$files"; } >> "$GITHUB_OUTPUT"
 
+      - name: Update npm dependencies
+        id: npm
+        run: |
+          # Re-resolve to the newest versions the ranges in package.json allow
+          # (never a new major), with the same Alpine and pnpm as the builder
+          # stage. The Dockerfile installs from this lockfile with
+          # --frozen-lockfile, so every device builds the tested versions.
+          builder=$(grep -oP '^FROM \K\S+(?= AS mcp-builder)' addon/Dockerfile)
+          pnpm_major=$(grep -oP 'npm install -g pnpm@\K[0-9]+' addon/Dockerfile)
+          lock=addon/mcp-server/pnpm-lock.yaml
+          rm "$lock"
+          if ! docker run --rm -v "$PWD/addon/mcp-server:/w" -w /w -e HOST_ID="$(id -u):$(id -g)" "$builder" sh -c \
+              "apk add --no-cache nodejs npm >/dev/null && npm install -g pnpm@$pnpm_major >/dev/null 2>&1 &&
+               pnpm install --lockfile-only && chown \"\$HOST_ID\" pnpm-lock.yaml"; then
+            echo "::warning::Updating the npm dependencies failed; keeping the current lockfile."
+            git checkout -- "$lock"
+            echo "update=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          if git diff --quiet -- "$lock"; then
+            echo "npm dependencies are up to date." >> "$GITHUB_STEP_SUMMARY"
+            echo "update=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          # "name@version" keys of the packages/snapshots sections, without the
+          # peer suffix "(peer@x)", so only real version changes are listed
+          versions() { grep -oP "^  '?\K[^ '(]+@[0-9][^ '(:]*" | LC_ALL=C sort -u; }
+          mapfile -t new < <(LC_ALL=C comm -13 <(git show "HEAD:$lock" | versions) <(versions < "$lock"))
+          if [ "${#new[@]}" -eq 0 ]; then
+            list="lockfile changed, no new versions"
+          else
+            list=$(printf '`%s`, ' "${new[@]:0:10}")
+            list=${list%, }
+            if [ "${#new[@]}" -gt 10 ]; then list="$list and $(( ${#new[@]} - 10 )) more"; fi
+          fi
+          echo "npm dependencies: $list" >> "$GITHUB_STEP_SUMMARY"
+          { echo "update=true"; echo "list=$list"; } >> "$GITHUB_OUTPUT"
+
       - name: Test-build the add-on (amd64)
         run: docker buildx build addon --pull --platform linux/amd64 --load -t "$IMAGE"
 
@@ -91,6 +131,7 @@ jobs:
           echo "Claude Code installed: $installed, pinned: $pinned"
           [ "$installed" = "$pinned" ]
           docker run --rm --entrypoint python3 "$IMAGE" -c 'import json, sqlite3, ssl, sys; print(sys.version)'
+          bash .github/scripts/mcp-smoke-test.sh "$IMAGE"
 
       # The test build clones docs from main, which does not have the new docs
       # yet, so index them separately with the image's own indexer.
@@ -129,7 +170,9 @@ jobs:
           { echo "update=true"; echo "list=$list"; } >> "$GITHUB_OUTPUT"
 
       - name: Bump version, changelog, commit and push
-        if: steps.claude.outputs.update == 'true' || steps.docs.outputs.update == 'true' || steps.packages.outputs.update == 'true'
+        if: >-
+          steps.claude.outputs.update == 'true' || steps.docs.outputs.update == 'true' ||
+          steps.packages.outputs.update == 'true' || steps.npm.outputs.update == 'true'
         env:
           CLAUDE_UPDATE: ${{ steps.claude.outputs.update }}
           CLAUDE: ${{ steps.claude.outputs.version }}
@@ -137,6 +180,8 @@ jobs:
           DOCS_FILES: ${{ steps.docs.outputs.files }}
           PACKAGES_UPDATE: ${{ steps.packages.outputs.update }}
           PACKAGES: ${{ steps.packages.outputs.list }}
+          NPM_UPDATE: ${{ steps.npm.outputs.update }}
+          NPM: ${{ steps.npm.outputs.list }}
           RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
         run: |
           addon_current=$(grep -oP '^version: \K.*' addon/config.yaml)
@@ -149,6 +194,7 @@ jobs:
             printf -- '- **Automated update** by the GitHub Action "Update add-on" ([workflow run](%s)), not made by hand\n' "$RUN_URL"
             if [ "$CLAUDE_UPDATE" = true ]; then printf -- '- Update Claude Code to %s\n' "$CLAUDE"; fi
             if [ "$PACKAGES_UPDATE" = true ]; then printf -- '- Update system packages: %s\n' "$PACKAGES"; fi
+            if [ "$NPM_UPDATE" = true ]; then printf -- '- Update npm dependencies of the MCP server: %s\n' "$NPM"; fi
             if [ "$DOCS_UPDATE" = true ]; then printf -- '- Update the bundled Home Assistant docs (%s files changed)\n' "$DOCS_FILES"; fi
             printf '\n'
             cat addon/CHANGELOG.md
@@ -156,17 +202,20 @@ jobs:
           mv CHANGELOG.new addon/CHANGELOG.md
           if [ "$CLAUDE_UPDATE" = true ]; then parts+=("Claude Code to $CLAUDE"); fi
           if [ "$PACKAGES_UPDATE" = true ]; then parts+=("system packages"); fi
+          if [ "$NPM_UPDATE" = true ]; then parts+=("npm dependencies"); fi
           if [ "$DOCS_UPDATE" = true ]; then parts+=("docs"); fi
           message=$(IFS=,; echo "${parts[*]}" | sed 's/,/, /g')
           git diff --stat
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add addon/Dockerfile addon/config.yaml addon/CHANGELOG.md addon/packages.txt README.md docs
+          git add addon/Dockerfile addon/config.yaml addon/CHANGELOG.md addon/packages.txt addon/mcp-server/pnpm-lock.yaml README.md docs
           git commit -m "chore(addon): update $message (automated)"
           git push origin HEAD:main
           echo "Released add-on version $addon: $message." >> "$GITHUB_STEP_SUMMARY"
 
-  check-forks:
+  report:
+    # Reports what stays a manual decision as issues: one open issue per topic,
+    # refreshed while it applies and closed once it no longer does.
     runs-on: ubuntu-latest
     env:
       # Explicit so gh never picks a fetched fork as the target repo
@@ -179,25 +228,14 @@ jobs:
 
       - name: Report new upstream and fork commits
         run: |
+          source .github/scripts/sync-issue.sh
           git fetch -q https://github.com/dkmaker/hass-claude-code.git main:refs/remotes/upstream/main
           git fetch -q https://github.com/YangXu1990uiuc/hass-claude-code.git main:refs/remotes/yangxu/main
           reviewed=$(grep -oP 'Last reviewed commit: `\K[0-9a-f]+' .claude/skills/update-claude/SKILL.md)
 
-          # One open issue per source: created or refreshed while commits are
-          # pending, closed once they are merged or marked as reviewed.
-          sync_issue() {
-            local title=$1 commits=$2 number body
-            number=$(gh issue list --state open --limit 100 --json number,title \
-              --jq ".[] | select(.title == \"$title\") | .number" | head -1)
-            if [ -z "$commits" ]; then
-              if [ -n "$number" ]; then gh issue close "$number" --comment "Keine offenen Commits mehr."; fi
-              return 0
-            fi
-            body=$(printf 'Neue Commits seit dem letzten Stand:\n\n%s\n\nPrüfen und bei Bedarf lokal mit `/update-claude` übernehmen.' "$commits")
-            if [ -n "$number" ]; then
-              gh issue edit "$number" --body "$body"
-            else
-              gh issue create --title "$title" --body "$body"
+          commits_body() {
+            if [ -n "$1" ]; then
+              printf 'Neue Commits seit dem letzten Stand:\n\n%s\n\nPrüfen und bei Bedarf lokal mit `/update-claude` übernehmen.' "$1"
             fi
           }
 
@@ -209,5 +247,80 @@ jobs:
             echo "### YangXu1990uiuc/hass-claude-code (seit $reviewed)"
             echo "${yangxu:-Keine neuen Commits.}"
           } >> "$GITHUB_STEP_SUMMARY"
-          sync_issue "Neue Commits in dkmaker/hass-claude-code (upstream)" "$upstream"
-          sync_issue "Neue Commits im Fork YangXu1990uiuc/hass-claude-code" "$yangxu"
+          sync_issue "Neue Commits in dkmaker/hass-claude-code (upstream)" "$(commits_body "$upstream")" "Keine offenen Commits mehr."
+          sync_issue "Neue Commits im Fork YangXu1990uiuc/hass-claude-code" "$(commits_body "$yangxu")" "Keine offenen Commits mehr."
+
+      - name: Report a new base image
+        if: ${{ !cancelled() }}
+        run: |
+          source .github/scripts/sync-issue.sh
+          current=$(grep -oP '^\s*amd64: ghcr.io/hassio-addons/base:\K\S+' addon/build.yaml)
+          read -r tag url < <(gh release view --repo hassio-addons/addon-base --json tagName,url --jq '"\(.tagName) \(.url)"')
+          latest=${tag#v}
+          if ! [[ "$latest" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "::warning::Unexpected latest base image tag: $tag"
+            exit 0
+          fi
+          echo "Base image: $current, latest: $latest" >> "$GITHUB_STEP_SUMMARY"
+          body=""
+          if [ "$latest" != "$current" ] && [ "$(printf '%s\n' "$current" "$latest" | sort -V | tail -1)" = "$latest" ]; then
+            builder=$(grep -oP '^FROM alpine:\K\S+(?= AS mcp-builder)' addon/Dockerfile)
+            alpine=$(docker run --rm --entrypoint cat "ghcr.io/hassio-addons/base:$latest" /etc/alpine-release 2>/dev/null || echo unbekannt)
+            if [ "$alpine" = unbekannt ]; then change="unbekannt"
+            elif [ "${alpine%.*}" = "$builder" ]; then change="nein, bleibt $builder"
+            else change="**ja**, $builder → ${alpine%.*}"; fi
+            body=$(cat <<EOF
+          Für das Add-on gibt es eine neue Version des Basis-Images \`ghcr.io/hassio-addons/base\`.
+
+          - Aktuell: \`$current\`
+          - Neu: \`$latest\` (Alpine \`$alpine\`), [Release notes]($url)
+          - Wechselt die Alpine-Version: $change
+
+          Der Wechsel passiert bewusst nicht automatisch. Mit einer neuen Alpine-Version ändern sich oft die Versionen von Python und Node.js, und die Builder-Stage muss dieselbe Alpine-Version nutzen, sonst passt das native Modul better-sqlite3 nicht zum Node.js im Add-on.
+
+          Zu ändern:
+          - \`addon/build.yaml\` (beide Architekturen) und \`ARG BUILD_FROM\` in \`addon/Dockerfile\`
+          - Bei neuer Alpine-Version: \`FROM alpine:…\` der Builder-Stage in \`addon/Dockerfile\`
+          - Add-on-Version in \`addon/config.yaml\` und \`addon/CHANGELOG.md\`
+
+          Danach testen, z. B. mit einem manuellen Lauf der Action „Update add-on“ auf einem Branch.
+          EOF
+            )
+          fi
+          sync_issue "Neues Basis-Image hassio-addons/base verfügbar" "$body" "Das Basis-Image ist aktuell."
+
+      - name: Report new major versions of npm dependencies
+        if: ${{ !cancelled() }}
+        run: |
+          source .github/scripts/sync-issue.sh
+          lines=""
+          while read -r name range; do
+            latest=$(curl -fsSL "https://registry.npmjs.org/$name/latest" | jq -r .version)
+            if [ -z "$latest" ] || [ "$latest" = null ]; then
+              echo "::warning::Could not look up $name on npm"
+              continue
+            fi
+            base=${range#[\^~]}
+            # The major for ^1.2.3, the minor for ^0.1.2 (caret pins it for 0.x)
+            if [ "${base%%.*}" = 0 ]; then
+              allowed=$(cut -d. -f1-2 <<< "$base"); newest=$(cut -d. -f1-2 <<< "$latest")
+            else
+              allowed=${base%%.*}; newest=${latest%%.*}
+            fi
+            if [ "$newest" != "$allowed" ] && [ "$(printf '%s\n' "$allowed" "$newest" | sort -V | tail -1)" = "$newest" ]; then
+              lines+="- \`$name\`: erlaubt \`$range\`, neueste \`$latest\`"$'\n'
+            fi
+          done < <(jq -r '(.dependencies + .devDependencies) | to_entries[] | "\(.key) \(.value)"' addon/mcp-server/package.json)
+          {
+            echo "### npm major versions"
+            echo "${lines:-Keine neuen Hauptversionen.}"
+          } >> "$GITHUB_STEP_SUMMARY"
+          body=""
+          if [ -n "$lines" ]; then
+            body=$(printf '%s\n\n%s\n%s\n\n%s' \
+              "Für diese npm-Pakete des MCP-Servers gibt es neue Hauptversionen:" \
+              "$lines" \
+              "Kleine Updates innerhalb der erlaubten Hauptversion übernimmt die wöchentliche Action „Update add-on“ automatisch. Hauptversionen können Code-Änderungen brauchen und werden deshalb nur gemeldet." \
+              'Zum Übernehmen: Version in `addon/mcp-server/package.json` anheben, das Lockfile mit pnpm 11 neu erzeugen (`pnpm install --lockfile-only`), Code anpassen, Testbuild.')
+          fi
+          sync_issue "Neue Hauptversionen von npm-Paketen" "$body" "Keine neuen Hauptversionen mehr."
