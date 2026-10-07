@@ -11,7 +11,8 @@
 - Include the GitHub CLI (`gh`). Its login and the global git config are now kept in `/data` across restarts
 - All three are Alpine packages, so the weekly GitHub Action keeps them up to date like Python 3 itself
 - Claude Code now knows its environment: on every start the add-on writes `/etc/claude-code/CLAUDE.md` with the paths, MCP tools, APIs, command line tools and rules for editing the configuration. Claude Code loads it automatically, also on existing installs
-- `/homeassistant/CLAUDE.md` is now for your own notes. The add-on replaces it only while it is still the unchanged default of earlier versions
+- `/homeassistant/CLAUDE.md` is now for your own notes. The add-on creates it only when it is missing and never changes an existing one
+- With the Mosquitto broker add-on installed, the add-on gets the broker credentials from Home Assistant and passes them to Claude Code as `MQTT_HOST`, `MQTT_PORT`, `MQTT_USERNAME` and `MQTT_PASSWORD`
 - The configuration tab has names and descriptions in English and German
 
 ## 0.1.18

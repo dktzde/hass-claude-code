@@ -251,77 +251,19 @@ jobs:
           sync_issue "Neue Commits in dkmaker/hass-claude-code (upstream)" "$(commits_body "$upstream")" "Keine offenen Commits mehr."
           sync_issue "Neue Commits im Fork YangXu1990uiuc/hass-claude-code" "$(commits_body "$yangxu")" "Keine offenen Commits mehr."
 
-      - name: Report a new base image
+      - name: Report base image updates and support end
         if: ${{ !cancelled() }}
         run: |
           source .github/scripts/sync-issue.sh
-          current=$(grep -oP '^\s*amd64: ghcr.io/hassio-addons/base:\K\S+' addon/build.yaml)
-          read -r tag url < <(gh release view --repo hassio-addons/addon-base --json tagName,url --jq '"\(.tagName) \(.url)"')
-          latest=${tag#v}
-          if ! [[ "$latest" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-            echo "::warning::Unexpected latest base image tag: $tag"
-            exit 0
-          fi
-          echo "Base image: $current, latest: $latest" >> "$GITHUB_STEP_SUMMARY"
-          body=""
-          if [ "$latest" != "$current" ] && [ "$(printf '%s\n' "$current" "$latest" | sort -V | tail -1)" = "$latest" ]; then
-            builder=$(grep -oP '^FROM alpine:\K\S+(?= AS mcp-builder)' addon/Dockerfile)
-            alpine=$(docker run --rm --entrypoint cat "ghcr.io/hassio-addons/base:$latest" /etc/alpine-release 2>/dev/null || echo unbekannt)
-            if [ "$alpine" = unbekannt ]; then change="unbekannt"
-            elif [ "${alpine%.*}" = "$builder" ]; then change="nein, bleibt $builder"
-            else change="**ja**, $builder → ${alpine%.*}"; fi
-            body=$(cat <<EOF
-          Für das Add-on gibt es eine neue Version des Basis-Images \`ghcr.io/hassio-addons/base\`.
-
-          - Aktuell: \`$current\`
-          - Neu: \`$latest\` (Alpine \`$alpine\`), [Release notes]($url)
-          - Wechselt die Alpine-Version: $change
-
-          Der Wechsel passiert bewusst nicht automatisch. Mit einer neuen Alpine-Version ändern sich oft die Versionen von Python und Node.js, und die Builder-Stage muss dieselbe Alpine-Version nutzen, sonst passt das native Modul better-sqlite3 nicht zum Node.js im Add-on.
-
-          Zu ändern:
-          - \`addon/build.yaml\` (beide Architekturen) und \`ARG BUILD_FROM\` in \`addon/Dockerfile\`
-          - Bei neuer Alpine-Version: \`FROM alpine:…\` der Builder-Stage in \`addon/Dockerfile\`
-          - Add-on-Version in \`addon/config.yaml\` und \`addon/CHANGELOG.md\`
-
-          Danach testen, z. B. mit einem manuellen Lauf der Action „Update add-on“ auf einem Branch.
-          EOF
-            )
-          fi
-          sync_issue "Neues Basis-Image hassio-addons/base verfügbar" "$body" "Das Basis-Image ist aktuell."
+          # Earlier title of this issue; close it if it is still open
+          sync_issue "Neues Basis-Image hassio-addons/base verfügbar" "" "Ersetzt durch das Issue „Basis-Image: neue Version oder Support-Ende“."
+          # Assigned first so a failing script stops the step instead of closing the issue
+          body=$(bash .github/scripts/base-image-report.sh)
+          sync_issue "Basis-Image: neue Version oder Support-Ende" "$body" "Das Basis-Image ist aktuell und sein Support läuft noch."
 
       - name: Report new major versions of npm dependencies
         if: ${{ !cancelled() }}
         run: |
           source .github/scripts/sync-issue.sh
-          lines=""
-          while read -r name range; do
-            latest=$(curl -fsSL "https://registry.npmjs.org/$name/latest" | jq -r .version)
-            if [ -z "$latest" ] || [ "$latest" = null ]; then
-              echo "::warning::Could not look up $name on npm"
-              continue
-            fi
-            base=${range#[\^~]}
-            # The major for ^1.2.3, the minor for ^0.1.2 (caret pins it for 0.x)
-            if [ "${base%%.*}" = 0 ]; then
-              allowed=$(cut -d. -f1-2 <<< "$base"); newest=$(cut -d. -f1-2 <<< "$latest")
-            else
-              allowed=${base%%.*}; newest=${latest%%.*}
-            fi
-            if [ "$newest" != "$allowed" ] && [ "$(printf '%s\n' "$allowed" "$newest" | sort -V | tail -1)" = "$newest" ]; then
-              lines+="- \`$name\`: erlaubt \`$range\`, neueste \`$latest\`"$'\n'
-            fi
-          done < <(jq -r '(.dependencies + .devDependencies) | to_entries[] | "\(.key) \(.value)"' addon/mcp-server/package.json)
-          {
-            echo "### npm major versions"
-            echo "${lines:-Keine neuen Hauptversionen.}"
-          } >> "$GITHUB_STEP_SUMMARY"
-          body=""
-          if [ -n "$lines" ]; then
-            body=$(printf '%s\n\n%s\n%s\n\n%s' \
-              "Für diese npm-Pakete des MCP-Servers gibt es neue Hauptversionen:" \
-              "$lines" \
-              "Kleine Updates innerhalb der erlaubten Hauptversion übernimmt die wöchentliche Action „Update add-on“ automatisch. Hauptversionen können Code-Änderungen brauchen und werden deshalb nur gemeldet." \
-              'Zum Übernehmen: Version in `addon/mcp-server/package.json` anheben, das Lockfile mit pnpm 11 neu erzeugen (`pnpm install --lockfile-only`), Code anpassen, Testbuild.')
-          fi
+          body=$(bash .github/scripts/npm-report.sh)
           sync_issue "Neue Hauptversionen von npm-Paketen" "$body" "Keine neuen Hauptversionen mehr."

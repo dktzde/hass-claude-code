@@ -33,6 +33,20 @@ printf '%s' "/data/models" > /var/run/s6/container_environment/MODELS_DIR
 } > /etc/profile.d/claude.sh
 bashio::log.info 'Log in with Claude Code on first start; the login is kept across restarts.'
 
+# --- MQTT broker credentials (config.yaml: services: mqtt:want) ---
+# The Supervisor provides them when the Mosquitto broker add-on is installed.
+mqtt_available=false
+if bashio::services.available 'mqtt'; then
+    bashio::log.info 'MQTT broker found — providing its credentials as MQTT_* variables.'
+    mqtt_available=true
+    {
+        printf 'export MQTT_HOST=%q\n' "$(bashio::services 'mqtt' 'host')"
+        printf 'export MQTT_PORT=%q\n' "$(bashio::services 'mqtt' 'port')"
+        printf 'export MQTT_USERNAME=%q\n' "$(bashio::services 'mqtt' 'username')"
+        printf 'export MQTT_PASSWORD=%q\n' "$(bashio::services 'mqtt' 'password')"
+    } >> /etc/profile.d/claude.sh
+fi
+
 # --- Persistent storage ---
 mkdir -p /data/.claude /data/models /data/.config/gh
 touch /data/.bash_history /data/.gitconfig
@@ -217,9 +231,21 @@ Rules for working on the configuration:
 
 ## MQTT
 
-If the user runs the Mosquitto broker add-on, the broker is reachable at host `core-mosquitto`, port `1883`. It needs a username and password: ask the user for them and do not store them in files.
+EOF
+    if [[ "${mqtt_available}" == true ]]; then
+        cat << 'EOF'
+The MQTT broker of this Home Assistant (Mosquitto broker add-on) is available. Its connection details are in the environment variables `MQTT_HOST`, `MQTT_PORT`, `MQTT_USERNAME` and `MQTT_PASSWORD`. Use the variables, never write the password into files or print it.
 
-- Always limit subscriptions so they end, with `-W <seconds>` or `-C <count>`, for example: `mosquitto_sub -h core-mosquitto -u <user> -P <password> -t 'homeassistant/#' -v -W 10`
+- Always limit subscriptions so they end, with `-W <seconds>` or `-C <count>`, for example: `mosquitto_sub -h "$MQTT_HOST" -p "$MQTT_PORT" -u "$MQTT_USERNAME" -P "$MQTT_PASSWORD" -t 'homeassistant/#' -v -W 10`
+EOF
+    else
+        cat << 'EOF'
+Home Assistant provides no MQTT broker credentials: the Mosquitto broker add-on is not installed. If the user has another broker, ask for host, port, username and password, and do not store them in files.
+
+- Always limit subscriptions so they end, with `-W <seconds>` or `-C <count>`, for example: `mosquitto_sub -h <host> -u <user> -P <password> -t 'homeassistant/#' -v -W 10`
+EOF
+    fi
+    cat << 'EOF'
 - Publishing can switch real devices. Ask before publishing to command topics, and never publish retained messages (`-r`) to discovery topics without being asked.
 EOF
     printf '\n## Add-on settings\n\n'
@@ -229,38 +255,9 @@ EOF
 } > /etc/claude-code/CLAUDE.md
 
 # --- /homeassistant/CLAUDE.md is for the user's own notes ---
-# Created if absent. Earlier versions wrote an add-on description there; it is
-# replaced only while it is still exactly that untouched default.
-cat > /tmp/claude-md-old-default << 'EOF'
-# Home Assistant Development Environment
-
-You are working inside a Home Assistant instance with full API access.
-
-## Available MCP Tools
-
-The `home-assistant` MCP server provides these tools:
-- `search_entities` - Search entities by name, domain, or area
-- `get_entity_state` - Get state and attributes of an entity
-- `call_service` - Call any HA service (turn on lights, trigger automations, etc.)
-- `search_automations` - Search automation entities
-- `get_ha_config` - Get HA core configuration
-- `list_areas` - List all defined areas
-- `search_devices` - Search device registry
-- `get_config_entries` - List integration config entries
-- `search_docs` - Search HA developer and user documentation
-- `read_doc` - Read a specific documentation file
-- `get_doc_stats` - Get documentation index statistics
-
-## File Locations
-
-- `/homeassistant/` - Home Assistant configuration directory
-- `/homeassistant/.storage/` - Internal registry and state data
-- `/share/` - Shared storage between add-ons
-- `/ssl/` - SSL certificates (read-only)
-- `/media/` - Media files (read-only)
-EOF
-if [[ ! -f /homeassistant/CLAUDE.md ]] || cmp -s /tmp/claude-md-old-default /homeassistant/CLAUDE.md; then
-    bashio::log.info 'Writing /homeassistant/CLAUDE.md for your own notes...'
+# Only created when missing; an existing file is never touched.
+if [[ ! -f /homeassistant/CLAUDE.md ]]; then
+    bashio::log.info 'Creating /homeassistant/CLAUDE.md for your own notes...'
     cat > /homeassistant/CLAUDE.md << 'EOF'
 # Notes for Claude Code
 
@@ -269,6 +266,5 @@ The add-on describes its environment, tools and APIs in `/etc/claude-code/CLAUDE
 Add your own notes for Claude here, for example which integrations matter to you or conventions for your configuration.
 EOF
 fi
-rm -f /tmp/claude-md-old-default
 
 bashio::log.info 'Claude Code environment ready.'

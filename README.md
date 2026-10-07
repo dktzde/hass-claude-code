@@ -28,7 +28,7 @@ Thank you both!
 - **Home Assistant access** through an MCP server: search entities, devices and areas, read states, call services
 - **Documentation search** across the Home Assistant user and developer docs, bundled with the add-on
 - **Python 3 with PyYAML** included, for the scripts Claude likes to run, for example to read YAML configuration
-- **MQTT clients** `mosquitto_pub` and `mosquitto_sub`, to inspect and test MQTT devices
+- **MQTT clients** `mosquitto_pub` and `mosquitto_sub`, to inspect and test MQTT devices. With the Mosquitto broker add-on installed, the add-on gets the broker credentials from Home Assistant and passes them to Claude as `MQTT_HOST`, `MQTT_PORT`, `MQTT_USERNAME` and `MQTT_PASSWORD`
 - **GitHub CLI** `gh`, for example to keep your configuration in a GitHub repository
 - **Knows its environment**: on every start the add-on writes `/etc/claude-code/CLAUDE.md`, which Claude Code loads automatically. It lists the paths, MCP tools, APIs and command line tools. Your own notes for Claude go into `/homeassistant/CLAUDE.md`
 - **Persistent sessions**: tmux keeps Claude running when you close the browser tab. The Claude Code login, history and memory, the GitHub CLI login and the git config survive restarts
@@ -80,8 +80,8 @@ Home Assistant then offers a normal add-on update. The changelog marks these upd
 Some updates stay a manual decision because they can need code changes. The same Action opens an issue for each of them:
 
 - New commits in the two projects above, so useful fixes can be taken over by hand
-- A new version of the base image `ghcr.io/hassio-addons/base`, including whether it switches to a new Alpine version
-- New major versions of npm dependencies
+- A new version of the base image `ghcr.io/hassio-addons/base`, or support of the installed Alpine version ending soon. The issue shows until when the installed Alpine version gets updates for its main and its community repository, plus the support end of Python and Node.js, with dates from [endoflife.date](https://endoflife.date)
+- New major versions of npm dependencies. npm publishes no end-of-support dates, so for each package the issue shows whether its installed line still gets updates and when it got the last one
 
 To update by hand, run the `/update-claude` skill in this repository, or bump `CLAUDE_CODE_VERSION` in `addon/Dockerfile` and `version` in `addon/config.yaml`.
 
@@ -113,7 +113,7 @@ The built-in MCP server `home-assistant` gives Claude these tools:
 | `/ssl/` | Certificates | Read-only |
 | `/media/` | Media files | Read-only |
 
-On every start, the add-on writes `/etc/claude-code/CLAUDE.md` with an overview of the paths, tools and APIs, which Claude Code loads automatically. `/homeassistant/CLAUDE.md` is for your own notes: the add-on creates it if it is missing, and replaces it only while it is still the unchanged default of earlier versions.
+On every start, the add-on writes `/etc/claude-code/CLAUDE.md` with an overview of the paths, tools and APIs, which Claude Code loads automatically. `/homeassistant/CLAUDE.md` is for your own notes: the add-on creates it if it is missing and never changes an existing one.
 
 ## How it is built
 

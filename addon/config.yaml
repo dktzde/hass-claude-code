@@ -22,6 +22,10 @@ map:
   - share:rw
   - ssl:ro
   - media:ro
+# Optional: when the Mosquitto broker add-on is installed, the Supervisor
+# hands its credentials to this add-on (see init-claude).
+services:
+  - mqtt:want
 options:
   model: "default"
   yolo_mode: false
