@@ -4,7 +4,17 @@ This page provides some tips and tricks that may help you as a contributor to Ho
 
 ### Keep PRs simple
 
-See the [Component Checklist](/docs/creating_component_code_review#5-make-your-pull-request-as-small-as-possible) for PR expectations.
+Keep a new integration to the minimum functionality needed for someone to get value out of the integration. This allows reviewers to sign off on smaller chunks of code one at a time, and lets us get your new integration/features in sooner. **Pull requests containing large code dumps will not be a priority for review and may be closed.**
+
+- Limit to a single platform
+- Do not add features not needed to directly support the single platform (such as custom service actions)
+- Do not mix clean-ups and new features in a single pull request.
+- Do not solve several issues in a single pull request.
+- Do not submit pull requests that depend on other work which is still unmerged.
+
+It may be tempting to open a large PR when "modernizing" an integration that hasn't been touched in a while to take advantage of all the latest features available. The right approach is to break the features down into independent functional changes as best you can and to submit the PRs sequentially.
+
+One strategy for handling sequential PRs is to create a branch for the `next` PR off the `current` PR's branch, which you can then start writing code against. This strategy is advantageous if you have split up the PRs such that one is dependent on the previous one since you are working off of the code that will be in `dev` once the PR is merged. If you add additional commits to the `current` PR because of changes/review feedback, you can rebase your `next` PR's branch and more easily incorporate any merge conflicts. Once your `current` PR has been merged, squash the commits from the `current` PR branch in the `next` PR branch and then rebase on `dev`. Then you can submit your `next` PR branch for review and rinse and repeat as needed.
 
 ### Test package dependency changes in Home Assistant
 
@@ -26,7 +36,7 @@ The Home Assistant frontend caches aggressively, and as such, the first time you
 
 ### Getting additional support
 
-`#developers` on the Home Assistant [Discord](https://www.home-assistant.io/join-chat/) server are great places to ask questions. Pro tip: Before you post your question, push the code you are working on into a branch and push that branch somewhere public and paste a link to it along with your question so that the person who is helping you can see your code. Please do NOT paste code blobs into the channel as it's hard to read and hides other questions/discussions.
+`#developers` on the Home Assistant [Discord](https://www.home-assistant.io/join-chat/) server is a great place to ask questions. Pro tip: Before you post your question, push the code you are working on into a branch and push that branch somewhere public and paste a link to it along with your question so that the person who is helping you can see your code. Please do NOT paste code blobs into the channel as it's hard to read and hides other questions/discussions.
 
 If you see a way to improve the developer docs, please pay it forward and submit a PR to update them. See the next tip for more details.
 

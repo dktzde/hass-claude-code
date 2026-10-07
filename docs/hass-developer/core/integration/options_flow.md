@@ -23,9 +23,9 @@ The Flow handler works just like the config flow handler, except that the first 
 ```python
 from homeassistant.config_entries import OptionsFlow
 
-OPTIONS_SCHEMA = vol.Schema(
+OPTIONS_SCHEMA = probatio.Schema(
     {
-        vol.Required("show_things"): bool,
+        probatio.Required("show_things"): bool,
     }
 )
 class OptionsFlowHandler(OptionsFlow):
@@ -53,9 +53,9 @@ Since the most common reason to add an update listener is to reload the integrat
 ```python
 from homeassistant.config_entries import OptionsFlowWithReload
 
-OPTIONS_SCHEMA = vol.Schema(
+OPTIONS_SCHEMA = probatio.Schema(
     {
-        vol.Required("show_things"): bool,
+        probatio.Required("show_things"): bool,
     }
 )
 class MyOptionsFlow(OptionsFlowWithReload):

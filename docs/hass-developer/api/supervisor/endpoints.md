@@ -53,6 +53,8 @@ To see more details about each endpoint, click on it to expand it.
 
 ### Supervisor
 
+### Time
+
 ### Placeholders
 
 Some of the endpoints uses placeholders indicated with `<...>` in the endpoint URL.

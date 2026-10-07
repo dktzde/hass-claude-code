@@ -1,6 +1,4 @@
-While you can configure most of Home Assistant from the user interface, for some integrations, you need to edit the `configuration.yaml` file.
-
-This file contains {% term integrations %} to be loaded along with their configurations. Throughout the documentation, you will find snippets that you can add to your configuration file to enable specific functionality.
+While you can configure most of Home Assistant from the user interface, a small number of integrations and power-user features still need a few lines in the `configuration.yaml` file. This page explains how that file works, so you can use it when you need to.
 
 Example of a configuration.yaml file, accessed using the File editor app on a Home Assistant Operating System installation.
 
@@ -8,12 +6,12 @@ Example of a configuration.yaml file, accessed using the File editor app on a Ho
 
 How you edit your `configuration.yaml` file depends on your editor preferences and the [installation type](/installation/#about-installation-types) you used to set up Home Assistant. Follow these steps:
 
-1. [Set up file access](#to-set-up-access-to-the-files-and-prepare-an-editor).
-2. [Locate the config directory](#to-find-the-configuration-directory).
-3. [Edit your `configuration.yaml` file](#to-edit-the-configuration-file).
+1. [Set up file access and prepare an editor](#set-up-file-access-and-prepare-an-editor).
+2. [Find the configuration directory](#find-the-configuration-directory).
+3. [Edit the `configuration.yaml` file](#edit-the-configuration-file).
 4. Save your changes and [reload the configuration](#reloading-the-configuration-to-apply-changes) to apply the changes.
 
-### To set up access to the files and prepare an editor
+### To set up file access and prepare an editor
 
 Before you can edit a file, you need to know how to access files in Home Assistant and setup an editor.
 File access depends on your [installation type](/installation/#about-installation-types). If you use {% term "Home Assistant Operating System" %}, you can use editor apps, for example. If you use {% term "Home Assistant Container" %}, apps are not available.

@@ -1,3 +1,5 @@
+import RelatedRules from './_includes/related_rules.jsx'
+
 ## Reasoning
 
 Integrations can register service actions to provide functionality that is not possible with standard entities.
@@ -21,4 +23,6 @@ The `my_integration.get_schedule` service is used to fetch a schedule from the i
 
 ## Exceptions
 
-There are no exceptions to this rule.
+If the integration does not provide any custom service actions, this rule does not apply.
+
+## Related rules

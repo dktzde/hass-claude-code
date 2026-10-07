@@ -12,6 +12,9 @@ The message will either be generated from the attached translation string or fro
 When the problem is caused by incorrect usage (for example incorrect input or referencing something that does not exist) we should raise a `ServiceValidationError`.
 When the problem is caused by an error in the service action itself (for example, a network error or a bug in the service), we should raise a `HomeAssistantError`.
 
+This rule is not limited to custom service actions registered by the integration.
+Platform actions (for example, switching a `switch` or turning on a `light`) count towards this rule as well and should raise an exception when they encounter a failure.
+
 In this example, we show a function that is registered as a service action in Home Assistant.
 If the input is incorrect (when the end date is before the start date), a `ServiceValidationError` is raised, and if we can't reach the service, we raise a `HomeAssistantError`.
 
@@ -36,6 +39,6 @@ For more info on raising exceptions, check the [documentation](/docs/core/platfo
 
 ## Exceptions
 
-There are no exceptions to this rule.
+If the integration does not register any custom service actions and only has read-only platforms (binary sensors & sensors), this rule does not apply.
 
 ## Related rules

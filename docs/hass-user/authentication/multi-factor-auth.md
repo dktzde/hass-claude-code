@@ -43,11 +43,11 @@ You will need an authenticator app on your phone. We recommend either [Google Au
     {% endcaution %}
 
 5. Your phone app will now start generating a different six-digit code every thirty seconds or so. Enter one of these into Home Assistant under the QR code where it asks for a **Code**.
-   - **Result**: Home Assistant and your phone app are now in sync and you can now use the code displayed in the app to log in.
+   - Result: Home Assistant and your phone app are now in sync and you can now use the code displayed in the app to log in.
 
 #### Using TOTP
 
-Once TOTP is enabled, Home Assistant requires the latest code from your phone app before you can log in. 
+Once TOTP is enabled, Home Assistant requires the latest code from your phone app before you can log in.
 
 {% note %}
 TOTP is _time based_ so it relies on your Home Assistant clock being accurate. If the verification keeps failing, make sure the clock on Home Assistant is correct.
@@ -102,6 +102,18 @@ If the validation failed, a new one-time password will be sent again.
 
 {% note %}
 The Notify MFA module can't tell if the one-time password was delivered successfully. If you don't get the notification, you won't be able to log in.
-
-You can disable the Notify MFA module by editing or removing the file `[your_config_dir]/.storage/auth_module.notify`.
 {% endnote %}
+
+#### Disabling MFA notify
+
+Disabling MFA notify only affects your Home Assistant user account. Other users on the same Home Assistant instance are unaffected.
+
+1. Make sure you can still sign in with your password and any other MFA method that will remain enabled for your account.
+2. Go to your {% my profile title="**User profile**" %}, select the **Security** tab, and select **Disable** under **Notify one-time password**.
+
+#### Removing MFA notify
+
+Removing MFA notify makes this MFA option unavailable to all users on the Home Assistant instance.
+
+1. Make sure all affected users can still sign in with their password and any other MFA method that will remain enabled for their account.
+2. Remove the Notify MFA entry from `auth_mfa_modules` in `configuration.yaml`, then restart Home Assistant.

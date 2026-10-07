@@ -38,7 +38,11 @@ The domain is a short name consisting of characters and underscores. This domain
 
 ## Name
 
-The name of the integration.
+The name of the integration must follow these rules:
+
+- If a product or service offers both local and cloud integrations, the cloud variant should append "Cloud" to the name (for example, **LIFX Cloud**).
+- The local variant (or one that supports both local and cloud communication) should use the plain product or service name with no suffix (for example, **LIFX**). Do not append "Local".
+- Integrations for inherently cloud-based products or services should use the name as-is, without any suffix (for example, **iCloud** not **iCloud Cloud**).
 
 ## Version
 
@@ -52,9 +56,9 @@ Integrations are split into multiple integration types. Each integration
 must provide an `integration_type` in their manifest, that describes its main
 focus.
 
-When not set, we currently default to `hub`. This default is temporary during
-our transition period, every integration should set an `integration_type` and
-it thus will become mandatory in the future.
+Setting an `integration_type` is required for core integrations with a config
+flow. For custom and YAML-based integrations, if the `integration_type` is
+not set, it will default to `hub`, but it is recommended to set the correct type explicitly.
 
 | Type |  Description
 | ---- | -----------
@@ -142,7 +146,7 @@ pip install -e ./pychromecast
 hass --skip-pip-packages pychromecast
 ```
 
-It is also possible to use a public git repository to install a requirement.  This can be useful, for example, to test changes to a requirement dependency before it's been published to PyPI. Syntax:
+It is also possible to use a public git repository to install a requirement. This can be useful, for example, to test changes to a requirement dependency before it's been published to PyPI. Syntax:
 
 ```json
 {
@@ -236,7 +240,7 @@ Zeroconf is a list so you can specify multiple types to match on.
 }
 ```
 
-Certain zeroconf types are very generic (i.e., `_printer._tcp.local.`, `_axis-video._tcp.local.` or `_http._tcp.local`). In such cases you should include a Name (`name`), or Properties (`properties`) filter:
+Certain zeroconf types are very generic (that is, `_printer._tcp.local.`, `_axis-video._tcp.local.` or `_http._tcp.local`). In such cases you should include a Name (`name`), or Properties (`properties`) filter:
 
 ```json
 {
@@ -407,7 +411,7 @@ New integrations are required to fulfill at least the bronze tier so be sure to 
 
 ## IoT class
 
-The [IoT class][iot_class] describes how an integration connects with, e.g., a device or service. For more information
+The [IoT class][iot_class] describes how an integration connects with, for example, a device or service. For more information
 about IoT Classes, read the blog about ["Classifying the Internet of Things"][iot_class].
 
 The following IoT classes are accepted in the manifest:
@@ -420,6 +424,44 @@ The following IoT classes are accepted in the manifest:
 - `calculated`: The integration does not handle communication on its own, but provides a calculated result.
 
 [iot_class]: https://www.home-assistant.io/blog/2016/02/12/classifying-the-internet-of-things/#classifiers
+
+## Preview features
+
+The `preview_features` key declares [Labs preview features](/docs/development/labs) your integration offers: experimental functionality that users opt into before it graduates to a standard part of the integration. Each entry is keyed by a feature slug and provides URLs for giving feedback, learning more, and reporting issues.
+
+```json
+{
+  "preview_features": {
+    "my_preview_feature": {
+      "feedback_url": "https://community.home-assistant.io/t/...",
+      "learn_more_url": "https://www.home-assistant.io/integrations/my_integration",
+      "report_issue_url": "https://github.com/home-assistant/core/issues/new?template=bug_report.yml"
+    }
+  }
+}
+```
+
+See [Labs](/docs/development/labs) for the full workflow of adding a preview feature.
+
+## Import executor
+
+By default (`true`), Home Assistant imports the integration in an executor so a slow import does not block the event loop. Set `import_executor` to `false` only if the integration must be imported on the event loop; Home Assistant logs a warning when it is.
+
+```json
+{
+  "import_executor": false
+}
+```
+
+## Disabled
+
+The `disabled` key marks an integration as disabled and keeps it from loading. The value is a short reason that Home Assistant logs to explain why, for example when an integration is temporarily broken.
+
+```json
+{
+  "disabled": "Integration is temporarily broken"
+}
+```
 
 ## Virtual integration
 
