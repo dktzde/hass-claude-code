@@ -26,7 +26,7 @@ Thank you both!
 
 - **Web terminal** in the Home Assistant sidebar via Ingress, no port forwarding needed
 - **Home Assistant access** through an MCP server: search entities, devices and areas, read states, call services
-- **Documentation search** across the Home Assistant user and developer docs, bundled with the add-on
+- **Documentation search** across the Home Assistant user and developer docs, bundled with the add-on. Keyword search that also copes with identifiers like `light.turn_on` and corrects typos
 - **Python 3 with PyYAML** included, for the scripts Claude likes to run, for example to read YAML configuration
 - **MQTT clients** `mosquitto_pub` and `mosquitto_sub`, to inspect and test MQTT devices. With the Mosquitto broker add-on installed, the add-on gets the broker credentials from Home Assistant and passes them to Claude as `MQTT_HOST`, `MQTT_PORT`, `MQTT_USERNAME` and `MQTT_PASSWORD`
 - **GitHub CLI** `gh`, for example to keep your configuration in a GitHub repository
