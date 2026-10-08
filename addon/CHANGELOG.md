@@ -1,3 +1,9 @@
+## 0.3.2
+
+- **Automated update** by the GitHub Action "Update add-on" ([workflow run](https://github.com/dktzde/hass-claude-code/actions/runs/37776922455))
+- Update Claude Code to 2.1.293
+- Update the bundled Home Assistant docs (35 files changed)
+
 ## 0.3.1
 
 ### Bug fixes

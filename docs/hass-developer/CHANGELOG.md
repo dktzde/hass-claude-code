@@ -1,5 +1,9 @@
 # Docs Changelog
 
+## 2026-10-08 12:27
+
+Updated (16): api/supervisor/endpoints.md, apps/communication.md, apps/configuration.md, apps/presentation.md, apps/repository.md, apps/testing.md, apps/tutorial.md, apps.md, core/integration/config_flow.md, documenting/topic-based-authoring.md, frontend/development.md, operating-system/debugging.md, review-process.md, setup_devcontainer_environment.md, supervisor/debugging.md, supervisor/development.md
+
 ## 2026-10-07 10:17
 
 Added (19): ai_policy.md, architecture, e2e_testing.md, instance_discovery.md, apple, geo-location.md, infrared.md, radio-frequency.md, integration, docs-conditions.md, docs-triggers.md, media_source.md, pr_review_guide.md, deprecating.md, testing.md, topic-based-authoring.md, modbus, oauth2.md, versioning.md
