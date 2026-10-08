@@ -1,3 +1,6 @@
+> [!WARNING]
+> **Archiv-Branch, nicht verwenden.** Dieser Branch sichert lokale Dev-Commits vom 06.03.2026 (Add-on 0.1.12: ESC-Button für Mobilgeräte, Scrollen mit dem Mausrad in tmux) auf Basis von upstream 0.1.11. Was drin ist, was davon nützlich ist und wie man es übernimmt, steht in [ARCHIVE.md](ARCHIVE.md). Der aktuelle Stand ist der Branch `main`.
+
 # Claude Code for Home Assistant
 
 A Home Assistant add-on that runs [Claude Code](https://docs.anthropic.com/en/docs/claude-code) inside your HA instance with a web terminal, full API access, and a built-in MCP server providing structured tools for interacting with your smart home.
