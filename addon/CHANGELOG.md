@@ -1,3 +1,10 @@
+## 0.3.1
+
+### Bug fixes
+
+- Yolo mode: remove `"permissions.defaultMode": "acceptEdits"` from the managed settings. It was written as one key with a dot, so Claude Code never read it, and yolo mode always worked through the allow list alone. Written correctly, it would make every session start in "accept edits" and override the mode users choose in their own settings, so it is removed instead of fixed
+- The generated `/etc/claude-code/CLAUDE.md` named `GET /core/api/error_log` for the error log, which returns 404 on Home Assistant OS (Core writes no `home-assistant.log` there). It now points to the Supervisor endpoint `/core/logs`, with `?lines=500` and `/core/logs/latest`
+
 ## 0.3.0
 
 ### Breaking change

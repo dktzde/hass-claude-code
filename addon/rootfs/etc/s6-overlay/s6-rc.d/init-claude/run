@@ -107,6 +107,8 @@ mkdir -p /etc/claude-code
 
 # When yolo mode is enabled, use managed settings to allow all tools.
 # This works as root (unlike --dangerously-skip-permissions which blocks on root).
+# No permissions.defaultMode here: the allow list already approves every tool, and a
+# managed default mode would override the mode users pick in their own settings.
 if bashio::config.true 'yolo_mode'; then
     bashio::log.info 'Yolo mode enabled — configuring auto-approve for all tools.'
     cat > /etc/claude-code/managed-settings.json << 'SETTINGSEOF'
@@ -143,8 +145,7 @@ if bashio::config.true 'yolo_mode'; then
       "mcp__home-assistant__get_doc_stats"
     ],
     "deny": []
-  },
-  "permissions.defaultMode": "acceptEdits"
+  }
 }
 SETTINGSEOF
 else
@@ -227,7 +228,7 @@ Rules for working on the configuration:
   - State: `curl -s -H "Authorization: Bearer $SUPERVISOR_TOKEN" http://supervisor/core/api/states/sun.sun`
   - Config check: `curl -s -X POST -H "Authorization: Bearer $SUPERVISOR_TOKEN" http://supervisor/core/api/config/core/check_config`
   - Render a template: `POST /core/api/template` with `{"template": "{{ states('sun.sun') }}"}`
-  - Error log: `GET /core/api/error_log`
+  - The Core endpoint `/core/api/error_log` returns 404 on Home Assistant OS (Core writes no `home-assistant.log` there). Read the log through the Supervisor API instead: `curl -s -H "Authorization: Bearer $SUPERVISOR_TOKEN" -H "Accept: text/plain" "http://supervisor/core/logs?lines=500"` (`/core/logs/latest`: since the last start of Home Assistant)
 - Supervisor API at `http://supervisor/` (this add-on has the admin role), for example `GET /core/info`, `GET /core/logs`, `GET /addons`, `GET /addons/<slug>/logs`. Actions such as `POST /core/restart` need the user's consent first.
 
 ## Command line tools

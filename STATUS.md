@@ -2,16 +2,19 @@
 
 Handover file for the maintainer and for Claude Code sessions working on this repository. **Read this first, and update it after every step** (state, decisions, next steps), so the next session can continue without the chat history.
 
-Last updated: 2026-10-07
+Last updated: 2026-10-08
 
 ## Current state
 
-- **Add-on version on `main`: 0.2.1** (0.2.0 plus the automated package refresh). It runs on the maintainer's device (an old x86 laptop, `amd64`).
-- **In review: 0.3.0** (dktzde/hass-claude-code#9):
+- **Add-on version on `main`: 0.3.0** (dktzde/hass-claude-code#9, merged 2026-10-07). It runs on the maintainer's device (an old x86 laptop, `amd64`) since 2026-10-07 18:25:
   - Removes the semantic doc search. It never worked, see the changelog. The image gets about 350 MB smaller, and `search_docs` becomes keyword-only (SQLite FTS5) with no embedding or vector dependencies.
   - Makes the keyword search robust, in `src/search.ts`. It tries the query as FTS5 syntax first, then all words, then all words with typos corrected, then any word. Typos are corrected against the FTS5 vocabulary (`chunks_vocab`, an `fts5vocab` table) with an edit distance of 1–2, preferring the same first letter and then the more common word. The tool output then carries a second text item with the corrected query.
   - Removes stored values of removed options (`api_key`, `enable_embeddings`) from the add-on configuration on start through the Supervisor API (`init-claude`). **When an option is removed in future, add it to `removed_options` there.**
-  - Before merging: test run of the Action on the branch. After merging: run on `main`, then update in Home Assistant with "backup before update", and check that the YAML editor of the configuration tab no longer shows `api_key` or `enable_embeddings`.
+  - Checked on the device on 2026-10-08: the options only hold `model`, `yolo_mode` and `additional_packages`; tools, `gh` login, MCP server and keyword docs search work.
+- **In review: 0.3.1** (dktzde/hass-claude-code#10, branch `fix/managed-settings-and-log-hint`), two bug fixes, see the changelog:
+  - Yolo mode no longer writes the dead key `"permissions.defaultMode"` (with a dot, never read by Claude Code). Not moved into `permissions` on purpose: a managed default mode would override the mode users choose themselves.
+  - The generated `CLAUDE.md` points to the Supervisor endpoint `/core/logs` instead of `/core/api/error_log` (404 on Home Assistant OS).
+  - Before merging: test run of the Action on the branch. After merging: update in Home Assistant, then check that `/etc/claude-code/managed-settings.json` has only the `permissions` key.
 - **Contents of the image:**
   - Claude Code 2.1.292 (pinned)
   - Python 3.12 with PyYAML, `mosquitto_pub` and `mosquitto_sub`, the GitHub CLI `gh`
