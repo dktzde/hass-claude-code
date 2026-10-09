@@ -1,6 +1,6 @@
 ## 0.4.0
 
-New minor version because of the new Alpine version.
+New minor version because of the new Alpine version and the new major versions of the MCP server's dependencies.
 
 ### Changes
 
@@ -8,6 +8,8 @@ New minor version because of the new Alpine version.
 - **Python 3.14** (was 3.12). PyYAML is still included. If you run your own Python scripts in the add-on, they now run on Python 3.14
 - Node.js stays at version 24
 - Newer versions of the tools that come from Alpine, for example the GitHub CLI, tmux, git and the MQTT clients
+- The built-in MCP server uses new major versions of its libraries (better-sqlite3 13, zod 4, glob 13, TypeScript 7). The tools work as before
+- The build no longer installs a compiler, because better-sqlite3 now comes with prebuilt binaries. The first build after an update downloads less, which helps most on a Raspberry Pi
 - The add-on log shows no deprecation warning from the new base image (`bashio::addon.ingress_port` is now `bashio::app.ingress_port`)
 
 ## 0.3.4

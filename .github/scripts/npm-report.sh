@@ -10,6 +10,9 @@ set -euo pipefail
 source "$(dirname "$0")/support-lib.sh"
 registry=${NPM_REGISTRY:-https://registry.npmjs.org}
 dir=addon/mcp-server
+# @types/node follows the Node.js major the add-on runs (Alpine's nodejs
+# package), not the latest @types/node: see MAINTENANCE.md
+node_major=$(grep -oP '^nodejs-\K[0-9]+' addon/packages.txt 2>/dev/null || true)
 
 # installed NAME: version of a direct dependency in the lockfile (no peer suffix)
 installed() {
@@ -61,6 +64,14 @@ while read -r name range; do
   line=$(line_of "$version")
   read -r line_last line_last_date < <(releases "$doc" "$line" last) || true
   entry="\`$name\` $version (allowed \`$range\`)"
+  if [ "$name" = @types/node ] && [ -n "$node_major" ] && [ "${latest%%.*}" != "$node_major" ]; then
+    if [ "${version%%.*}" = "$node_major" ]; then
+      current+=("- $entry: matches Node.js $node_major in the add-on image (the latest major $latest is for a newer Node.js), last update $line_last on $line_last_date")
+    else
+      outdated+=("- $entry: the add-on image runs Node.js $node_major, so set \`^$node_major.0.0\` (not the latest major $latest)")
+    fi
+    continue
+  fi
   if [ "$(line_of "$latest")" = "$line" ]; then
     current+=("- $entry: latest major line ${line}x, last update $line_last on $line_last_date")
     continue

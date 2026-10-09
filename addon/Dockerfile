@@ -13,7 +13,9 @@ FROM alpine:3.24 AS mcp-builder
 # Pin the pnpm major version — pnpm 11 removed support for the "pnpm" field in
 # package.json and renamed the build-script allowlist to allowBuilds in
 # pnpm-workspace.yaml. An unpinned install broke this build once already (#4).
-RUN apk add --no-cache nodejs npm git build-base python3 && \
+# No compiler: better-sqlite3 13 ships prebuilt binaries for musl (x64 and
+# arm64), so nothing is compiled any more.
+RUN apk add --no-cache nodejs npm git && \
     npm install -g pnpm@11
 
 WORKDIR /build
