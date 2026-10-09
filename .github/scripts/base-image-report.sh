@@ -17,21 +17,21 @@ node=$(grep -oP '^nodejs-\K[0-9]+' addon/packages.txt 2>/dev/null || true)
 
 # --- Newer base image? ---
 newer=false
-latest_line="- Neueste Version: unbekannt (Abfrage fehlgeschlagen)"
+latest_line="- Latest version: unknown (lookup failed)"
 if read -r tag url < <(gh release view --repo hassio-addons/app-base --json tagName,url \
                          --jq '"\(.tagName) \(.url)"' 2>/dev/null) &&
    [[ "${tag#v}" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
   latest=${tag#v}
   if [ "$latest" != "$current" ] && [ "$(printf '%s\n' "$current" "$latest" | sort -V | tail -1)" = "$latest" ]; then
     newer=true
-    new_alpine=$(docker run --rm --entrypoint cat "ghcr.io/hassio-addons/base:$latest" /etc/alpine-release 2>/dev/null || echo unbekannt)
-    if [ "$new_alpine" = unbekannt ]; then change="unbekannt"
-    elif [ "${new_alpine%.*}" = "$alpine" ]; then change="nein, bleibt $alpine"
-    else change="**ja**, $alpine → ${new_alpine%.*}"; fi
-    latest_line="- Neueste Version: \`$latest\` (Alpine \`$new_alpine\`), [Release notes]($url)
-- Wechselt die Alpine-Version: $change"
+    new_alpine=$(docker run --rm --entrypoint cat "ghcr.io/hassio-addons/base:$latest" /etc/alpine-release 2>/dev/null || echo unknown)
+    if [ "$new_alpine" = unknown ]; then change="unknown"
+    elif [ "${new_alpine%.*}" = "$alpine" ]; then change="no, stays $alpine"
+    else change="**yes**, $alpine → ${new_alpine%.*}"; fi
+    latest_line="- Latest version: \`$latest\` (Alpine \`$new_alpine\`), [release notes]($url)
+- Changes the Alpine version: $change"
   else
-    latest_line="- Neueste Version: \`$latest\`, es gibt keine neuere"
+    latest_line="- Latest version: \`$latest\`, there is no newer one"
   fi
 else
   # Fail instead of printing nothing, which would close an open issue
@@ -55,27 +55,27 @@ community_eol=$(eol_field "$alpine_json" "$next" releaseDate)
 community_note=""
 if [ -z "$community_eol" ] && [ -n "$release" ]; then
   community_eol=$(date -u -d "$release +6 months" +%F)
-  community_note=", geschätzt: Alpine $next ist noch nicht erschienen"
+  community_note=", estimated: Alpine $next is not out yet"
 fi
 if [ -n "$main_eol" ]; then
-  main_line=$(de_date "$main_eol")
-  [ "$(days_left "$main_eol")" -le "$notice_main" ] && alerts+=("Hauptrepository")
+  main_line=$(fmt_date "$main_eol")
+  [ "$(days_left "$main_eol")" -le "$notice_main" ] && alerts+=("main repository")
 else
-  main_line="unbekannt"
+  main_line="unknown"
 fi
 if [ -n "$community_eol" ]; then
-  community_line="$(de_date "$community_eol")$community_note"
-  [ "$(days_left "$community_eol")" -le "$notice_community" ] && alerts+=("Community-Repository")
+  community_line="$(fmt_date "$community_eol")$community_note"
+  [ "$(days_left "$community_eol")" -le "$notice_community" ] && alerts+=("community repository")
 else
-  community_line="unbekannt"
+  community_line="unknown"
 fi
 
 runtime_line() { # PRODUCT CYCLE LABEL
   local eol
   [ -n "$2" ] || return 0
   eol=$(eol_field "$(eol_json "$1")" "$2" eol)
-  if [ -n "$eol" ]; then eol=$(de_date "$eol"); else eol=unbekannt; fi
-  printf -- '- %s %s: Support bis %s\n' "$3" "$2" "$eol"
+  if [ -n "$eol" ]; then eol=$(fmt_date "$eol"); else eol=unknown; fi
+  printf -- '- %s %s: supported until %s\n' "$3" "$2" "$eol"
 }
 
 if [ -n "${GITHUB_STEP_SUMMARY:-}" ]; then
@@ -93,40 +93,40 @@ fi
 reason=""
 waiting=""
 if [ "$newer" = true ]; then
-  reason="Es gibt eine neue Version des Basis-Images."
+  reason="There is a new version of the base image."
 else
-  waiting="Ein neueres Basis-Image gibt es noch nicht. Dieses Issue wird jede Woche aktualisiert. Sobald eins erscheint, steht es hier."
+  waiting="There is no newer base image yet. This issue is updated every week and shows the new version as soon as one comes out."
 fi
 if [ "${#alerts[@]}" -gt 0 ]; then
-  reason="${reason:+$reason }Der Support der installierten Alpine-Version endet bald oder ist vorbei ($(IFS=,; echo "${alerts[*]}" | sed 's/,/, /g'))."
+  reason="${reason:+$reason }Support of the installed Alpine version ends soon or has ended ($(IFS=,; echo "${alerts[*]}" | sed 's/,/, /g'))."
 fi
 
 cat << EOF
 $reason
 
-## Basis-Image \`ghcr.io/hassio-addons/base\`
+## Base image \`ghcr.io/hassio-addons/base\`
 
-- Installiert: \`$current\` (Alpine \`$alpine\`)
+- Installed: \`$current\` (Alpine \`$alpine\`)
 $latest_line
 
-## Support der installierten Version
+## Support of the installed version
 
-- Alpine $alpine, Hauptrepository (main), zum Beispiel Python, Node.js, curl, git: Updates bis $main_line
-- Alpine $alpine, Community-Repository, zum Beispiel ttyd, ripgrep: Updates bis $community_line
+- Alpine $alpine, main repository, for example Python, Node.js, curl, git: updates until $main_line
+- Alpine $alpine, community repository, for example ttyd, ripgrep: updates until $community_line
 $(runtime_line python "$python" Python)
 $(runtime_line nodejs "$node" Node.js)
 
-Das Community-Repository bekommt nur Updates bis zur nächsten Alpine-Version, das Hauptrepository rund zwei Jahre. Quelle: [endoflife.date](https://endoflife.date/alpine-linux).
+The community repository only gets updates until the next Alpine release, the main repository for about two years. Source: [endoflife.date](https://endoflife.date/alpine-linux).
 
-## Was zu tun ist
+## What to do
 
 ${waiting:+$waiting
 
-}Der Wechsel passiert bewusst nicht automatisch. Mit einer neuen Alpine-Version ändern sich oft die Versionen von Python und Node.js, und die Builder-Stage muss dieselbe Alpine-Version nutzen, sonst passt das native Modul better-sqlite3 nicht zum Node.js im Add-on.
+}The switch is deliberately not automatic. A new Alpine version often brings new versions of Python and Node.js, and the builder stage must use the same Alpine version, or the native module better-sqlite3 does not match the Node.js in the add-on.
 
-- \`ARG BUILD_FROM\` in \`addon/Dockerfile\` auf die neue Version setzen, \`addon/build.yaml\` (beide Architekturen) gleich mitziehen
-- Bei neuer Alpine-Version: \`FROM alpine:…\` der Builder-Stage in \`addon/Dockerfile\` anpassen
-- Add-on-Version in \`addon/config.yaml\` und \`addon/CHANGELOG.md\`
+- Set \`ARG BUILD_FROM\` in \`addon/Dockerfile\` to the new version, and \`addon/build.yaml\` (both architectures) to match
+- For a new Alpine version: change \`FROM alpine:…\` of the builder stage in \`addon/Dockerfile\`
+- Add-on version in \`addon/config.yaml\` and \`addon/CHANGELOG.md\`
 
-Danach testen: auf einem Branch die Action „Update add-on“ manuell starten (Run workflow → Branch auswählen). Läufe auf anderen Branches als main sind reine Testläufe und veröffentlichen nichts.
+Then test: on a branch, start the Action "Update add-on" by hand (Run workflow → choose the branch). Runs on branches other than main are test runs and never publish anything.
 EOF

@@ -2,7 +2,7 @@
 
 Handover file for the maintainer and for Claude Code sessions working on this repository. **Read this first, and update it after every step** (state, decisions, next steps), so the next session can continue without the chat history.
 
-Last updated: 2026-10-08
+Last updated: 2026-10-09
 
 ## Current state
 
@@ -15,6 +15,11 @@ Last updated: 2026-10-08
   - Yolo mode no longer writes the dead key `"permissions.defaultMode"` (with a dot, never read by Claude Code). Not moved into `permissions` on purpose: a managed default mode would override the mode users choose themselves.
   - The generated `CLAUDE.md` points to the Supervisor endpoint `/core/logs` instead of `/core/api/error_log` (404 on Home Assistant OS).
   - Before merging: test run of the Action on the branch. After merging: update in Home Assistant, then check that `/etc/claude-code/managed-settings.json` has only the `permissions` key.
+- **In review:** branch `docs/quick-guide-english-issues`, no add-on change, so no new version:
+  - README: section "Quick guide" (copy with Shift and the mouse, paste, second Claude session in a new tmux window, chat log).
+  - `examples/chat-log-hook/`: optional Stop hook that writes the chats into one Markdown file per day, with its own README.
+  - The workflow writes its issues in English. Open issues with the old German titles (#5, #6) are renamed on the next run by `retitle_issue` in `.github/scripts/sync-issue.sh`.
+  - Before merging: test run of the Action on the branch, then check that #5 and #6 have English titles and bodies. Merge before the next scheduled run, or the old workflow on `main` opens German duplicates of #5 and #6.
 - **Contents of the image:**
   - Claude Code 2.1.292 (pinned)
   - Python 3.12 with PyYAML, `mosquitto_pub` and `mosquitto_sub`, the GitHub CLI `gh`
@@ -108,12 +113,13 @@ Extend `.github/scripts/mcp-smoke-test.sh` or add a script next to it:
 - **MQTT:** `services: mqtt:want`. With the Mosquitto broker add-on, `init-claude` exports `MQTT_HOST`, `MQTT_PORT`, `MQTT_USERNAME` and `MQTT_PASSWORD`.
 - **Versioning:** the workflow bumps the patch level (0.2.1, 0.2.2, …). Bigger changes get a new minor version by hand.
 - **Changelog:** automated entries start with "**Automated update** by the GitHub Action …", without "not made by hand".
-- **Language:** code, README, changelog and commits in English. Issues created by the workflow, and replies to the maintainer, in German, in plain language.
+- **Language:** code, README, changelog, commits and the issues created by the workflow in English (issues since 2026-10-09). Replies to the maintainer in German, in plain language.
 - **Workflow:**
   - One PR per topic.
   - Before merging, run the Action by hand on the PR branch (Run workflow → choose the branch). That run never pushes.
   - After merging, run it on `main` once, so the release has the current package list.
 - **Report scripts** (`.github/scripts/`) exit with an error instead of printing nothing when a data source is down, so an outage never closes an issue.
+- **Issue titles** are the key the workflow finds its issues by. When a title changes, add the old one to `retitle_issue` (or the failure job's lookup), so the open issue is renamed instead of a second one opened. The German titles there can go once no open issue carries them.
 
 ## Key files
 
@@ -123,3 +129,4 @@ Extend `.github/scripts/mcp-smoke-test.sh` or add a script next to it:
 - `.github/workflows/update-claude-code.yml`: weekly update, issues, failure issue
 - `.github/scripts/`: `mcp-smoke-test.sh`, `sync-issue.sh`, `support-lib.sh`, `base-image-report.sh`, `npm-report.sh`
 - `.claude/skills/update-claude/SKILL.md`: manual Claude Code update
+- `examples/chat-log-hook/`: optional Stop hook for users (daily chat log), not part of the image

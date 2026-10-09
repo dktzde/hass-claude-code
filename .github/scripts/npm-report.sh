@@ -60,18 +60,18 @@ while read -r name range; do
   fi
   line=$(line_of "$version")
   read -r line_last line_last_date < <(releases "$doc" "$line" last) || true
-  entry="\`$name\` $version (erlaubt \`$range\`)"
+  entry="\`$name\` $version (allowed \`$range\`)"
   if [ "$(line_of "$latest")" = "$line" ]; then
-    current+=("- $entry: neueste Hauptlinie ${line}x, letztes Update $line_last am $(date -u -d "$line_last_date" +%d.%m.%Y)")
+    current+=("- $entry: latest major line ${line}x, last update $line_last on $line_last_date")
     continue
   fi
   read -r next_first next_date < <(successor "$doc" "$version") || true
   if [[ "$line_last_date" > "$next_date" ]]; then
-    status="Linie ${line}x bekommt noch Updates, zuletzt $line_last am $(date -u -d "$line_last_date" +%d.%m.%Y)"
+    status="Line ${line}x still gets updates, last $line_last on $line_last_date"
   else
-    status="Linie ${line}x bekommt **keine Updates mehr**, seit $next_first am $(date -u -d "$next_date" +%d.%m.%Y) erschien (letztes Update $line_last am $(date -u -d "$line_last_date" +%d.%m.%Y))"
+    status="Line ${line}x gets **no more updates** since $next_first came out on $next_date (last update $line_last on $line_last_date)"
   fi
-  outdated+=("- $entry: neue Hauptversion $latest. $status")
+  outdated+=("- $entry: new major version $latest. $status")
 done < <(jq -r '(.dependencies + .devDependencies) | to_entries[] | "\(.key) \(.value)"' "$dir/package.json")
 
 # Fail instead of printing nothing, which would close an open issue
@@ -91,21 +91,21 @@ fi
 [ "${#outdated[@]}" -gt 0 ] || exit 0
 
 cat << EOF
-Für diese npm-Pakete des MCP-Servers gibt es neue Hauptversionen:
+These npm packages of the MCP server have new major versions:
 
 $(printf '%s\n' "${outdated[@]}")
 
-Die übrigen Pakete sind auf der neuesten Hauptlinie:
+The other packages are on the latest major line:
 
-$(if [ "${#current[@]}" -gt 0 ]; then printf '%s\n' "${current[@]}"; else echo "- keine"; fi)
+$(if [ "${#current[@]}" -gt 0 ]; then printf '%s\n' "${current[@]}"; else echo "- none"; fi)
 
-## Zum Support
+## About support
 
-npm-Pakete veröffentlichen kein festes Support-Ende. Als Maßstab steht oben, ob die installierte Linie noch Updates bekommt und wann zuletzt. Eine Linie ohne Updates bekommt auch keine Sicherheitskorrekturen mehr.
+npm packages publish no fixed end of support. As a measure, the list above shows whether the installed line still gets updates and when it got the last one. A line without updates gets no security fixes either.
 
-## Was zu tun ist
+## What to do
 
-Kleine Updates innerhalb der erlaubten Hauptversion übernimmt die wöchentliche Action „Update add-on“ automatisch. Hauptversionen können Code-Änderungen brauchen und werden deshalb nur gemeldet.
+The weekly Action "Update add-on" takes over minor updates within the allowed major version automatically. Major versions can need code changes, so they are only reported.
 
-Zum Übernehmen: Version in \`addon/mcp-server/package.json\` anheben, das Lockfile mit pnpm 11 neu erzeugen (\`pnpm install --lockfile-only\`), Code anpassen, Testbuild.
+To take one over: raise the version in \`addon/mcp-server/package.json\`, regenerate the lockfile with pnpm 11 (\`pnpm install --lockfile-only\`), adapt the code, test-build.
 EOF
