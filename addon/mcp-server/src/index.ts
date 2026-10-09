@@ -63,7 +63,7 @@ server.tool(
   {
     domain: z.string().describe('Service domain (e.g. light, switch, automation)'),
     service: z.string().describe('Service name (e.g. turn_on, turn_off, toggle)'),
-    data: z.record(z.unknown()).optional().describe('Service data (e.g. { entity_id: "light.kitchen", brightness: 255 })'),
+    data: z.record(z.string(), z.unknown()).optional().describe('Service data (e.g. { entity_id: "light.kitchen", brightness: 255 })'),
   },
   async (args) => {
     await callService(args.domain, args.service, args.data);

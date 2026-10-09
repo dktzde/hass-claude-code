@@ -2,93 +2,46 @@
 
 Handover file for the maintainer and for Claude Code sessions working on this repository. **Read this first, and update it after every step** (state, decisions, next steps), so the next session can continue without the chat history.
 
-Last updated: 2026-10-09
+Last updated: 2026-10-09 (late evening)
 
 ## Current state
 
-- **Add-on version on `main`: 0.3.0** (dktzde/hass-claude-code#9, merged 2026-10-07). It runs on the maintainer's device (an old x86 laptop, `amd64`) since 2026-10-07 18:25:
-  - Removes the semantic doc search. It never worked, see the changelog. The image gets about 350 MB smaller, and `search_docs` becomes keyword-only (SQLite FTS5) with no embedding or vector dependencies.
-  - Makes the keyword search robust, in `src/search.ts`. It tries the query as FTS5 syntax first, then all words, then all words with typos corrected, then any word. Typos are corrected against the FTS5 vocabulary (`chunks_vocab`, an `fts5vocab` table) with an edit distance of 1–2, preferring the same first letter and then the more common word. The tool output then carries a second text item with the corrected query.
-  - Removes stored values of removed options (`api_key`, `enable_embeddings`) from the add-on configuration on start through the Supervisor API (`init-claude`). **When an option is removed in future, add it to `removed_options` there.**
-  - Checked on the device on 2026-10-08: the options only hold `model`, `yolo_mode` and `additional_packages`; tools, `gh` login, MCP server and keyword docs search work.
-- **In review: 0.3.1** (dktzde/hass-claude-code#10, branch `fix/managed-settings-and-log-hint`), two bug fixes, see the changelog:
-  - Yolo mode no longer writes the dead key `"permissions.defaultMode"` (with a dot, never read by Claude Code). Not moved into `permissions` on purpose: a managed default mode would override the mode users choose themselves.
-  - The generated `CLAUDE.md` points to the Supervisor endpoint `/core/logs` instead of `/core/api/error_log` (404 on Home Assistant OS).
-  - Before merging: test run of the Action on the branch. After merging: update in Home Assistant, then check that `/etc/claude-code/managed-settings.json` has only the `permissions` key.
-- **On `main` since 2026-10-09** (dktzde/hass-claude-code#11), no add-on change, so no new version:
-  - README: section "Quick guide" (copy with Shift and the mouse, paste, second Claude session in a new tmux window, chat log).
-  - `examples/chat-log-hook/`: optional Stop hook that writes the chats into one Markdown file per day, with its own README.
-  - The workflow writes its issues in English. The test run on the branch already renamed #5 and #6 through `retitle_issue` in `.github/scripts/sync-issue.sh`.
-- **In review:** branch `docs/chat-log-per-window`: the chat log hook writes one file per tmux window (window 0 `YYYY-MM-DD.md`, window 1 `YYYY-MM-DD_claude2.md`), so a second session no longer mixes with the first. Docs only, no test run of the Action needed.
-- **Contents of the image:**
-  - Claude Code 2.1.292 (pinned)
-  - Python 3.12 with PyYAML, `mosquitto_pub` and `mosquitto_sub`, the GitHub CLI `gh`
+- **0.4.0 (plan B), dktzde/hass-claude-code#14, branch `claude/brave-fermi-84djze`:** base image switch and all npm major updates in one PR, fixes dktzde/hass-claude-code#5 and dktzde/hass-claude-code#6. The maintainer moved the schedule from Saturday evening (plan on the branch `docs/status-plan-0.4.0`, which this replaces) to Friday 2026-10-09 evening: "work through it on your own, so I can test a finished release tomorrow". [`MAINTENANCE.md`](MAINTENANCE.md) now holds the checklists and every pitfall of this update. Commits, as the plan asked (one per topic, a test run after each, revertable alone):
+  1. `ci:` test runs on branches no longer change issues; the failure issue is for `main` only; the report job runs after the update job on the branch head (so #5 closes in the same run that refreshes `addon/packages.txt`).
+  2. `feat(addon):` base image `ghcr.io/hassio-addons/base` 21.0.8 (Alpine 3.24): **Python 3.14** (was 3.12), Node.js stays 24, builder `alpine:3.24`; `ttyd/run` uses `bashio::app.ingress_port` (bashio 0.18 renamed `bashio::addon.*`). Version 0.4.0.
+  3. `feat(mcp-server):` better-sqlite3 13 (prebuilt musl binaries, so the builder drops `build-base` and `python3`), zod 4, glob 13, **TypeScript 7**, `@types/better-sqlite3` 9, `@types/node` 24; smoke test for `call_service` (valid and invalid input); npm report compares `@types/node` with the Node.js of the image.
+  4. `docs:` `MAINTENANCE.md`, this file, README, CLAUDE.md, links from the issue texts.
+  - Before these, the same changes were pushed as one combined commit and reverted, because the branch could not be rewritten; the result is the same.
+  - **TypeScript 7 instead of 6:** the plan said to leave TypeScript 7 for the maintainer if it does not update cleanly. It did: it compiles without changes (besides `"types": ["node"]`, needed from TypeScript 6 on anyway), emits the same JavaScript as TypeScript 5, and builds in Alpine. Only 7 closes #6. If it causes trouble, set `typescript` to `^6.0.0` and regenerate the lockfile.
+  - zod 4 changes the JSON schema in `tools/list` slightly (no `additionalProperties: false`, `propertyNames` on `data`); behavior is the same, checked against the old build.
+- **Add-on version on `main`: 0.3.4** (automated releases 0.3.2–0.3.4: Claude Code, npm lockfile within the majors, docs). The maintainer's device (an old x86 laptop, `amd64`) was checked on 0.3.2 on 2026-10-08 18:04: `managed-settings.json` holds only `permissions`, the generated `CLAUDE.md` names `/core/logs`, `/root/.claude` points to `/data/.claude`, `gh` is logged in, python3, PyYAML, mosquitto and the `MQTT_*` variables, MCP server and docs search work.
+- **Merged since 0.3.0:**
+  - 0.3.0 (#9): semantic doc search removed (about 350 MB smaller image), typo-tolerant FTS5 keyword search in `src/search.ts`, stored values of removed options cleaned up on start (`removed_options` in `init-claude`; **add future removed options there**).
+  - 0.3.1 (#10): yolo mode no longer writes the dead key `"permissions.defaultMode"` (not moved into `permissions` on purpose: a managed default mode would override the users' own mode); the generated `CLAUDE.md` points to `/core/logs` instead of `/core/api/error_log`.
+  - #11 and #12 (docs only, no new version): README "Quick guide", `examples/chat-log-hook/` (one file per tmux window), workflow issues in English.
+- Upstream dkmaker/hass-claude-code#10 (semantic search analysis) was closed as "not planned" on 2026-10-09: Claude sends precise English HA queries, keyword search is enough.
+- **Contents of the image (from 0.4.x):**
+  - Claude Code 2.1.296 (pinned by the run on `main` after the merge)
+  - Python 3.14 with PyYAML, `mosquitto_pub` and `mosquitto_sub`, the GitHub CLI `gh` 2.97
   - Node.js 24, git, ripgrep, tmux, ttyd
-  - Base image `ghcr.io/hassio-addons/base:20.0.1` (Alpine 3.23)
+  - Base image `ghcr.io/hassio-addons/base:21.0.8` (Alpine 3.24)
 - **Weekly GitHub Action** (`.github/workflows/update-claude-code.yml`, Saturday 05:47 UTC, also started by hand):
   - Updates Claude Code, the Alpine packages (`addon/packages.txt` and `PACKAGES_STAMP`), the npm lockfile (within the majors) and the docs (`DOCS_STAMP`).
   - Test-builds the image, checks the tools and smoke-tests the MCP server, then releases any change as one add-on version.
-  - Manual runs on other branches than `main` are test runs: they build and check, but never push.
-  - It opens or updates issues for what stays manual: fork commits, base image and Alpine support end, npm majors, and failed runs.
-- **Open issues:**
-  - dktzde/hass-claude-code#5: base image 21.0.8 (Alpine 3.24) is available. The community repository of Alpine 3.23 (ttyd, ripgrep, github-cli) has had no updates since 2026-06-09; main gets updates until 2027-11-01.
-  - dktzde/hass-claude-code#6: new npm major versions, see next steps.
-- **Last green runs:** run 37628361900 (test run of 0.2.0 on the branch) and the release of 0.2.1 on `main`.
+  - Manual runs on other branches than `main` are test runs: they build and check, but never push and never change issues.
+  - Then reports what stays manual as issues: fork commits, base image and Alpine support end, npm majors; plus one issue for failed runs on `main`.
+- **Test runs of 0.4.0 on the branch:** run 37984205004 (combined commit), run 37984697694 (base image only, with better-sqlite3 11), run 37985066042 (full branch).
 
-## Next step: plan B (agreed, start "in some time")
+## Next steps
 
-The maintainer decided to do the base image switch and **all** npm major updates **in one PR**, with extended tests that stay in the workflow permanently. The alternative (two separate steps) was rejected.
-
-### 1. Find out what Alpine 3.24 brings
-
-Start the Action by hand on the new branch once the base image is switched, or run:
-
-```bash
-docker run --rm --entrypoint sh ghcr.io/hassio-addons/base:21.0.8 -c \
-  'apk add --no-cache nodejs python3 >/dev/null && node -v && python3 -V && cat /etc/alpine-release'
-```
-
-The Node.js major decides the `@types/node` range, and a Python change is worth a changelog line.
-
-### 2. Base image
-
-- `addon/Dockerfile`: `ARG BUILD_FROM=ghcr.io/hassio-addons/base:21.0.8`. The current Supervisor builder reads only the Dockerfile.
-- `addon/build.yaml`: same version for both architectures. Older Supervisors still pass `build_from` from it, and without the file they would use a different default image.
-- `addon/Dockerfile`, builder stage: `FROM alpine:3.24 AS mcp-builder`. It must match the Alpine version of the base image, so that better-sqlite3 is compiled for the same Node.js.
-- Check that all `apk add` packages exist in 3.24 under the same names. The image check step fails otherwise.
-
-### 3. npm major updates (`addon/mcp-server/package.json`)
-
-| Package | Now | Target | Notes |
-|---|---|---|---|
-| `better-sqlite3` | ^11 | ^13 | Needs Node >= 22. Uses `node-addon-api` (ABI-stable), which removes the risk of a Node major change. `pnpm-workspace.yaml` `allowBuilds` keeps `better-sqlite3: true`. |
-| `zod` | ^3.23 | ^4 | **Code change needed:** `src/index.ts`, `call_service` uses `z.record(z.unknown())`; zod 4 needs `z.record(z.string(), z.unknown())`. `@modelcontextprotocol/sdk` 1.32 accepts `zod ^3.25 \|\| ^4`. Check all tool schemas still produce the same JSON schema in `tools/list`. |
-| `glob` | ^11 | ^13 | Used once in `src/indexer.ts` (`glob('**/*.md', ...)`). The named export `glob` still exists; verify the options. |
-| `typescript` (dev) | ^5 | **^6** | TypeScript 7 is the new native compiler with platform binaries. Take 6 as the safe step; 7 is optional. |
-| `@types/node` (dev) | ^22 | Node major of Alpine 3.24 | Match the runtime, not the latest version. |
-| `@types/better-sqlite3` (dev) | ^7 | ^9 | Must compile against better-sqlite3 13. |
-
-Regenerate the lockfile the same way the workflow does: in the builder's Alpine image with pnpm 11, `pnpm install --lockfile-only`.
-
-### 4. Extended tests (stay in the workflow)
-
-Extend `.github/scripts/mcp-smoke-test.sh` or add a script next to it:
-
-- **`call_service` input:**
-  - Check that `tools/list` describes `call_service.data` as an object.
-  - Call `call_service` with valid input (`{"domain":"light","service":"turn_on","data":{"entity_id":"light.smoke_test"}}`). There is no Home Assistant in CI, so the call must fail with a connection error, **not** with an input validation error.
-  - Call it with invalid input (no `domain`), which must give a validation error. Together they prove that zod validates and accepts correctly.
-- **Docs search:** already covered. The smoke test also runs a dotted query (`light.turn_on`) and a typo (`automaton trigger`, which must be corrected to `automation trigger`).
-
-### 5. Release
-
-- Version **0.4.0**: new minor version because of the Alpine switch and the dependency majors. Changelog with the new Python and Node.js versions.
-- Test run of the Action on the branch, then merge, then run the Action on `main`, then update in Home Assistant with "backup before update".
-- Manual check on the device:
-  - The add-on starts.
-  - Claude can switch a light on and off (this exercises `call_service` with zod 4).
-  - `search_docs` works.
-- Issues #5 and #6 close themselves on the next run once everything is current.
+1. Merge #14 (merge commit, not squash), then run the Action on `main`. That run releases **0.4.1** on top (new `addon/packages.txt` for Alpine 3.24, Claude Code 2.1.296) and closes #5 and #6.
+2. Maintainer, Saturday 2026-10-10: update in Home Assistant with "backup before update" (to 0.4.1), then check on the device:
+   - The add-on starts, the log shows no `bashio::addon` deprecation warning.
+   - Claude can switch a light on and off (this exercises `call_service` with zod 4).
+   - `search_docs` works, `python3 --version` says 3.14.
+   - If something breaks, revert only the commit at fault (base image or npm majors) and release again.
+3. The branch `docs/status-plan-0.4.0` is superseded by this file and can be deleted.
+4. Expect #5 to reopen around mid-November 2026 as an advance notice: 30 days before the estimated end of the Alpine 3.24 community repository (release 2026-06-09 + 6 months), until Alpine 3.25 and a new base image are out. That is by design, see `MAINTENANCE.md`.
 
 ## Known issues and backlog
 
@@ -98,6 +51,8 @@ Extend `.github/scripts/mcp-smoke-test.sh` or add a script next to it:
 - **Docs search** is SQLite FTS5 with the fallbacks and typo correction above. Alternatives such as MiniSearch, Fuse.js or Typesense were considered; FTS5 plus its own vocabulary needs no new dependency and keeps the index built at image build time.
 - The semantic doc search was **removed** in 0.3.0 at the maintainer's request (Claude does not need it; it never worked because the docs were never indexed with embeddings). Do not bring back Transformers.js, ONNX Runtime or sqlite-vec without a new decision.
 - Prebuilt images (building in CI and pulling instead of building on the device) were considered and **rejected** for now. Building on the device works, and the stamps solve the layer cache problem.
+- better-sqlite3 13 adds about 15 MB to the image (SQLite sources and prebuilt binaries for all platforms). The builder could delete `deps/`, `src/` and the binaries of other platforms after `pnpm prune --prod`; not done, to keep the build simple.
+- Claude Code cloud sessions cannot build the image (image layers from `ghcr.io`, Docker Hub and the Alpine CDN are blocked or rate-limited there). Build with the test run of the Action; `MAINTENANCE.md` shows how to test the MCP server locally with Node.js.
 
 ## Decisions and conventions
 
@@ -116,13 +71,14 @@ Extend `.github/scripts/mcp-smoke-test.sh` or add a script next to it:
 - **Language:** code, README, changelog, commits and the issues created by the workflow in English (issues since 2026-10-09). Replies to the maintainer in German, in plain language.
 - **Workflow:**
   - One PR per topic.
-  - Before merging, run the Action by hand on the PR branch (Run workflow → choose the branch). That run never pushes.
+  - Before merging, run the Action by hand on the PR branch (Run workflow → choose the branch). That run never pushes and never changes issues; its step summary shows what it would release and which issues it would open or close.
   - After merging, run it on `main` once, so the release has the current package list.
 - **Report scripts** (`.github/scripts/`) exit with an error instead of printing nothing when a data source is down, so an outage never closes an issue.
 - **Issue titles** are the key the workflow finds its issues by. When a title changes, add the old one to `retitle_issue` (or the failure job's lookup), so the open issue is renamed instead of a second one opened. The German titles there can go once no open issue carries them.
 
 ## Key files
 
+- `MAINTENANCE.md`: checklists and pitfalls for base image and npm major updates
 - `addon/Dockerfile`, `addon/config.yaml`, `addon/build.yaml`, `addon/packages.txt`, `addon/CHANGELOG.md`, `addon/translations/`
 - `addon/rootfs/etc/s6-overlay/s6-rc.d/init-claude/run`: environment, persistence, MQTT, managed CLAUDE.md
 - `addon/mcp-server/`: MCP server (TypeScript), lockfile, `pnpm-workspace.yaml` (`allowBuilds`)

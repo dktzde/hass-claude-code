@@ -2,17 +2,20 @@
 # HA Supervisor uses the config.yaml directory as build context.
 
 # Global ARG — must be before any FROM to be visible across stages
-ARG BUILD_FROM=ghcr.io/hassio-addons/base:20.0.1
+ARG BUILD_FROM=ghcr.io/hassio-addons/base:21.0.8
 
 # Stage 1: Build MCP server and pre-index docs
-# Use same Alpine version as the HA base image so native modules (better-sqlite3)
-# compile against the same Node.js version and musl libc.
-FROM alpine:3.23 AS mcp-builder
+# Use the same Alpine version as the HA base image (see MAINTENANCE.md in the
+# repository root), so the builder installs the npm packages for the same libc
+# (musl) and Node.js major that run them in the add-on.
+FROM alpine:3.24 AS mcp-builder
 
 # Pin the pnpm major version — pnpm 11 removed support for the "pnpm" field in
 # package.json and renamed the build-script allowlist to allowBuilds in
 # pnpm-workspace.yaml. An unpinned install broke this build once already (#4).
-RUN apk add --no-cache nodejs npm git build-base python3 && \
+# No compiler: better-sqlite3 13 ships prebuilt binaries for musl (x64 and
+# arm64), so nothing is compiled any more.
+RUN apk add --no-cache nodejs npm git && \
     npm install -g pnpm@11
 
 WORKDIR /build
