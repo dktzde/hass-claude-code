@@ -34,6 +34,19 @@ Thank you both!
 - **Persistent sessions**: tmux keeps Claude running when you close the browser tab. The Claude Code login, history and memory, the GitHub CLI login and the git config survive restarts
 - **Weekly updates** of Claude Code, system packages and docs (see [Updates](#updates))
 
+## Quick guide
+
+- **Copy:** hold <kbd>Shift</kbd> and select text with the mouse. The selection goes straight to the clipboard.
+- **Paste:** <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>V</kbd> on Linux.
+- **Second Claude session:** press <kbd>Ctrl</kbd>+<kbd>b</kbd>, then <kbd>c</kbd>. tmux opens a new window with a shell. Start Claude Code in it with:
+
+  ```bash
+  PATH=/root/.local/bin:$PATH claude-entrypoint.sh
+  ```
+
+  The new window is a login shell whose `PATH` lacks `/root/.local/bin`, so a plain `claude` ends in "claude: not found". Switch between the windows with <kbd>Ctrl</kbd>+<kbd>b</kbd>, then <kbd>n</kbd> (next) or <kbd>p</kbd> (previous). A second browser tab does not start a second session, it shows the same one.
+- **Chat log:** the Stop hook in [`examples/chat-log-hook`](examples/chat-log-hook/) writes your prompts and Claude's answers into one Markdown file per day, so you can read an answer again after it has scrolled out of the terminal. Its README explains what it does and how to install it.
+
 ## Installation
 
 1. Add the repository:
@@ -81,7 +94,7 @@ Some updates stay a manual decision because they can need code changes. The same
 - A new version of the base image `ghcr.io/hassio-addons/base`, or support of the installed Alpine version ending soon. The issue shows until when the installed Alpine version gets updates for its main and its community repository, plus the support end of Python and Node.js, with dates from [endoflife.date](https://endoflife.date)
 - New major versions of npm dependencies. npm publishes no end-of-support dates, so for each package the issue shows whether its installed line still gets updates and when it got the last one
 
-If a run fails, the Action opens the issue "Update add-on fehlgeschlagen" with a link to the log, comments on it for each further failure and closes it after the next successful run. A failed run never publishes anything, so the add-on on your device is not affected.
+If a run fails, the Action opens the issue "Update add-on failed" with a link to the log, comments on it for each further failure and closes it after the next successful run. A failed run never publishes anything, so the add-on on your device is not affected.
 
 To update by hand, run the `/update-claude` skill in this repository, or bump `CLAUDE_CODE_VERSION` in `addon/Dockerfile` and `version` in `addon/config.yaml`.
 
@@ -132,6 +145,8 @@ addon/
   rootfs/              # s6 services and the Claude entrypoint
   mcp-server/src/      # MCP server: Home Assistant API, WebSocket API, docs search
 docs/                  # Bundled Home Assistant docs, generated weekly
+examples/
+  chat-log-hook/       # Optional Stop hook: daily Markdown log of your chats
 ```
 
 ## Local development

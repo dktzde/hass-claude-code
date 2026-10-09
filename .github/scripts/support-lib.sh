@@ -9,14 +9,14 @@ days_left() {
   echo $(( ( $(date -u -d "$1" +%s) - $(date -u -d "$TODAY" +%s) ) / 86400 ))
 }
 
-# de_date YYYY-MM-DD: "01.11.2027 (noch 389 Tage)" or "... (seit 12 Tagen vorbei)"
-de_date() {
+# fmt_date YYYY-MM-DD: "2027-11-01 (389 days left)" or "... (ended 12 days ago)"
+fmt_date() {
   local days
   days=$(days_left "$1")
   if [ "$days" -ge 0 ]; then
-    printf '%s (noch %d Tage)' "$(date -u -d "$1" +%d.%m.%Y)" "$days"
+    printf '%s (%d days left)' "$(date -u -d "$1" +%F)" "$days"
   else
-    printf '%s (**seit %d Tagen vorbei**)' "$(date -u -d "$1" +%d.%m.%Y)" "$(( -days ))"
+    printf '%s (**ended %d days ago**)' "$(date -u -d "$1" +%F)" "$(( -days ))"
   fi
 }
 
