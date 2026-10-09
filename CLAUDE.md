@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Start here: current state and next steps
 
-**Read [`STATUS.md`](STATUS.md) first.** It holds the current state, open decisions, the agreed next step (plan B: base image switch to Alpine 3.24 plus all npm major updates in one PR, with extended tests) and the conventions of this repository. Update it after every step, so the next session can continue without the chat history.
+**Read [`STATUS.md`](STATUS.md) first.** It holds the current state, open decisions, the next steps and the conventions of this repository. Update it after every step, so the next session can continue without the chat history.
 
 ## Home Assistant add-on (`addon/`)
 
