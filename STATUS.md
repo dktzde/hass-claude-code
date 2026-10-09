@@ -2,26 +2,29 @@
 
 Handover file for the maintainer and for Claude Code sessions working on this repository. **Read this first, and update it after every step** (state, decisions, next steps), so the next session can continue without the chat history.
 
-Last updated: 2026-10-09 (late evening)
+Last updated: 2026-10-09 (late evening, after the release of 0.4.1)
 
 ## Current state
 
-- **0.4.0 (plan B), dktzde/hass-claude-code#14, branch `claude/brave-fermi-84djze`:** base image switch and all npm major updates in one PR, fixes dktzde/hass-claude-code#5 and dktzde/hass-claude-code#6. The maintainer moved the schedule from Saturday evening (plan on the branch `docs/status-plan-0.4.0`, which this replaces) to Friday 2026-10-09 evening: "work through it on your own, so I can test a finished release tomorrow". [`MAINTENANCE.md`](MAINTENANCE.md) now holds the checklists and every pitfall of this update. Commits, as the plan asked (one per topic, a test run after each, revertable alone):
-  1. `ci:` test runs on branches no longer change issues; the failure issue is for `main` only; the report job runs after the update job on the branch head (so #5 closes in the same run that refreshes `addon/packages.txt`).
-  2. `feat(addon):` base image `ghcr.io/hassio-addons/base` 21.0.8 (Alpine 3.24): **Python 3.14** (was 3.12), Node.js stays 24, builder `alpine:3.24`; `ttyd/run` uses `bashio::app.ingress_port` (bashio 0.18 renamed `bashio::addon.*`). Version 0.4.0.
-  3. `feat(mcp-server):` better-sqlite3 13 (prebuilt musl binaries, so the builder drops `build-base` and `python3`), zod 4, glob 13, **TypeScript 7**, `@types/better-sqlite3` 9, `@types/node` 24; smoke test for `call_service` (valid and invalid input); npm report compares `@types/node` with the Node.js of the image.
-  4. `docs:` `MAINTENANCE.md`, this file, README, CLAUDE.md, links from the issue texts.
-  - Before these, the same changes were pushed as one combined commit and reverted, because the branch could not be rewritten; the result is the same.
+- **Add-on version on `main`: 0.4.1**, released 2026-10-09 20:12 UTC (run 37985313879). Not yet tested on the device.
+  - 0.4.0 is plan B, dktzde/hass-claude-code#14, merged with a merge commit: base image switch and all npm major updates. It fixes dktzde/hass-claude-code#5 and dktzde/hass-claude-code#6; the merge closed both, and the report job of the release run found nothing left to report. The maintainer had planned it for Saturday evening (branch `docs/status-plan-0.4.0`), then moved it to Friday 2026-10-09 evening: "work through it on your own, so I can test a finished release tomorrow". [`MAINTENANCE.md`](MAINTENANCE.md) holds the checklists and every pitfall of this update.
+  - 0.4.1 is the automated release on top: the Alpine 3.24 package list in `addon/packages.txt` and Claude Code 2.1.296.
+  - Commits of #14, one per topic as the plan asked (a test run after each; each can be reverted alone with `git revert <commit>`):
+    1. `e28d082` `ci:` test runs on branches no longer change issues; the failure issue is for `main` only; the report job runs after the update job on the branch head.
+    2. `058f07d` `feat(addon):` base image `ghcr.io/hassio-addons/base` 21.0.8 (Alpine 3.24): **Python 3.14** (was 3.12), Node.js stays 24, builder `alpine:3.24`; `ttyd/run` uses `bashio::app.ingress_port` (bashio 0.18 renamed `bashio::addon.*`). Version 0.4.0. Test run 37984697694 built this alone (with better-sqlite3 11).
+    3. `dc94830` `feat(mcp-server):` better-sqlite3 13 (prebuilt musl binaries, so the builder drops `build-base` and `python3`), zod 4, glob 13, **TypeScript 7**, `@types/better-sqlite3` 9, `@types/node` 24; smoke test for `call_service` (valid and invalid input); npm report compares `@types/node` with the Node.js of the image. Test run 37985066042.
+    4. `47d9636` `docs:` `MAINTENANCE.md`, this file, README, CLAUDE.md, links from the issue texts.
+  - Before these, the same changes were pushed as one combined commit (`20df72f`, test run 37984205004) and reverted (`23737da`), because the branch could not be rewritten.
   - **TypeScript 7 instead of 6:** the plan said to leave TypeScript 7 for the maintainer if it does not update cleanly. It did: it compiles without changes (besides `"types": ["node"]`, needed from TypeScript 6 on anyway), emits the same JavaScript as TypeScript 5, and builds in Alpine. Only 7 closes #6. If it causes trouble, set `typescript` to `^6.0.0` and regenerate the lockfile.
   - zod 4 changes the JSON schema in `tools/list` slightly (no `additionalProperties: false`, `propertyNames` on `data`); behavior is the same, checked against the old build.
-- **Add-on version on `main`: 0.3.4** (automated releases 0.3.2–0.3.4: Claude Code, npm lockfile within the majors, docs). The maintainer's device (an old x86 laptop, `amd64`) was checked on 0.3.2 on 2026-10-08 18:04: `managed-settings.json` holds only `permissions`, the generated `CLAUDE.md` names `/core/logs`, `/root/.claude` points to `/data/.claude`, `gh` is logged in, python3, PyYAML, mosquitto and the `MQTT_*` variables, MCP server and docs search work.
+- **Before 0.4.0: 0.3.4** (automated releases 0.3.2–0.3.4: Claude Code, npm lockfile within the majors, docs). The maintainer's device (an old x86 laptop, `amd64`) was checked on 0.3.2 on 2026-10-08 18:04: `managed-settings.json` holds only `permissions`, the generated `CLAUDE.md` names `/core/logs`, `/root/.claude` points to `/data/.claude`, `gh` is logged in, python3, PyYAML, mosquitto and the `MQTT_*` variables, MCP server and docs search work.
 - **Merged since 0.3.0:**
   - 0.3.0 (#9): semantic doc search removed (about 350 MB smaller image), typo-tolerant FTS5 keyword search in `src/search.ts`, stored values of removed options cleaned up on start (`removed_options` in `init-claude`; **add future removed options there**).
   - 0.3.1 (#10): yolo mode no longer writes the dead key `"permissions.defaultMode"` (not moved into `permissions` on purpose: a managed default mode would override the users' own mode); the generated `CLAUDE.md` points to `/core/logs` instead of `/core/api/error_log`.
   - #11 and #12 (docs only, no new version): README "Quick guide", `examples/chat-log-hook/` (one file per tmux window), workflow issues in English.
 - Upstream dkmaker/hass-claude-code#10 (semantic search analysis) was closed as "not planned" on 2026-10-09: Claude sends precise English HA queries, keyword search is enough.
-- **Contents of the image (from 0.4.x):**
-  - Claude Code 2.1.296 (pinned by the run on `main` after the merge)
+- **Contents of the image (0.4.1):**
+  - Claude Code 2.1.296 (pinned)
   - Python 3.14 with PyYAML, `mosquitto_pub` and `mosquitto_sub`, the GitHub CLI `gh` 2.97
   - Node.js 24, git, ripgrep, tmux, ttyd
   - Base image `ghcr.io/hassio-addons/base:21.0.8` (Alpine 3.24)
@@ -30,18 +33,16 @@ Last updated: 2026-10-09 (late evening)
   - Test-builds the image, checks the tools and smoke-tests the MCP server, then releases any change as one add-on version.
   - Manual runs on other branches than `main` are test runs: they build and check, but never push and never change issues.
   - Then reports what stays manual as issues: fork commits, base image and Alpine support end, npm majors; plus one issue for failed runs on `main`.
-- **Test runs of 0.4.0 on the branch:** run 37984205004 (combined commit), run 37984697694 (base image only, with better-sqlite3 11), run 37985066042 (full branch).
 
 ## Next steps
 
-1. Merge #14 (merge commit, not squash), then run the Action on `main`. That run releases **0.4.1** on top (new `addon/packages.txt` for Alpine 3.24, Claude Code 2.1.296) and closes #5 and #6.
-2. Maintainer, Saturday 2026-10-10: update in Home Assistant with "backup before update" (to 0.4.1), then check on the device:
+1. Maintainer, Saturday 2026-10-10: update to 0.4.1 in Home Assistant with "backup before update", then check on the device:
    - The add-on starts, the log shows no `bashio::addon` deprecation warning.
    - Claude can switch a light on and off (this exercises `call_service` with zod 4).
    - `search_docs` works, `python3 --version` says 3.14.
-   - If something breaks, revert only the commit at fault (base image or npm majors) and release again.
-3. The branch `docs/status-plan-0.4.0` is superseded by this file and can be deleted.
-4. Expect #5 to reopen around mid-November 2026 as an advance notice: 30 days before the estimated end of the Alpine 3.24 community repository (release 2026-06-09 + 6 months), until Alpine 3.25 and a new base image are out. That is by design, see `MAINTENANCE.md`.
+   - If something breaks, revert only the commit at fault (`058f07d` base image or `dc94830` npm majors, see above) on a branch, test-run, merge and release again.
+2. The branch `docs/status-plan-0.4.0` is superseded by this file and can be deleted.
+3. Expect #5 to reopen (as a new issue) around mid-November 2026 as an advance notice: 30 days before the estimated end of the Alpine 3.24 community repository (release 2026-06-09 + 6 months), until Alpine 3.25 and a new base image are out. That is by design, see `MAINTENANCE.md`.
 
 ## Known issues and backlog
 
