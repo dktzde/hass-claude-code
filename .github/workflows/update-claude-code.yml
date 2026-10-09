@@ -221,14 +221,7 @@ jobs:
 
   report:
     # Reports what stays a manual decision as issues: one open issue per topic,
-    # refreshed while it applies and closed once it no longer does. Runs after
-    # the update job and checks out the branch head, not the commit the run
-    # started from, so it sees what the update job just released: right after
-    # a base image switch, addon/packages.txt still lists the old Alpine until
-    # the update job refreshes it. On a branch other than main nothing is
-    # pushed and no issue is changed (see sync-issue.sh).
-    needs: update
-    if: ${{ !cancelled() }}
+    # refreshed while it applies and closed once it no longer does.
     runs-on: ubuntu-latest
     env:
       # Explicit so gh never picks a fetched fork as the target repo
@@ -237,7 +230,6 @@ jobs:
     steps:
       - uses: actions/checkout@v7
         with:
-          ref: ${{ github.ref }}
           fetch-depth: 0
 
       - name: Report new upstream and fork commits
@@ -290,9 +282,8 @@ jobs:
   failure-issue:
     # One open issue while runs fail: opened on the first failure, commented on
     # each further failure (so it notifies again), closed by the next good run.
-    # Only for main: a test run on a branch shows its result in the run itself.
     needs: [update, report]
-    if: ${{ !cancelled() && github.ref == 'refs/heads/main' }}
+    if: ${{ !cancelled() }}
     runs-on: ubuntu-latest
     env:
       GH_REPO: ${{ github.repository }}

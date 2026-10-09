@@ -94,8 +94,6 @@ Some updates stay a manual decision because they can need code changes. The same
 - A new version of the base image `ghcr.io/hassio-addons/base`, or support of the installed Alpine version ending soon. The issue shows until when the installed Alpine version gets updates for its main and its community repository, plus the support end of Python and Node.js, with dates from [endoflife.date](https://endoflife.date)
 - New major versions of npm dependencies. npm publishes no end-of-support dates, so for each package the issue shows whether its installed line still gets updates and when it got the last one
 
-[`MAINTENANCE.md`](MAINTENANCE.md) has the checklists for these two updates and the pitfalls of earlier ones. A run started by hand on a branch other than `main` is a test run: it builds and checks the image, but never publishes anything and never changes issues.
-
 If a run fails, the Action opens the issue "Update add-on failed" with a link to the log, comments on it for each further failure and closes it after the next successful run. A failed run never publishes anything, so the add-on on your device is not affected.
 
 To update by hand, run the `/update-claude` skill in this repository, or bump `CLAUDE_CODE_VERSION` in `addon/Dockerfile` and `version` in `addon/config.yaml`.

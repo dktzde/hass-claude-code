@@ -3,9 +3,8 @@
 # With strictDepBuilds (default true), every dependency that wants to run a
 # build script must be listed explicitly or install fails with
 # ERR_PNPM_IGNORED_BUILDS.
-# better-sqlite3 13 has no build script (it ships prebuilt binaries); it stays
-# allowed in case a later version brings one back. esbuild (from tsx, build
-# time only) works with its script skipped, so keep it disabled.
+# Only better-sqlite3 needs its native build; esbuild (from tsx, build time
+# only) works with its script skipped, so keep it disabled.
 allowBuilds:
   better-sqlite3: true
   esbuild: false

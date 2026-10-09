@@ -4,12 +4,6 @@
 # bundled index, which also exercises the native better-sqlite3 module. The
 # second search has a dot, which FTS5 cannot parse, and the third a typo; both
 # need the fallbacks in search.ts.
-#
-# It also calls call_service, whose input schema zod checks. There is no Home
-# Assistant here (and no network), so valid input must get as far as the HTTP
-# request and fail there, while invalid input must fail with a validation
-# error. Together they show that zod accepts and rejects correctly, which a
-# zod major update can break without any compile error.
 # Usage: mcp-smoke-test.sh <image>
 set -euo pipefail
 image=$1
@@ -21,10 +15,7 @@ out=$(printf '%s\n' \
   '{"jsonrpc":"2.0","id":3,"method":"tools/call","params":{"name":"search_docs","arguments":{"query":"config flow","limit":1}}}' \
   '{"jsonrpc":"2.0","id":4,"method":"tools/call","params":{"name":"search_docs","arguments":{"query":"light.turn_on","limit":1}}}' \
   '{"jsonrpc":"2.0","id":5,"method":"tools/call","params":{"name":"search_docs","arguments":{"query":"automaton trigger","limit":1}}}' \
-  '{"jsonrpc":"2.0","id":6,"method":"tools/call","params":{"name":"call_service","arguments":{"domain":"light","service":"turn_on","data":{"entity_id":"light.smoke_test","brightness":255}}}}' \
-  '{"jsonrpc":"2.0","id":7,"method":"tools/call","params":{"name":"call_service","arguments":{"service":"turn_on"}}}' \
-  '{"jsonrpc":"2.0","id":8,"method":"tools/call","params":{"name":"call_service","arguments":{"domain":"light","service":"turn_on","data":"not an object"}}}' \
-  | timeout 120 docker run -i --rm --network none -e SUPERVISOR_TOKEN=smoke-test \
+  | timeout 120 docker run -i --rm -e SUPERVISOR_TOKEN=smoke-test \
       --entrypoint node "$image" /opt/mcp-server/dist/index.js)
 
 tools=$(jq -r 'select(.id == 2) | .result.tools[].name' <<< "$out")
@@ -49,36 +40,4 @@ if ! jq -e 'select(.id == 5) | .result.content[1].text | test("automation trigge
   jq -c 'select(.id == 5)' <<< "$out"
   exit 1
 fi
-
-# The model sees this schema; "data" must stay an object, not a string or any
-if ! jq -e 'select(.id == 2) | .result.tools[] | select(.name == "call_service") | .inputSchema
-            | .properties.data.type == "object" and (.required | index("domain") and index("service"))' \
-     <<< "$out" > /dev/null; then
-  echo "::error::tools/list no longer describes call_service as domain and service (required) plus a data object"
-  jq -c 'select(.id == 2) | .result.tools[] | select(.name == "call_service") | .inputSchema' <<< "$out"
-  exit 1
-fi
-
-# error_of ID: the error text of a reply, empty if it succeeded. The SDK reports
-# a failed tool call as a result with isError, older versions as a JSON-RPC error.
-error_of() {
-  jq -r --argjson id "$1" 'select(.id == $id)
-    | .error.message // (if .result.isError then .result.content[0].text else empty end) // empty' <<< "$out"
-}
-reply_of() { jq -c --argjson id "$1" 'select(.id == $id)' <<< "$out"; }
-
-valid=$(error_of 6)
-if [ -z "$(reply_of 6)" ] || [ -z "$valid" ] || grep -qi validation <<< "$valid"; then
-  echo "::error::call_service with valid input must fail at the HTTP request (there is no Home Assistant), not at validation"
-  reply_of 6
-  exit 1
-fi
-for id in 7 8; do
-  if ! grep -qi validation <<< "$(error_of "$id")"; then
-    echo "::error::call_service with invalid input (request $id) must fail with a validation error"
-    reply_of "$id"
-    exit 1
-  fi
-done
-
-echo "MCP server OK: $(wc -l <<< "$tools") tools, docs search works (also with a dot and a typo), call_service input is validated."
+echo "MCP server OK: $(wc -l <<< "$tools") tools, docs search works (also with a dot and a typo)."

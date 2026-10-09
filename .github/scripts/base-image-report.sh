@@ -122,13 +122,11 @@ The community repository only gets updates until the next Alpine release, the ma
 
 ${waiting:+$waiting
 
-}The switch is deliberately not automatic. A new Alpine version often brings new versions of Python and Node.js, and the builder stage must use the same Alpine version, so the npm packages are installed for the Node.js and libc that run them in the add-on.
+}The switch is deliberately not automatic. A new Alpine version often brings new versions of Python and Node.js, and the builder stage must use the same Alpine version, or the native module better-sqlite3 does not match the Node.js in the add-on.
 
 - Set \`ARG BUILD_FROM\` in \`addon/Dockerfile\` to the new version, and \`addon/build.yaml\` (both architectures) to match
 - For a new Alpine version: change \`FROM alpine:…\` of the builder stage in \`addon/Dockerfile\`
 - Add-on version in \`addon/config.yaml\` and \`addon/CHANGELOG.md\`
 
-[MAINTENANCE.md](${GITHUB_SERVER_URL:-https://github.com}/${GITHUB_REPOSITORY:-dktzde/hass-claude-code}/blob/main/MAINTENANCE.md) has the full checklist (package names, bashio, \`@types/node\`) and the pitfalls of earlier switches.
-
-Then test: on a branch, start the Action "Update add-on" by hand (Run workflow → choose the branch). Runs on branches other than main are test runs: they never publish anything and never change issues.
+Then test: on a branch, start the Action "Update add-on" by hand (Run workflow → choose the branch). Runs on branches other than main are test runs and never publish anything.
 EOF
