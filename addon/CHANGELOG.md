@@ -1,3 +1,8 @@
+## 0.3.4
+
+- **Automated update** by the GitHub Action "Update add-on" ([workflow run](https://github.com/dktzde/hass-claude-code/actions/runs/37977993166))
+- Update the bundled Home Assistant docs (12 files changed)
+
 ## 0.3.3
 
 - **Automated update** by the GitHub Action "Update add-on" ([workflow run](https://github.com/dktzde/hass-claude-code/actions/runs/37906784853))
