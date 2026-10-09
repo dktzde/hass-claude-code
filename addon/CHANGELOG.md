@@ -1,3 +1,9 @@
+## 0.4.1
+
+- **Automated update** by the GitHub Action "Update add-on" ([workflow run](https://github.com/dktzde/hass-claude-code/actions/runs/37985313879))
+- Update Claude Code to 2.1.296
+- Update system packages: `alpine-baselayout-3.7.2-r1`, `alpine-baselayout-data-3.7.2-r1`, `alpine-release-3.24.2-r0`, `bash-5.3.9-r1`, `brotli-libs-1.2.0-r1`, `busybox-1.37.0-r31`, `busybox-binsh-1.37.0-r31`, `curl-8.22.0-r0`, `git-2.54.0-r0`, `git-init-template-2.54.0-r0` and 32 more
+
 ## 0.4.0
 
 New minor version because of the new Alpine version and the new major versions of the MCP server's dependencies.

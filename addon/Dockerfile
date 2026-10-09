@@ -69,7 +69,7 @@ ENV TERM="xterm-256color"
 # last CI build), refreshed by the weekly workflow when Alpine ships updates.
 # A new value busts the Docker layer cache; otherwise the Supervisor keeps the
 # versions from the first install forever.
-ARG PACKAGES_STAMP=24249db91d79
+ARG PACKAGES_STAMP=6fa423d7c6a0
 # hadolint ignore=DL3017,DL3018
 RUN echo "Packages stamp: ${PACKAGES_STAMP}" && \
     apk upgrade --no-cache && \
@@ -91,7 +91,7 @@ RUN echo "Packages stamp: ${PACKAGES_STAMP}" && \
 
 # Pinned so a version change busts the Docker layer cache; the Supervisor
 # builds without --no-cache, so an unpinned install would stay stale forever.
-ARG CLAUDE_CODE_VERSION=2.1.295
+ARG CLAUDE_CODE_VERSION=2.1.296
 RUN curl -fsSL https://claude.ai/install.sh | bash -s "${CLAUDE_CODE_VERSION}"
 
 # Add Claude Code to PATH and disable auto-updater
