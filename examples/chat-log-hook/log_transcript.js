@@ -6,9 +6,14 @@
 // Claude Code runs it after every answer and passes session_id and
 // transcript_path on stdin. The transcript is a JSONL file; the line count
 // already written is kept per session, so nothing is written twice.
+//
+// Each tmux window gets its own file, so a second Claude session does not
+// mix with the first: window 0 writes YYYY-MM-DD.md, window 1
+// YYYY-MM-DD_claude2.md, and so on. Without tmux, it writes YYYY-MM-DD.md.
 
 const fs = require('fs');
 const path = require('path');
+const { execFileSync } = require('child_process');
 
 // Where the log goes. /homeassistant survives add-on restarts and updates.
 const LOG_DIR = process.env.CHAT_LOG_DIR || '/homeassistant/claude_chat_log';
@@ -23,6 +28,22 @@ function localDateStr(d) {
 
 function localTimeStr(d) {
   return d.toTimeString().slice(0, 8);
+}
+
+// Number of the Claude session: tmux window index + 1, so window 0 is
+// Claude 1. The hook inherits TMUX_PANE from Claude Code. 1 on any error.
+function claudeNumber() {
+  const pane = process.env.TMUX_PANE;
+  if (!pane) return 1;
+  try {
+    const index = execFileSync('tmux', ['display-message', '-p', '-t', pane, '#{window_index}'], {
+      encoding: 'utf8',
+      timeout: 3000,
+    }).trim();
+    return /^\d+$/.test(index) ? parseInt(index, 10) + 1 : 1;
+  } catch (e) {
+    return 1;
+  }
 }
 
 let input = '';
@@ -50,8 +71,8 @@ process.stdin.on('end', () => {
       process.exit(0);
     }
 
-    // Two sessions (for example a second tmux window) write into the same
-    // file, so every heading carries the start of the session ID.
+    // A new conversation in the same window (/clear, restart) goes into the
+    // same file, so every heading carries the start of the session ID.
     const session = sessionId.slice(0, 8);
     const entries = [];
 
@@ -91,10 +112,13 @@ process.stdin.on('end', () => {
 
     if (entries.length > 0) {
       const dateStr = localDateStr(new Date());
-      const outFile = path.join(LOG_DIR, `${dateStr}.md`);
+      const nr = claudeNumber();
+      const outFile = path.join(LOG_DIR, nr === 1 ? `${dateStr}.md` : `${dateStr}_claude${nr}.md`);
       let chunk = '';
       if (!fs.existsSync(outFile)) {
-        chunk += `# Claude Code chat log ${dateStr}\n\n`;
+        chunk += nr === 1
+          ? `# Claude Code chat log ${dateStr}\n\n`
+          : `# Claude Code chat log ${dateStr}, Claude ${nr} (tmux window ${nr - 1})\n\n`;
       }
       chunk += entries.join('\n---\n\n') + '\n';
       fs.appendFileSync(outFile, chunk);

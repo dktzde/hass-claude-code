@@ -15,11 +15,11 @@ Last updated: 2026-10-09
   - Yolo mode no longer writes the dead key `"permissions.defaultMode"` (with a dot, never read by Claude Code). Not moved into `permissions` on purpose: a managed default mode would override the mode users choose themselves.
   - The generated `CLAUDE.md` points to the Supervisor endpoint `/core/logs` instead of `/core/api/error_log` (404 on Home Assistant OS).
   - Before merging: test run of the Action on the branch. After merging: update in Home Assistant, then check that `/etc/claude-code/managed-settings.json` has only the `permissions` key.
-- **In review:** branch `docs/quick-guide-english-issues`, no add-on change, so no new version:
+- **On `main` since 2026-10-09** (dktzde/hass-claude-code#11), no add-on change, so no new version:
   - README: section "Quick guide" (copy with Shift and the mouse, paste, second Claude session in a new tmux window, chat log).
   - `examples/chat-log-hook/`: optional Stop hook that writes the chats into one Markdown file per day, with its own README.
-  - The workflow writes its issues in English. Open issues with the old German titles (#5, #6) are renamed on the next run by `retitle_issue` in `.github/scripts/sync-issue.sh`.
-  - Before merging: test run of the Action on the branch, then check that #5 and #6 have English titles and bodies. Merge before the next scheduled run, or the old workflow on `main` opens German duplicates of #5 and #6.
+  - The workflow writes its issues in English. The test run on the branch already renamed #5 and #6 through `retitle_issue` in `.github/scripts/sync-issue.sh`.
+- **In review:** branch `docs/chat-log-per-window`: the chat log hook writes one file per tmux window (window 0 `YYYY-MM-DD.md`, window 1 `YYYY-MM-DD_claude2.md`), so a second session no longer mixes with the first. Docs only, no test run of the Action needed.
 - **Contents of the image:**
   - Claude Code 2.1.292 (pinned)
   - Python 3.12 with PyYAML, `mosquitto_pub` and `mosquitto_sub`, the GitHub CLI `gh`

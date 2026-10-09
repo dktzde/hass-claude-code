@@ -45,7 +45,7 @@ Thank you both!
   ```
 
   The new window is a login shell whose `PATH` lacks `/root/.local/bin`, so a plain `claude` ends in "claude: not found". Switch between the windows with <kbd>Ctrl</kbd>+<kbd>b</kbd>, then <kbd>n</kbd> (next) or <kbd>p</kbd> (previous). A second browser tab does not start a second session, it shows the same one.
-- **Chat log:** the Stop hook in [`examples/chat-log-hook`](examples/chat-log-hook/) writes your prompts and Claude's answers into one Markdown file per day, so you can read an answer again after it has scrolled out of the terminal. Its README explains what it does and how to install it.
+- **Chat log:** the Stop hook in [`examples/chat-log-hook`](examples/chat-log-hook/) writes your prompts and Claude's answers into one Markdown file per day, with a separate file for the second session, so you can read an answer again after it has scrolled out of the terminal. Its README explains what it does and how to install it.
 
 ## Installation
 
