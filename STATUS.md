@@ -2,26 +2,18 @@
 
 Handover file for the maintainer and for Claude Code sessions working on this repository. **Read this first, and update it after every step** (state, decisions, next steps), so the next session can continue without the chat history.
 
-Last updated: 2026-10-09
+Last updated: 2026-10-09 (evening)
 
 ## Current state
 
-- **Add-on version on `main`: 0.3.0** (dktzde/hass-claude-code#9, merged 2026-10-07). It runs on the maintainer's device (an old x86 laptop, `amd64`) since 2026-10-07 18:25:
-  - Removes the semantic doc search. It never worked, see the changelog. The image gets about 350 MB smaller, and `search_docs` becomes keyword-only (SQLite FTS5) with no embedding or vector dependencies.
-  - Makes the keyword search robust, in `src/search.ts`. It tries the query as FTS5 syntax first, then all words, then all words with typos corrected, then any word. Typos are corrected against the FTS5 vocabulary (`chunks_vocab`, an `fts5vocab` table) with an edit distance of 1–2, preferring the same first letter and then the more common word. The tool output then carries a second text item with the corrected query.
-  - Removes stored values of removed options (`api_key`, `enable_embeddings`) from the add-on configuration on start through the Supervisor API (`init-claude`). **When an option is removed in future, add it to `removed_options` there.**
-  - Checked on the device on 2026-10-08: the options only hold `model`, `yolo_mode` and `additional_packages`; tools, `gh` login, MCP server and keyword docs search work.
-- **In review: 0.3.1** (dktzde/hass-claude-code#10, branch `fix/managed-settings-and-log-hint`), two bug fixes, see the changelog:
-  - Yolo mode no longer writes the dead key `"permissions.defaultMode"` (with a dot, never read by Claude Code). Not moved into `permissions` on purpose: a managed default mode would override the mode users choose themselves.
-  - The generated `CLAUDE.md` points to the Supervisor endpoint `/core/logs` instead of `/core/api/error_log` (404 on Home Assistant OS).
-  - Before merging: test run of the Action on the branch. After merging: update in Home Assistant, then check that `/etc/claude-code/managed-settings.json` has only the `permissions` key.
-- **On `main` since 2026-10-09** (dktzde/hass-claude-code#11), no add-on change, so no new version:
-  - README: section "Quick guide" (copy with Shift and the mouse, paste, second Claude session in a new tmux window, chat log).
-  - `examples/chat-log-hook/`: optional Stop hook that writes the chats into one Markdown file per day, with its own README.
-  - The workflow writes its issues in English. The test run on the branch already renamed #5 and #6 through `retitle_issue` in `.github/scripts/sync-issue.sh`.
-- **In review:** branch `docs/chat-log-per-window`: the chat log hook writes one file per tmux window (window 0 `YYYY-MM-DD.md`, window 1 `YYYY-MM-DD_claude2.md`), so a second session no longer mixes with the first. Docs only, no test run of the Action needed.
+- **Add-on version on `main`: 0.3.4** (automated releases 0.3.2–0.3.4: Claude Code, npm lockfile within the majors, docs). The maintainer's device (an old x86 laptop, `amd64`) was checked on 0.3.2 on 2026-10-08 18:04: `managed-settings.json` holds only `permissions`, the generated `CLAUDE.md` names `/core/logs`, `/root/.claude` points to `/data/.claude`, `gh` is logged in, python3, PyYAML, mosquitto and the `MQTT_*` variables, MCP server and docs search work.
+- **Merged since 0.3.0:**
+  - 0.3.0 (#9): semantic doc search removed (about 350 MB smaller image), typo-tolerant FTS5 keyword search in `src/search.ts`, stored values of removed options cleaned up on start (`removed_options` in `init-claude`; **add future removed options there**).
+  - 0.3.1 (#10): yolo mode no longer writes the dead key `"permissions.defaultMode"` (not moved into `permissions` on purpose: a managed default mode would override the users' own mode); the generated `CLAUDE.md` points to `/core/logs` instead of `/core/api/error_log`.
+  - #11 and #12 (docs only, no new version): README "Quick guide", `examples/chat-log-hook/` (one file per tmux window), workflow issues in English.
+- Upstream dkmaker/hass-claude-code#10 (semantic search analysis) was closed as "not planned" on 2026-10-09: Claude sends precise English HA queries, keyword search is enough.
 - **Contents of the image:**
-  - Claude Code 2.1.292 (pinned)
+  - Claude Code 2.1.295 (pinned)
   - Python 3.12 with PyYAML, `mosquitto_pub` and `mosquitto_sub`, the GitHub CLI `gh`
   - Node.js 24, git, ripgrep, tmux, ttyd
   - Base image `ghcr.io/hassio-addons/base:20.0.1` (Alpine 3.23)
@@ -33,11 +25,20 @@ Last updated: 2026-10-09
 - **Open issues:**
   - dktzde/hass-claude-code#5: base image 21.0.8 (Alpine 3.24) is available. The community repository of Alpine 3.23 (ttyd, ripgrep, github-cli) has had no updates since 2026-06-09; main gets updates until 2027-11-01.
   - dktzde/hass-claude-code#6: new npm major versions, see next steps.
-- **Last green runs:** run 37628361900 (test run of 0.2.0 on the branch) and the release of 0.2.1 on `main`.
+- **Last green runs:** the automated releases 0.3.3 (run 37906784853) and 0.3.4 (run 37977993166) on `main`.
 
-## Next step: plan B (agreed, start "in some time")
+## Next step: plan B = version 0.4.0 (scheduled: Saturday 2026-10-10, evening)
 
-The maintainer decided to do the base image switch and **all** npm major updates **in one PR**, with extended tests that stay in the workflow permanently. The alternative (two separate steps) was rejected.
+The maintainer decided to do the base image switch (#5) and **all** npm major updates (#6) **in one PR**, so the device needs to be tested only once, with extended tests that stay in the workflow permanently. The alternative (two separate steps) was rejected.
+
+**Schedule (agreed 2026-10-09):**
+
+- **Saturday 2026-10-10, evening:** Claude works through steps 1–5 below in one go, without stopping for each step:
+  - One branch (for example `feat/alpine-3.24-npm-majors`), **two commits**: first the base image (#5), then the npm majors and the tests (#6). Start the Action on the branch by hand after each commit, so a failing build points to one of them, and fix until both runs are green.
+  - Things that cannot be updated cleanly (for example TypeScript 7) stay as they are and are listed for the maintainer, instead of being forced.
+  - Then the PR, merge, the Action run on `main` that releases 0.4.0. Show the maintainer the diff before merging, if they are still there.
+- **Sunday 2026-10-11, morning:** the maintainer updates to 0.4.0 in Home Assistant ("backup before update") and tests on the device (step 5). If something breaks, revert only the commit at fault.
+- The weekly Action runs on Saturday 05:47 UTC and may release 0.3.5 before; start the branch from the current `main` and pull again before merging.
 
 ### 1. Find out what Alpine 3.24 brings
 
