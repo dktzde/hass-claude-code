@@ -6,7 +6,7 @@ Last updated: 2026-10-09 (late evening)
 
 ## Current state
 
-- **0.4.0 (plan B), branch `claude/brave-fermi-84djze`:** base image switch and all npm major updates in one PR, fixes dktzde/hass-claude-code#5 and dktzde/hass-claude-code#6. The maintainer moved the schedule from Saturday evening (plan on the branch `docs/status-plan-0.4.0`, which this replaces) to Friday 2026-10-09 evening: "work through it on your own, so I can test a finished release tomorrow". [`MAINTENANCE.md`](MAINTENANCE.md) now holds the checklists and every pitfall of this update. Commits, as the plan asked (one per topic, a test run after each, revertable alone):
+- **0.4.0 (plan B), dktzde/hass-claude-code#14, branch `claude/brave-fermi-84djze`:** base image switch and all npm major updates in one PR, fixes dktzde/hass-claude-code#5 and dktzde/hass-claude-code#6. The maintainer moved the schedule from Saturday evening (plan on the branch `docs/status-plan-0.4.0`, which this replaces) to Friday 2026-10-09 evening: "work through it on your own, so I can test a finished release tomorrow". [`MAINTENANCE.md`](MAINTENANCE.md) now holds the checklists and every pitfall of this update. Commits, as the plan asked (one per topic, a test run after each, revertable alone):
   1. `ci:` test runs on branches no longer change issues; the failure issue is for `main` only; the report job runs after the update job on the branch head (so #5 closes in the same run that refreshes `addon/packages.txt`).
   2. `feat(addon):` base image `ghcr.io/hassio-addons/base` 21.0.8 (Alpine 3.24): **Python 3.14** (was 3.12), Node.js stays 24, builder `alpine:3.24`; `ttyd/run` uses `bashio::app.ingress_port` (bashio 0.18 renamed `bashio::addon.*`). Version 0.4.0.
   3. `feat(mcp-server):` better-sqlite3 13 (prebuilt musl binaries, so the builder drops `build-base` and `python3`), zod 4, glob 13, **TypeScript 7**, `@types/better-sqlite3` 9, `@types/node` 24; smoke test for `call_service` (valid and invalid input); npm report compares `@types/node` with the Node.js of the image.
@@ -30,11 +30,11 @@ Last updated: 2026-10-09 (late evening)
   - Test-builds the image, checks the tools and smoke-tests the MCP server, then releases any change as one add-on version.
   - Manual runs on other branches than `main` are test runs: they build and check, but never push and never change issues.
   - Then reports what stays manual as issues: fork commits, base image and Alpine support end, npm majors; plus one issue for failed runs on `main`.
-- **Test runs of 0.4.0 on the branch:** run 37984205004 (combined commit, green), run 37984697694 (base image only).
+- **Test runs of 0.4.0 on the branch:** run 37984205004 (combined commit), run 37984697694 (base image only, with better-sqlite3 11), run 37985066042 (full branch).
 
 ## Next steps
 
-1. Test run on the branch head (npm majors), then the PR, merge (merge commit, not squash), and the Action on `main`. That run releases **0.4.1** on top (new `addon/packages.txt` for Alpine 3.24, Claude Code 2.1.296) and closes #5 and #6.
+1. Merge #14 (merge commit, not squash), then run the Action on `main`. That run releases **0.4.1** on top (new `addon/packages.txt` for Alpine 3.24, Claude Code 2.1.296) and closes #5 and #6.
 2. Maintainer, Saturday 2026-10-10: update in Home Assistant with "backup before update" (to 0.4.1), then check on the device:
    - The add-on starts, the log shows no `bashio::addon` deprecation warning.
    - Claude can switch a light on and off (this exercises `call_service` with zod 4).
