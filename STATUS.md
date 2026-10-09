@@ -17,7 +17,7 @@ Last updated: 2026-10-09
   - Before merging: test run of the Action on the branch. After merging: update in Home Assistant, then check that `/etc/claude-code/managed-settings.json` has only the `permissions` key.
 - **In review:** branch `docs/quick-guide-english-issues`, no add-on change, so no new version:
   - README: section "Quick guide" (copy with Shift and the mouse, paste, second Claude session in a new tmux window, chat log).
-  - `examples/chat-log-hook/`: optional Stop hook that writes the chats into one Markdown file per day, with its own README.
+  - `examples/chat-log-hook/`: optional Stop hook that writes the chats into one Markdown file per day and per tmux window (window 0 `YYYY-MM-DD.md`, window 1 `YYYY-MM-DD_claude2.md`), with its own README.
   - The workflow writes its issues in English. Open issues with the old German titles (#5, #6) are renamed on the next run by `retitle_issue` in `.github/scripts/sync-issue.sh`.
   - Before merging: test run of the Action on the branch, then check that #5 and #6 have English titles and bodies. Merge before the next scheduled run, or the old workflow on `main` opens German duplicates of #5 and #6.
 - **Contents of the image:**
