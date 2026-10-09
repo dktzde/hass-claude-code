@@ -2,18 +2,13 @@
 
 ## Latest update
 
-### Modified (19 files)
-- authentication/multi-factor-auth.md differ
-- authentication.md differ
+### Modified (5 files)
 - automation/action.md differ
-- automation/basics.md differ
-- automation/editor.md differ
-- automation/modes.md differ
-- automation/templating.md differ
-- automation/trigger.md differ
-- automation/using_blueprints.md differ
-- blueprint/selectors.md differ
-- ... and 9 more
+- automation/condition.md differ
+- configuration/state_object.md differ
+- scene.md differ
+- scripts/conditions.md differ
 
-### Removed (1 files)
+### Removed (2 files)
 - CHANGELOG.md
+- scene

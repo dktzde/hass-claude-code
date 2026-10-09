@@ -1,5 +1,9 @@
 # Docs Changelog
 
+## 2026-10-09 08:44
+
+Updated (3): core/entity/climate.md, core/entity/water-heater.md, core/integration-quality-scale/rules/config-flow-test-coverage.md
+
 ## 2026-10-08 12:27
 
 Updated (16): api/supervisor/endpoints.md, apps/communication.md, apps/configuration.md, apps/presentation.md, apps/repository.md, apps/testing.md, apps/tutorial.md, apps.md, core/integration/config_flow.md, documenting/topic-based-authoring.md, frontend/development.md, operating-system/debugging.md, review-process.md, setup_devcontainer_environment.md, supervisor/debugging.md, supervisor/development.md
