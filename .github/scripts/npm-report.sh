@@ -118,5 +118,5 @@ npm packages publish no fixed end of support. As a measure, the list above shows
 
 The weekly Action "Update add-on" takes over minor updates within the allowed major version automatically. Major versions can need code changes, so they are only reported.
 
-To take one over: raise the version in \`addon/mcp-server/package.json\`, regenerate the lockfile with pnpm 11 (\`pnpm install --lockfile-only\`), adapt the code, test-build.
+To take one over: raise the version in \`addon/mcp-server/package.json\`, regenerate the lockfile with pnpm 11 (\`pnpm install --lockfile-only\`), adapt the code, test-build. [MAINTENANCE.md](${GITHUB_SERVER_URL:-https://github.com}/${GITHUB_REPOSITORY:-dktzde/hass-claude-code}/blob/main/MAINTENANCE.md) lists what to check and the pitfalls of earlier major updates.
 EOF

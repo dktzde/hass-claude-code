@@ -8,7 +8,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Home Assistant add-on (`addon/`)
 
-The main product of this fork: a Home Assistant add-on that runs Claude Code with a web terminal (ttyd + tmux via Ingress) and a built-in MCP server (`addon/mcp-server/`) for Home Assistant APIs and docs search. The Supervisor builds the image on the user's device with the Docker layer cache, so everything that must update is pinned in `addon/Dockerfile` and refreshed by the weekly workflow `.github/workflows/update-claude-code.yml` (helper scripts in `.github/scripts/`). Never edit `PACKAGES_STAMP`, `DOCS_STAMP` or `addon/packages.txt` by hand. Details are in `STATUS.md` and `README.md`.
+The main product of this fork: a Home Assistant add-on that runs Claude Code with a web terminal (ttyd + tmux via Ingress) and a built-in MCP server (`addon/mcp-server/`) for Home Assistant APIs and docs search. The Supervisor builds the image on the user's device with the Docker layer cache, so everything that must update is pinned in `addon/Dockerfile` and refreshed by the weekly workflow `.github/workflows/update-claude-code.yml` (helper scripts in `.github/scripts/`). Never edit `PACKAGES_STAMP`, `DOCS_STAMP` or `addon/packages.txt` by hand. Details are in `STATUS.md` and `README.md`. Before a base image switch or an npm major update, read [`MAINTENANCE.md`](MAINTENANCE.md) (checklists and pitfalls), and add what you learn to it.
 
 The rest of this file describes the docs tooling used during development.
 
