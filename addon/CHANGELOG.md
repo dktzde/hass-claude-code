@@ -1,3 +1,9 @@
+## 0.4.2
+
+### Bug fixes
+
+- The MCP tools `list_areas`, `search_devices` and `get_config_entries` always returned an empty list. They sent their websocket commands as a REST `POST` to `/core/api`, which Home Assistant answers with 405, and the error was hidden behind the empty list. They now use the websocket API through the Supervisor (`ws://supervisor/core/websocket`) and return the areas, devices and config entries. If Home Assistant cannot be reached, the tool reports the error instead of an empty list
+
 ## 0.4.1
 
 - **Automated update** by the GitHub Action "Update add-on" ([workflow run](https://github.com/dktzde/hass-claude-code/actions/runs/37985313879))

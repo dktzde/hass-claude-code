@@ -1,63 +1,65 @@
 import type { HAArea, HADevice, HAConfigEntry } from './types.js';
 
 const SUPERVISOR_TOKEN = process.env.SUPERVISOR_TOKEN || '';
-const WS_BASE_URL = 'http://supervisor/core/api';
+const WS_URL = 'ws://supervisor/core/websocket';
+const WS_TIMEOUT_MS = 30_000;
 
-// The Supervisor proxy supports REST-style websocket command forwarding via the API.
-// We use the REST websocket command API to avoid maintaining a persistent WS connection.
-async function wsCommand<T>(type: string, extraFields: Record<string, unknown> = {}): Promise<T> {
-  const res = await fetch(`${WS_BASE_URL}`, {
-    method: 'POST',
-    headers: {
-      Authorization: `Bearer ${SUPERVISOR_TOKEN}`,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({ type, ...extraFields }),
+// The registries are only available over the Home Assistant websocket API;
+// the REST API has no endpoint for them (a POST to /core/api answers 405).
+// Each call opens a connection through the Supervisor proxy, authenticates
+// with the Supervisor token, sends one command and closes again. The tools
+// are called rarely, so a persistent connection is not worth it. Node.js 22
+// and newer have a global WebSocket.
+function wsCommand<T>(type: string, extraFields: Record<string, unknown> = {}): Promise<T> {
+  return new Promise<T>((resolve, reject) => {
+    const ws = new WebSocket(WS_URL);
+    const finish = (error?: string, result?: T) => {
+      clearTimeout(timer);
+      ws.close();
+      if (error) reject(new Error(`HA websocket command ${type} failed: ${error}`));
+      else resolve(result as T);
+    };
+    const timer = setTimeout(() => finish(`no answer within ${WS_TIMEOUT_MS / 1000} s`), WS_TIMEOUT_MS);
+
+    ws.addEventListener('message', event => {
+      const msg = JSON.parse(String(event.data));
+      if (msg.type === 'auth_required') {
+        ws.send(JSON.stringify({ type: 'auth', access_token: SUPERVISOR_TOKEN }));
+      } else if (msg.type === 'auth_ok') {
+        ws.send(JSON.stringify({ id: 1, type, ...extraFields }));
+      } else if (msg.type === 'auth_invalid') {
+        finish(`authentication failed: ${msg.message}`);
+      } else if (msg.type === 'result' && msg.id === 1) {
+        if (msg.success) finish(undefined, msg.result as T);
+        else finish(`${msg.error?.code}: ${msg.error?.message}`);
+      }
+    });
+    ws.addEventListener('error', () => finish(`cannot connect to ${WS_URL}`));
+    // A promise settles only once, so this does nothing after a result
+    ws.addEventListener('close', () => finish('connection closed before the result'));
   });
-
-  if (!res.ok) {
-    const text = await res.text();
-    throw new Error(`HA WS command ${type} failed (${res.status}): ${text}`);
-  }
-
-  return res.json() as Promise<T>;
 }
 
+// Errors are not caught here: the tool call then reports them, instead of an
+// empty list that looks like a Home Assistant without areas or devices.
+
 export async function listAreas(): Promise<HAArea[]> {
-  // Use the Supervisor's Core websocket command proxy
-  // The area registry is available through template rendering or ws commands
-  try {
-    return await wsCommand<HAArea[]>('config/area_registry/list');
-  } catch {
-    // Fallback: return empty if ws commands aren't available through REST
-    console.error('Warning: Could not fetch areas via ws command, area listing unavailable');
-    return [];
-  }
+  return wsCommand<HAArea[]>('config/area_registry/list');
 }
 
 export async function searchDevices(query?: string): Promise<HADevice[]> {
-  try {
-    const devices = await wsCommand<HADevice[]>('config/device_registry/list');
-    if (!query) return devices;
+  const devices = await wsCommand<HADevice[]>('config/device_registry/list');
+  if (!query) return devices;
 
-    const q = query.toLowerCase();
-    return devices.filter(d =>
-      (d.name || '').toLowerCase().includes(q) ||
-      (d.name_by_user || '').toLowerCase().includes(q) ||
-      (d.manufacturer || '').toLowerCase().includes(q) ||
-      (d.model || '').toLowerCase().includes(q)
-    );
-  } catch {
-    console.error('Warning: Could not fetch devices via ws command');
-    return [];
-  }
+  const q = query.toLowerCase();
+  return devices.filter(d =>
+    (d.name || '').toLowerCase().includes(q) ||
+    (d.name_by_user || '').toLowerCase().includes(q) ||
+    (d.manufacturer || '').toLowerCase().includes(q) ||
+    (d.model || '').toLowerCase().includes(q)
+  );
 }
 
 export async function getConfigEntries(): Promise<HAConfigEntry[]> {
-  try {
-    return await wsCommand<HAConfigEntry[]>('config_entries/get');
-  } catch {
-    console.error('Warning: Could not fetch config entries via ws command');
-    return [];
-  }
+  return wsCommand<HAConfigEntry[]>('config_entries/get');
 }
