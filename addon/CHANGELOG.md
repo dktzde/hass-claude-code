@@ -1,16 +1,22 @@
 ## 0.4.2
 
+<sub>2026-10-10</sub>
+
 ### Bug fixes
 
 - The MCP tools `list_areas`, `search_devices` and `get_config_entries` always returned an empty list. They sent their websocket commands as a REST `POST` to `/core/api`, which Home Assistant answers with 405, and the error was hidden behind the empty list. They now use the websocket API through the Supervisor (`ws://supervisor/core/websocket`) and return the areas, devices and config entries. If Home Assistant cannot be reached, the tool reports the error instead of an empty list
 
 ## 0.4.1
 
+<sub>2026-10-09</sub>
+
 - **Automated update** by the GitHub Action "Update add-on" ([workflow run](https://github.com/dktzde/hass-claude-code/actions/runs/37985313879))
 - Update Claude Code to 2.1.296
 - Update system packages: `alpine-baselayout-3.7.2-r1`, `alpine-baselayout-data-3.7.2-r1`, `alpine-release-3.24.2-r0`, `bash-5.3.9-r1`, `brotli-libs-1.2.0-r1`, `busybox-1.37.0-r31`, `busybox-binsh-1.37.0-r31`, `curl-8.22.0-r0`, `git-2.54.0-r0`, `git-init-template-2.54.0-r0` and 32 more
 
 ## 0.4.0
+
+<sub>2026-10-09</sub>
 
 New minor version because of the new Alpine version and the new major versions of the MCP server's dependencies.
 
@@ -26,10 +32,14 @@ New minor version because of the new Alpine version and the new major versions o
 
 ## 0.3.4
 
+<sub>2026-10-09</sub>
+
 - **Automated update** by the GitHub Action "Update add-on" ([workflow run](https://github.com/dktzde/hass-claude-code/actions/runs/37977993166))
 - Update the bundled Home Assistant docs (12 files changed)
 
 ## 0.3.3
+
+<sub>2026-10-09</sub>
 
 - **Automated update** by the GitHub Action "Update add-on" ([workflow run](https://github.com/dktzde/hass-claude-code/actions/runs/37906784853))
 - Update Claude Code to 2.1.295
@@ -38,11 +48,15 @@ New minor version because of the new Alpine version and the new major versions o
 
 ## 0.3.2
 
+<sub>2026-10-08</sub>
+
 - **Automated update** by the GitHub Action "Update add-on" ([workflow run](https://github.com/dktzde/hass-claude-code/actions/runs/37776922455))
 - Update Claude Code to 2.1.293
 - Update the bundled Home Assistant docs (35 files changed)
 
 ## 0.3.1
+
+<sub>2026-10-08</sub>
 
 ### Bug fixes
 
@@ -50,6 +64,8 @@ New minor version because of the new Alpine version and the new major versions o
 - The generated `/etc/claude-code/CLAUDE.md` named `GET /core/api/error_log` for the error log, which returns 404 on Home Assistant OS (Core writes no `home-assistant.log` there). It now points to the Supervisor endpoint `/core/logs`, with `?lines=500` and `/core/logs/latest`
 
 ## 0.3.0
+
+<sub>2026-10-07</sub>
 
 ### Breaking change
 
@@ -64,10 +80,14 @@ New minor version because of the new Alpine version and the new major versions o
 
 ## 0.2.1
 
+<sub>2026-10-07</sub>
+
 - **Automated update** by the GitHub Action "Update add-on" ([workflow run](https://github.com/dktzde/hass-claude-code/actions/runs/37633199475))
 - Update system packages: `cjson-1.7.19-r1`, `github-cli-2.83.0-r6`, `mosquitto-clients-2.0.22-r0`, `mosquitto-libs-2.0.22-r0`, `py3-yaml-6.0.3-r0`, `py3-yaml-pyc-6.0.3-r0`, `yaml-0.2.5-r2`
 
 ## 0.2.0
+
+<sub>2026-10-07</sub>
 
 New minor version because of the many changes since 0.1.15: Python 3 and more tools, weekly updates of packages, npm dependencies and docs, a generated `CLAUDE.md` and login only through Claude Code.
 
@@ -92,6 +112,8 @@ New minor version because of the many changes since 0.1.15: Python 3 and more to
 
 ## 0.1.18
 
+<sub>2026-10-07</sub>
+
 ### Improvements
 
 - Pin the npm dependencies of the MCP server with a lockfile, so every device builds exactly the versions that were tested instead of whatever npm offers at build time
@@ -100,12 +122,16 @@ New minor version because of the many changes since 0.1.15: Python 3 and more to
 
 ## 0.1.17
 
+<sub>2026-10-07</sub>
+
 - **Automated update** by the GitHub Action "Update add-on" ([workflow run](https://github.com/dktzde/hass-claude-code/actions/runs/37606435542))
 - Update Claude Code to 2.1.292
 - Update system packages: `ada-libs-3.3.0-r0`, `alpine-baselayout-3.7.2-r0`, `alpine-baselayout-data-3.7.2-r0`, `alpine-keys-2.6-r0`, `alpine-release-3.23.6-r0`, `apk-tools-3.0.8-r0`, `bash-5.3.3-r1`, `brotli-libs-1.2.0-r0`, `busybox-1.37.0-r30`, `busybox-binsh-1.37.0-r30` and 55 more
 - Update the bundled Home Assistant docs (320 files changed)
 
 ## 0.1.16
+
+<sub>2026-10-07</sub>
 
 ### Improvements
 
@@ -115,19 +141,27 @@ New minor version because of the many changes since 0.1.15: Python 3 and more to
 
 ## 0.1.15
 
+<sub>2026-10-04</sub>
+
 - **Automated update** by the GitHub Action "Update Claude Code" ([workflow run](https://github.com/dktzde/hass-claude-code/actions/runs/37191988233))
 - Update Claude Code to 2.1.289
 
 ## 0.1.14
+
+<sub>2026-10-03</sub>
 
 - **Automated update** by the GitHub Action "Update Claude Code" ([workflow run](https://github.com/dktzde/hass-claude-code/actions/runs/37110577797))
 - Update Claude Code to 2.1.288
 
 ## 0.1.13
 
+<sub>2026-09-27</sub>
+
 - Update Claude Code to 2.1.283
 
 ## 0.1.12
+
+<sub>2026-09-23</sub>
 
 ### Improvements
 
@@ -147,6 +181,10 @@ New minor version because of the many changes since 0.1.15: Python 3 and more to
 - Persist Claude Code login, sessions and memory across add-on restarts: replace the
   installer's `/root/.claude` directory with the `/data` symlink (`ln -sfn`) instead of
   creating a nested link inside it
+
+---
+
+**Versions 0.1.0 to 0.1.11 (February 2026) are the original add-on by [dkmaker/hass-claude-code](https://github.com/dkmaker/hass-claude-code).** This fork continues from 0.1.12.
 
 ## 0.1.11
 

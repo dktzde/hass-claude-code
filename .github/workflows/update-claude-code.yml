@@ -191,7 +191,7 @@ jobs:
           declare -a parts=()
           # addon/CHANGELOG.md is what HA shows in the update dialog
           {
-            printf '## %s\n\n' "$addon"
+            printf '## %s\n\n<sub>%s</sub>\n\n' "$addon" "$(date -u +%F)"
             printf -- '- **Automated update** by the GitHub Action "Update add-on" ([workflow run](%s))\n' "$RUN_URL"
             if [ "$CLAUDE_UPDATE" = true ]; then printf -- '- Update Claude Code to %s\n' "$CLAUDE"; fi
             if [ "$PACKAGES_UPDATE" = true ]; then printf -- '- Update system packages: %s\n' "$PACKAGES"; fi
