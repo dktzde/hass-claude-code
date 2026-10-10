@@ -10,6 +10,9 @@
 # request and fail there, while invalid input must fail with a validation
 # error. Together they show that zod accepts and rejects correctly, which a
 # zod major update can break without any compile error.
+#
+# list_areas goes over the websocket API. Without Home Assistant it must
+# report an error; until 0.4.2 it returned an empty list on every error.
 # Usage: mcp-smoke-test.sh <image>
 set -euo pipefail
 image=$1
@@ -24,6 +27,7 @@ out=$(printf '%s\n' \
   '{"jsonrpc":"2.0","id":6,"method":"tools/call","params":{"name":"call_service","arguments":{"domain":"light","service":"turn_on","data":{"entity_id":"light.smoke_test","brightness":255}}}}' \
   '{"jsonrpc":"2.0","id":7,"method":"tools/call","params":{"name":"call_service","arguments":{"service":"turn_on"}}}' \
   '{"jsonrpc":"2.0","id":8,"method":"tools/call","params":{"name":"call_service","arguments":{"domain":"light","service":"turn_on","data":"not an object"}}}' \
+  '{"jsonrpc":"2.0","id":9,"method":"tools/call","params":{"name":"list_areas","arguments":{}}}' \
   | timeout 120 docker run -i --rm --network none -e SUPERVISOR_TOKEN=smoke-test \
       --entrypoint node "$image" /opt/mcp-server/dist/index.js)
 
@@ -81,4 +85,10 @@ for id in 7 8; do
   fi
 done
 
-echo "MCP server OK: $(wc -l <<< "$tools") tools, docs search works (also with a dot and a typo), call_service input is validated."
+if ! grep -q "websocket command config/area_registry/list failed" <<< "$(error_of 9)"; then
+  echo "::error::list_areas without Home Assistant must fail at the websocket connection, not return a list"
+  reply_of 9
+  exit 1
+fi
+
+echo "MCP server OK: $(wc -l <<< "$tools") tools, docs search works (also with a dot and a typo), call_service input is validated, websocket errors are reported."
