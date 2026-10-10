@@ -68,7 +68,7 @@ Last updated: 2026-10-10 (0.4.2 in review)
 - **CLAUDE.md in the add-on:** `init-claude` writes `/etc/claude-code/CLAUDE.md` on every start; Claude Code loads it as managed memory. `/homeassistant/CLAUDE.md` belongs to the user: it is created only when missing and **never overwritten**.
 - **MQTT:** `services: mqtt:want`. With the Mosquitto broker add-on, `init-claude` exports `MQTT_HOST`, `MQTT_PORT`, `MQTT_USERNAME` and `MQTT_PASSWORD`.
 - **Versioning:** the workflow bumps the patch level (0.2.1, 0.2.2, …). Bigger changes get a new minor version by hand.
-- **Changelog:** automated entries start with "**Automated update** by the GitHub Action …", without "not made by hand".
+- **Changelog:** automated entries start with "**Automated update** by the GitHub Action …", without "not made by hand". Every version of this fork (0.1.12 and later) has its date as `<sub>YYYY-MM-DD</sub>` under the heading (the workflow writes it in UTC); 0.1.0–0.1.11 are the original add-on by dkmaker, marked with a note above 0.1.11.
 - **Language:** code, README, changelog, commits and the issues created by the workflow in English (issues since 2026-10-09). Replies to the maintainer in German, in plain language.
 - **Workflow:**
   - One PR per topic.
