@@ -2,11 +2,13 @@
 
 Handover file for the maintainer and for Claude Code sessions working on this repository. **Read this first, and update it after every step** (state, decisions, next steps), so the next session can continue without the chat history.
 
-Last updated: 2026-10-09 (late evening, after the release of 0.4.1)
+Last updated: 2026-10-10 (0.4.2 in review)
 
 ## Current state
 
-- **Add-on version on `main`: 0.4.1**, released 2026-10-09 20:12 UTC (run 37985313879). Not yet tested on the device.
+- **0.4.2 in review: dktzde/hass-claude-code#16** (branch `fix/mcp-websocket-registry`). The MCP tools `list_areas`, `search_devices` and `get_config_entries` always returned `[]`: they sent websocket commands as a REST `POST` to `/core/api` (405, error hidden). They now use `ws://supervisor/core/websocket`, errors are reported, and the smoke test checks it. Tested on the device over stdio (15 areas, 77 devices, 37 config entries).
+- **0.4.1 on the device since 2026-10-09 22:23 (local time)**, checked 2026-10-10: the add-on starts without errors, Alpine 3.24.2, Python 3.14.8, Node.js 24.18, `gh` logged in, MQTT and the Core API work, `search_docs` and `get_entity_state` work. Not checked yet: `call_service` (switching a light).
+- **Add-on version on `main`: 0.4.1**, released 2026-10-09 20:12 UTC (run 37985313879).
   - 0.4.0 is plan B, dktzde/hass-claude-code#14, merged with a merge commit: base image switch and all npm major updates. It fixes dktzde/hass-claude-code#5 and dktzde/hass-claude-code#6; the merge closed both, and the report job of the release run found nothing left to report. The maintainer had planned it for Saturday evening (branch `docs/status-plan-0.4.0`), then moved it to Friday 2026-10-09 evening: "work through it on your own, so I can test a finished release tomorrow". [`MAINTENANCE.md`](MAINTENANCE.md) holds the checklists and every pitfall of this update.
   - 0.4.1 is the automated release on top: the Alpine 3.24 package list in `addon/packages.txt` and Claude Code 2.1.296.
   - Commits of #14, one per topic as the plan asked (a test run after each; each can be reverted alone with `git revert <commit>`):
@@ -36,13 +38,11 @@ Last updated: 2026-10-09 (late evening, after the release of 0.4.1)
 
 ## Next steps
 
-1. Maintainer, Saturday 2026-10-10: update to 0.4.1 in Home Assistant with "backup before update", then check on the device:
-   - The add-on starts, the log shows no `bashio::addon` deprecation warning.
-   - Claude can switch a light on and off (this exercises `call_service` with zod 4).
-   - `search_docs` works, `python3 --version` says 3.14.
+1. #16: test run of the Action on the branch, merge, run the Action on `main`, update and check `list_areas` on the device.
+2. 0.4.1 on the device (installed, see above): still open is only that Claude can switch a light on and off (this exercises `call_service` with zod 4). Checked 2026-10-10: the add-on starts, the log shows no `bashio::addon` deprecation warning, `search_docs` works, `python3 --version` says 3.14.
    - If something breaks, revert only the commit at fault (`058f07d` base image or `dc94830` npm majors, see above) on a branch, test-run, merge and release again.
-2. The branch `docs/status-plan-0.4.0` is superseded by this file and can be deleted.
-3. Expect #5 to reopen (as a new issue) around mid-November 2026 as an advance notice: 30 days before the estimated end of the Alpine 3.24 community repository (release 2026-06-09 + 6 months), until Alpine 3.25 and a new base image are out. That is by design, see `MAINTENANCE.md`.
+3. The branch `docs/status-plan-0.4.0` is superseded by this file and can be deleted.
+4. Expect #5 to reopen (as a new issue) around mid-November 2026 as an advance notice: 30 days before the estimated end of the Alpine 3.24 community repository (release 2026-06-09 + 6 months), until Alpine 3.25 and a new base image are out. That is by design, see `MAINTENANCE.md`.
 
 ## Known issues and backlog
 
