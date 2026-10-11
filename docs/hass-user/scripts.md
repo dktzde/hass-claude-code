@@ -455,7 +455,7 @@ The **Condition** building block checks a condition in the middle of a sequence.
 
 {% options_ui %}
 Condition type:
-  description: The condition to check. Each condition type has its own options. For the available conditions, refer to [conditions](/docs/scripts/conditions/).
+  description: The condition to check. Each condition type has its own options. For the available conditions, refer to the [list of available conditions](/conditions/).
   required: true
 {% endoptions_ui %}
 
@@ -1930,6 +1930,8 @@ action: |
 
 **Continue on error** doesn't ignore errors in the configuration, such as a broken template. The error is still shown in the trace and in the logs.
 
+An action whose target is unavailable or doesn't exist doesn't fail. Home Assistant skips that target, so the next step runs even without **Continue on error**. If the target doesn't exist, the log shows a warning.
+
 ### Turning off a step
 
 To try an automation or script without one of its steps, turn the step off instead of deleting it. Home Assistant skips it until you turn it on again.
@@ -1964,5 +1966,5 @@ actions:
 ```
 
 [conditions page]: /docs/scripts/conditions/
-[shorthand-template]: /docs/scripts/conditions/#template-condition-shorthand-notation
+[shorthand-template]: /conditions/template/#shorthand-notation
 [script variables]: /integrations/script/#variables

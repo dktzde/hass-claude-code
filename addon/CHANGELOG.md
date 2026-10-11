@@ -1,3 +1,11 @@
+## 0.4.3
+
+<sub>2026-10-11</sub>
+
+- **Automated update** by the GitHub Action "Update add-on" ([workflow run](https://github.com/dktzde/hass-claude-code/actions/runs/38122618035))
+- Update npm dependencies of the MCP server: `@types/node@24.19.2`, `content-disposition@2.0.1`, `express@5.3.0`
+- Update the bundled Home Assistant docs (8 files changed)
+
 ## 0.4.2
 
 <sub>2026-10-10</sub>
