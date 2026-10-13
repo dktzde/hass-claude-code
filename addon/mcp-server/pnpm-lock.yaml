@@ -10,7 +10,7 @@ importers:
     dependencies:
       '@modelcontextprotocol/sdk':
         specifier: ^1.0.0
-        version: 1.32.1(zod@4.6.5)
+        version: 1.32.1(zod@4.6.6)
       better-sqlite3:
         specifier: ^13.0.0
         version: 13.0.3
@@ -19,7 +19,7 @@ importers:
         version: 13.0.6
       zod:
         specifier: ^4.0.0
-        version: 4.6.5
+        version: 4.6.6
     devDependencies:
       '@types/better-sqlite3':
         specifier: ^9.6.0
@@ -531,8 +531,8 @@ packages:
   inherits@2.0.4:
     resolution: {integrity: sha512-k/vGaX4/Yla3WzyMCvTQOXYeIHvqOKtnqBduzTHpzpQZzAskKMhZ2K+EnBiSM9zGSoIFeMpXKxa4dYeZIQqewQ==}
 
-  ip-address@10.7.3:
-    resolution: {integrity: sha512-A1kdq/tSb5QjvKvAMgIoEvDBIgL7qaqVP/jkvSwYYRZ9iEzvPpopxp2wQfu3SuZRHtpHNxMn8Fs0bS+gf5Xmwg==}
+  ip-address@10.7.4:
+    resolution: {integrity: sha512-DWBMKyeM25D70nrIiTkgQth59/G+naKOTep6huF9j+GmeK3DMD60Zvxg5d5qQnz+38AHgou6ean2LECX+lrKDg==}
     engines: {node: '>= 12'}
 
   ipaddr.js@1.9.1:
@@ -739,8 +739,8 @@ packages:
     peerDependencies:
       zod: ^3.25.28 || ^4
 
-  zod@4.6.5:
-    resolution: {integrity: sha512-v5l/aFXZQeai4awLbOpSoHecE9UiMrnfx75tEXLjNonXVARxQ5mOeipTjROUchszUNCqnE+hqAMujRsRHsut2Q==}
+  zod@4.6.6:
+    resolution: {integrity: sha512-4UmzQUF5fxvfcYHlbjBmejU+w+hbDnWFx4aS8kBx7nPBHcO2SqPbpAG8snbdg+Xse4pRefR98hgjFgIMCI/UhA==}
 
 snapshots:
 
@@ -826,7 +826,7 @@ snapshots:
     dependencies:
       hono: 4.13.13
 
-  '@modelcontextprotocol/sdk@1.32.1(zod@4.6.5)':
+  '@modelcontextprotocol/sdk@1.32.1(zod@4.6.6)':
     dependencies:
       '@hono/node-server': 2.1.4(hono@4.13.13)
       ajv: 8.20.0
@@ -843,8 +843,8 @@ snapshots:
       json-schema-typed: 8.0.2
       pkce-challenge: 5.0.1
       raw-body: 3.0.2
-      zod: 4.6.5
-      zod-to-json-schema: 3.25.2(zod@4.6.5)
+      zod: 4.6.6
+      zod-to-json-schema: 3.25.2(zod@4.6.6)
     transitivePeerDependencies:
       - supports-color
 
@@ -1056,7 +1056,7 @@ snapshots:
     dependencies:
       debug: 4.4.3
       express: 5.3.0
-      ip-address: 10.7.3
+      ip-address: 10.7.4
     transitivePeerDependencies:
       - supports-color
 
@@ -1165,7 +1165,7 @@ snapshots:
 
   inherits@2.0.4: {}
 
-  ip-address@10.7.3: {}
+  ip-address@10.7.4: {}
 
   ipaddr.js@1.9.1: {}
 
@@ -1377,8 +1377,8 @@ snapshots:
 
   wrappy@1.0.2: {}
 
-  zod-to-json-schema@3.25.2(zod@4.6.5):
+  zod-to-json-schema@3.25.2(zod@4.6.6):
     dependencies:
-      zod: 4.6.5
+      zod: 4.6.6
 
-  zod@4.6.5: {}
+  zod@4.6.6: {}

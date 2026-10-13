@@ -1,5 +1,9 @@
 # Docs Changelog
 
+## 2026-10-13 07:04
+
+Updated (1): core/entity.md
+
 ## 2026-10-09 19:07
 
 Updated (5): core/integration-quality-scale/rules/docs-conditions.md, core/integration-quality-scale/rules/docs-triggers.md, data_entry_flow_index.md, documenting/integration-docs-examples.md, integration_setup_failures.md
