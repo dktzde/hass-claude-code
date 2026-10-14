@@ -1,5 +1,9 @@
 # Docs Changelog
 
+## 2026-10-14 16:35
+
+Updated (1): core/entity/climate.md
+
 ## 2026-10-13 07:04
 
 Updated (1): core/entity.md

@@ -36,7 +36,7 @@ Start here if you are new to templating in Home Assistant. The pages below walk 
   <h3 class="no_toc">{% icon "mdi:language-python" %} Python methods</h3>Cheat sheet of Python methods available in templates.
   <h3 class="no_toc">{% icon "mdi:book-open-page-variant" %} Common patterns</h3>Recipes for the things you actually want to do.
   <h3 class="no_toc">{% icon "mdi:bug-outline" %} Debugging templates</h3>Fixing mistakes with the template editor.
-  <h3 class="no_toc">{% icon "mdi:alert-circle-outline" %} Error messages</h3>What each error means and how to fix it.
+  <h3 class="no_toc">{% icon "mdi:alert-circle-outline" %} Troubleshooting template errors</h3>What each error means and how to fix it.
   <h3 class="no_toc">{% icon "mdi:puzzle-outline" %} Custom templates and macros</h3>Share templates across your configuration.
 
 ## Tutorials
