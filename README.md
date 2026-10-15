@@ -157,5 +157,5 @@ docker run -it -e SUPERVISOR_TOKEN=fake -e ANTHROPIC_API_KEY=your-key claude-cod
 
 ## Supported architectures
 
-- `amd64`: test-built every week by the GitHub Action
+- `amd64`: test-built every week by a GitHub Action
 - `aarch64` (for example Raspberry Pi 4 and 5): offered, but **not tested**. The Action does not build it, so a problem would only show up when a device builds the add-on
