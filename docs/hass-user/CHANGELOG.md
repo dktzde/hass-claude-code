@@ -2,19 +2,25 @@
 
 ## Latest update
 
-### Modified (16 files)
+### Added (3 files)
+- building-blocks.md
+- targets.md
+- limited-templates.md
+
+### Modified (20 files)
+- authentication.md differ
 - automation/action.md differ
 - automation/basics.md differ
 - automation/condition.md differ
-- automation/editor.md differ
-- automation/how-automations-react-to-changes.md differ
 - automation/modes.md differ
+- automation/templating.md differ
 - automation/trigger.md differ
+- automation/troubleshooting.md differ
 - automation/which-tool-to-use.md differ
 - automation/yaml.md differ
-- blueprint/schema.md differ
-- ... and 6 more
+- ... and 10 more
 
-### Removed (2 files)
+### Removed (3 files)
 - CHANGELOG.md
-- conditions.md
+- scripts
+- scripts.md

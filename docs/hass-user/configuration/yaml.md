@@ -2,7 +2,7 @@ Most things in Home Assistant can be set up directly from the user interface, an
 
 ## YAML style guide
 
-This page gives a high-level introduction to the YAML syntax used in Home Assistant. For a more detailed description and more examples, refer to the [YAML style guide for Home Assistant developers](https://developers.home-assistant.io/docs/documenting/yaml-style-guide/).
+This page gives a high-level introduction to the YAML syntax used in Home Assistant. For a more detailed description and more examples, refer to the [YAML style guide for Home Assistant developers](https://contributors.home-assistant.io/writing/reference/yaml/).
 
 ## A first example
 

@@ -16,7 +16,7 @@ curl-8.22.0-r0
 gdbm-1.26-r0
 git-2.54.0-r0
 git-init-template-2.54.0-r0
-github-cli-2.97.0-r1
+github-cli-2.97.0-r2
 icu-data-en-78.1-r0
 icu-libs-78.1-r0
 jq-1.8.2-r0

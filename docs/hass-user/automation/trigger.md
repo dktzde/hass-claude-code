@@ -31,7 +31,7 @@ General triggers, such as **State changed** and **Numeric state crossed threshol
 
 An automation can have more than one trigger. Any of them can start the automation. If the automation is still running when a trigger reacts, its [mode](/docs/automation/modes/) decides what happens. To do different things depending on which trigger reacted, add a **Triggered by** condition and select the trigger. For the steps, refer to [Creating an automation with actions that depend on different triggers](#creating-an-automation-with-actions-that-depend-on-different-triggers).
 
-One trigger can also watch several targets, for example, all lights in a room. Its **Trigger when** option decides whether it reacts each time one of the targets changes, only for the first one, until all targets have changed back, or once all targets have made the change. For details, refer to [Understanding automations](/docs/automation/basics/).
+One trigger can also watch several targets, for example, all lights in a room. Its **Trigger when** option decides whether it reacts each time one of the targets changes, only for the first one, or once all targets have made the change. For details, refer to [Automation targets](/docs/automation/targets/#triggers-each-first-and-all).
 
 To start an automation only when two things are both true, add a trigger for each change, and a condition for each of the two things. For an example, refer to [when two things must both be true](/docs/automation/how-automations-react-to-changes/#when-two-things-must-both-be-true).
 
@@ -107,7 +107,7 @@ There are two different types of variables available for triggers. Both work lik
 
 The first variant allows you to define variables that are set when the trigger reacts. The variables will be able to use templates and have access to [the `trigger` variable](/docs/automation/templating#available-trigger-data).
 
-The second variant is setting variables that are available when attaching a trigger when the trigger can contain templated values. These are defined using the `trigger_variables` key at an automation level. These variables can only contain [limited templates](/docs/templating/where-to-use/#limited-templates). The triggers will not re-apply if the value of the template changes. Trigger variables are a feature meant to support using blueprint inputs in triggers.
+The second variant is setting variables that are available when attaching a trigger when the trigger can contain templated values. These are defined using the `trigger_variables` key at an automation level. These variables can only contain [limited templates](/docs/templating/limited-templates/). The triggers will not re-apply if the value of the template changes. Trigger variables are a feature meant to support using blueprint inputs in triggers.
 
 ```yaml
 automation:
@@ -327,7 +327,7 @@ For setup steps, YAML options, and examples for the time trigger, see [Time trig
 
 ### Webhook trigger
 
-Webhook trigger reacts when a web request is made to the webhook endpoint: `/api/webhook/<webhook_id>`. The webhook endpoint is created automatically when you set it as the `webhook_id` in an automation trigger. The `webhook_id` can either be a static value or computed using [limited templates](/docs/templating/where-to-use/#limited-templates).
+Webhook trigger reacts when a web request is made to the webhook endpoint: `/api/webhook/<webhook_id>`. The webhook endpoint is created automatically when you set it as the `webhook_id` in an automation trigger. The `webhook_id` can either be a static value or computed using [limited templates](/docs/templating/limited-templates/).
 
 {% note %}
 The `webhook_id` template is only evaluated when setting up the trigger, they will not be re-evaluated for incoming webhook triggers.
@@ -419,30 +419,32 @@ automation:
       at: "15:32:00"
 ```
 
-Triggers can also be disabled based on [limited templates](/docs/templating/where-to-use/#limited-templates) or blueprint inputs. These are only evaluated once when the automation is loaded.
+Triggers can also be disabled based on [limited templates](/docs/templating/limited-templates/) or blueprint inputs. These are only evaluated once when the automation is loaded.
 
 ```yaml
 blueprint:
+  name: "Sunrise and sunset"
+  domain: automation
   input:
     input_boolean:
-      name: Boolean
+      name: "Boolean"
       selector:
         boolean:
     input_number:
-      name: Number
+      name: "Number"
       selector:
         number:
           min: 0
           max: 100
 
-  trigger_variables:
-    _enable_number: !input input_number
+trigger_variables:
+  _enable_number: !input input_number
 
-  triggers:
-    - trigger: sun.sunrise
-      enabled: !input input_boolean
-    - trigger: sun.sunset
-      enabled: "{{ _enable_number < 50 }}"
+triggers:
+  - trigger: sun.sunrise
+    enabled: !input input_boolean
+  - trigger: sun.sunset
+    enabled: "{{ _enable_number < 50 }}"
 ```
 
 ## Merging lists of triggers
