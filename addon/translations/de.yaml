@@ -15,6 +15,13 @@ configuration:
       Solange Claude Code auf den Login wartet, wird der Login-Link als
       Benachrichtigung in Home Assistant gesendet, damit man ihn auf dem Handy
       antippen kann, statt ihn zu kopieren. Wirkt nach einem Neustart.
+  mobile_tabs:
+    name: Mobile Tabs
+    description: >-
+      Zeigt unten im Terminal eine antippbare Leiste: ein Tab pro Claude-Code-
+      Fenster und einen +-Knopf, der ein weiteres startet, damit sich auf dem
+      Handy mehrere Sitzungen nutzen lassen. Schaltet die Maus in tmux ein.
+      Wirkt nach einem Neustart.
   disable_mouse:
     name: Maus-Unterstützung abschalten
     description: >-

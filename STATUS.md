@@ -2,16 +2,17 @@
 
 Handover file for the maintainer and for Claude Code sessions working on this repository. **Read this first, and update it after every step** (state, decisions, next steps), so the next session can continue without the chat history.
 
-Last updated: 2026-10-24 (0.5.1 in review)
+Last updated: 2026-10-24 (0.6.0 released)
 
 ## Current state
 
-- **0.5.1 in review (branch `claude/trusting-mccarthy-uon0ff`):** the login link notification of 0.5.0 is now behind the option `mobile_login` (default `false`, maintainer's request). With it off, `login-link/run` only does `exec sleep infinity` (a longrun that exits is restarted by s6). The maintainer confirmed on the phone that 0.5.0 works.
+- **0.6.0 (merged 2026-10-24): several sessions from a phone.** New option `mobile_tabs` (default `false`, maintainer's request). With it on, `ttyd/run` starts tmux with `-f /etc/tmux-mobile.conf` (`addon/rootfs/etc/tmux-mobile.conf`): mouse on, `base-index 1`, a status bar with one tappable range per window (`range=window|N`) and a `+` button (`range=user|new`, needs tmux 3.4 or newer; the image has 3.7). `MouseDown1Status` starts `claude-entrypoint.sh` in a new window for `+` and selects the window otherwise. Leaving a window with `/exit` closes it. Tested here only with simulated taps in a pty (tmux 3.4); **not tested on the phone yet**. Known limits: tmux owns the mouse then (swipe scrolls the history, selection goes through tmux), and `login-link` reads only the active window of the session.
+- **0.5.1 (#20, merged 2026-10-24):** the login link notification of 0.5.0 is now behind the option `mobile_login` (default `false`, maintainer's request). With it off, `login-link/run` only does `exec sleep infinity` (a longrun that exits is restarted by s6). The maintainer confirmed on the phone that 0.5.0 works.
 - **0.5.0 (#19, merged 2026-10-24): login from a phone.** The maintainer could not copy the login URL in the web terminal on a phone: Claude Code captures the mouse (it prints "Hold Shift while selecting…"), and the URL is wrapped over several lines. Two fixes:
   - New service `login-link` (`addon/rootfs/etc/s6-overlay/s6-rc.d/login-link/run`): every 3 s it reads the tmux pane `claude`, joins the wrapped `oauth/authorize` URL and sends it as the persistent notification `claude_code_login` (Core API through the Supervisor proxy); it dismisses the notification once the URL is gone. Works on the maintainer's phone.
   - New option `disable_mouse` (default `false`): `init-claude` writes `CLAUDE_CODE_DISABLE_MOUSE=1`, so the terminal does its own selection.
   - If a Claude Code update changes the login screen and the URL is no longer found, adjust `find_login_url`.
-  - Versions 0.5.0 and 0.5.1 and their changelog entries were written by hand; the next automated release becomes 0.5.2.
+  - Versions 0.5.0, 0.5.1 and 0.6.0 and their changelog entries were written by hand; the next automated release becomes 0.6.1.
 - **0.4.2 in review: dktzde/hass-claude-code#16** (branch `fix/mcp-websocket-registry`). The MCP tools `list_areas`, `search_devices` and `get_config_entries` always returned `[]`: they sent websocket commands as a REST `POST` to `/core/api` (405, error hidden). They now use `ws://supervisor/core/websocket`, errors are reported, and the smoke test checks it. Tested on the device over stdio (15 areas, 77 devices, 37 config entries).
 - **0.4.1 on the device since 2026-10-09 22:23 (local time)**, checked 2026-10-10: the add-on starts without errors, Alpine 3.24.2, Python 3.14.8, Node.js 24.18, `gh` logged in, MQTT and the Core API work, `search_docs` and `get_entity_state` work. Not checked yet: `call_service` (switching a light).
 - **Add-on version on `main`: 0.4.1**, released 2026-10-09 20:12 UTC (run 37985313879).
@@ -44,6 +45,7 @@ Last updated: 2026-10-24 (0.5.1 in review)
 
 ## Next steps
 
+0. Test 0.6.0 on the phone: turn on `mobile_tabs`, restart, tap `+`, switch tabs; also `mobile_login`. Run the Action on `main` once (nothing was test-run on a branch for 0.5.x and 0.6.0).
 1. #16: test run of the Action on the branch, merge, run the Action on `main`, update and check `list_areas` on the device.
 2. 0.4.1 on the device (installed, see above): still open is only that Claude can switch a light on and off (this exercises `call_service` with zod 4). Checked 2026-10-10: the add-on starts, the log shows no `bashio::addon` deprecation warning, `search_docs` works, `python3 --version` says 3.14.
    - If something breaks, revert only the commit at fault (`058f07d` base image or `dc94830` npm majors, see above) on a branch, test-run, merge and release again.

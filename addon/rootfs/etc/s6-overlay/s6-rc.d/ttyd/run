@@ -30,5 +30,12 @@ options+=(-p "${ingress_port}")
 # Change working directory
 cd /homeassistant || cd /root || bashio::exit.nok 'Unable to change working directory'
 
+# Option mobile_tabs: tappable tabs in the tmux status bar
+declare -a tmux_options=(-u)
+if bashio::config.true 'mobile_tabs'; then
+    bashio::log.info 'Tappable tmux tabs are on (mobile_tabs).'
+    tmux_options+=(-f /etc/tmux-mobile.conf)
+fi
+
 # Run ttyd with tmux for session persistence
-exec ttyd "${options[@]}" tmux -u new -A -s claude /usr/bin/claude-entrypoint.sh
+exec ttyd "${options[@]}" tmux "${tmux_options[@]}" new -A -s claude /usr/bin/claude-entrypoint.sh
