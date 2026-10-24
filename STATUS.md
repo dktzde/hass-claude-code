@@ -2,10 +2,15 @@
 
 Handover file for the maintainer and for Claude Code sessions working on this repository. **Read this first, and update it after every step** (state, decisions, next steps), so the next session can continue without the chat history.
 
-Last updated: 2026-10-10 (0.4.2 in review)
+Last updated: 2026-10-24 (0.5.0 in review)
 
 ## Current state
 
+- **0.5.0 in review (branch `claude/trusting-mccarthy-uon0ff`): login from a phone.** The maintainer could not copy the login URL in the web terminal on a phone: Claude Code captures the mouse (it prints "Hold Shift while selecting…"), and the URL is wrapped over several lines. Two fixes:
+  - New service `login-link` (`addon/rootfs/etc/s6-overlay/s6-rc.d/login-link/run`): every 3 s it reads the tmux pane `claude`, joins the wrapped `oauth/authorize` URL and sends it as the persistent notification `claude_code_login` (Core API through the Supervisor proxy); it dismisses the notification once the URL is gone. The URL extraction was tested on a simulated pane, **not yet in the real add-on**.
+  - New option `disable_mouse` (default `false`): `init-claude` writes `CLAUDE_CODE_DISABLE_MOUSE=1`, so the terminal does its own selection.
+  - To check on the device: start the add-on without a login (or `/logout`), watch for the notification, tap it, paste the code. If the pane text differs (the URL is not found), adjust `find_login_url`.
+  - Version 0.5.0 and the changelog entry were written by hand (new service plus option = minor version); the next automated release becomes 0.5.1. Not yet test-run with the Action on the branch.
 - **0.4.2 in review: dktzde/hass-claude-code#16** (branch `fix/mcp-websocket-registry`). The MCP tools `list_areas`, `search_devices` and `get_config_entries` always returned `[]`: they sent websocket commands as a REST `POST` to `/core/api` (405, error hidden). They now use `ws://supervisor/core/websocket`, errors are reported, and the smoke test checks it. Tested on the device over stdio (15 areas, 77 devices, 37 config entries).
 - **0.4.1 on the device since 2026-10-09 22:23 (local time)**, checked 2026-10-10: the add-on starts without errors, Alpine 3.24.2, Python 3.14.8, Node.js 24.18, `gh` logged in, MQTT and the Core API work, `search_docs` and `get_entity_state` work. Not checked yet: `call_service` (switching a light).
 - **Add-on version on `main`: 0.4.1**, released 2026-10-09 20:12 UTC (run 37985313879).

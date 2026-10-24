@@ -9,6 +9,12 @@ configuration:
     name: Yolo mode
     description: >-
       Allow all tools without asking. Use with caution.
+  disable_mouse:
+    name: Disable mouse support
+    description: >-
+      Claude Code stops capturing the mouse, so text can be selected and
+      copied with a finger on a phone. Mouse wheel scrolling and clicks inside
+      Claude Code stop working. Takes effect after a restart.
   additional_packages:
     name: Additional packages
     description: >-
