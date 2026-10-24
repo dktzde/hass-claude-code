@@ -35,6 +35,7 @@ Thank you both!
 
 - **Copy:** hold <kbd>Shift</kbd> and select text with the mouse. The selection goes straight to the clipboard.
 - **Paste:** <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>V</kbd> on Linux.
+- **Log in from a phone:** a finger cannot select the login URL in the terminal. While Claude Code waits for the login, the add-on sends the link as a notification in Home Assistant (bell icon in the sidebar or the app). Tap it, log in, then copy the code from the page and paste it into the terminal. It disappears once you are logged in. If you would rather select text in the terminal, turn on `disable_mouse` (see [Configuration](#configuration)).
 - **Second Claude session:** press <kbd>Ctrl</kbd>+<kbd>b</kbd>, then <kbd>c</kbd>. tmux opens a new window with a shell. Start Claude Code in it with:
 
   ```bash
@@ -61,6 +62,7 @@ Thank you both!
 |--------|------|---------|-------------|
 | `model` | list | `default` | Model to use: `default`, `sonnet`, `opus` or `haiku` |
 | `yolo_mode` | bool | `false` | Allow all tools without asking (use with caution) |
+| `disable_mouse` | bool | `false` | Claude Code stops capturing the mouse, so a finger can select and copy text on a phone. Mouse wheel scrolling and clicks inside Claude Code stop working |
 | `additional_packages` | list | `[]` | Extra Alpine packages, installed on every start (e.g. `vim`) |
 
 ## Updates

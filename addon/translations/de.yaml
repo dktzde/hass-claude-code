@@ -9,6 +9,12 @@ configuration:
     name: Yolo-Modus
     description: >-
       Alle Werkzeuge ohne Nachfrage erlauben. Mit Vorsicht verwenden.
+  disable_mouse:
+    name: Maus-Unterstützung abschalten
+    description: >-
+      Claude Code fängt die Maus nicht mehr ab, damit sich Text auf dem Handy
+      mit dem Finger markieren und kopieren lässt. Mausrad-Scrollen und Klicks
+      in Claude Code funktionieren dann nicht mehr. Wirkt nach einem Neustart.
   additional_packages:
     name: Zusätzliche Pakete
     description: >-

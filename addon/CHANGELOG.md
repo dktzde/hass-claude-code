@@ -1,3 +1,14 @@
+## 0.5.0
+
+<sub>2026-10-24</sub>
+
+Logging in from a phone: the login URL that Claude Code shows could not be selected or copied in the web terminal.
+
+### Changes
+
+- While Claude Code waits for the login, the add-on sends the login link as a **notification in Home Assistant**. Tap it to log in, then paste the code into the terminal. The notification disappears after the login
+- New option `disable_mouse`: Claude Code stops capturing the mouse, so text can be selected and copied with a finger. Mouse wheel scrolling and clicks inside Claude Code stop working, which is why it is off by default
+
 ## 0.4.7
 
 <sub>2026-10-24</sub>

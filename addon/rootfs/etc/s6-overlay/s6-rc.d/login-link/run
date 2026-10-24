@@ -1,0 +1,63 @@
+#!/command/with-contenv bashio
+# shellcheck shell=bash
+# ==============================================================================
+# Claude Code Add-on: login link notification
+# On a phone the login URL that Claude Code prints cannot be selected or copied
+# in the web terminal. Watch the tmux pane for it and send it as a persistent
+# notification in Home Assistant, where it is a tappable link. The notification
+# goes away again once the login is done.
+# ==============================================================================
+declare pane
+declare url=""
+declare last_url=""
+declare message
+
+readonly NOTIFICATION_ID='claude_code_login'
+readonly API='http://supervisor/core/api/services/persistent_notification'
+
+# Join the URL, which Claude Code wraps over several lines: from the line that
+# starts with https:// to the last line before the first one with other text.
+find_login_url() {
+    awk '
+        /^[[:space:]]*https:\/\/[^[:space:]]+[[:space:]]*$/ && !url {
+            gsub(/[[:space:]]/, ""); url = $0; next
+        }
+        url && /^[[:space:]]*[^[:space:]]+[[:space:]]*$/ {
+            gsub(/[[:space:]]/, ""); url = url $0; next
+        }
+        url { exit }
+        END { if (url ~ /oauth\/authorize\?/) print url }
+    '
+}
+
+call_api() {
+    curl -fsS -X POST \
+        -H "Authorization: Bearer ${SUPERVISOR_TOKEN}" \
+        -H 'Content-Type: application/json' \
+        --data "${2}" "${API}/${1}" > /dev/null
+}
+
+bashio::log.info 'Watching for the Claude Code login link...'
+
+while true; do
+    sleep 3
+    pane=$(tmux capture-pane -p -t claude 2> /dev/null) || continue
+    url=$(find_login_url <<< "${pane}")
+
+    if [[ -n "${url}" && "${url}" != "${last_url}" ]]; then
+        message=$(jq -n --arg url "${url}" '{
+            notification_id: "'"${NOTIFICATION_ID}"'",
+            title: "Claude Code login",
+            message: ("[Tap here to log in to Claude](" + $url + ")\n\nAfter the login, copy the code from the page and paste it into the Claude Code terminal.")
+        }')
+        if call_api create "${message}"; then
+            bashio::log.info 'Login link sent as a Home Assistant notification.'
+            last_url="${url}"
+        else
+            bashio::log.warning 'Could not send the login link as a notification.'
+        fi
+    elif [[ -z "${url}" && -n "${last_url}" ]]; then
+        call_api dismiss "{\"notification_id\": \"${NOTIFICATION_ID}\"}" || true
+        last_url=""
+    fi
+done

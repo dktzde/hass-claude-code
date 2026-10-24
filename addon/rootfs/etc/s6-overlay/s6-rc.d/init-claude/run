@@ -6,12 +6,14 @@
 # ==============================================================================
 declare model
 declare yolo_mode
+declare disable_mouse
 
 bashio::log.info 'Setting up Claude Code environment...'
 
 # --- Read config ---
 model=$(bashio::config 'model')
 yolo_mode=$(bashio::config 'yolo_mode')
+disable_mouse=$(bashio::config 'disable_mouse')
 
 # --- Drop stored values of removed options ---
 # The configuration form only shows options of the current schema, but Home
@@ -49,6 +51,11 @@ printf '%s' "/opt/docs" > /var/run/s6/container_environment/DOCS_PATH
     # Keep the GitHub CLI login and the git config in /data across restarts
     echo "export GH_CONFIG_DIR=/data/.config/gh"
     echo "export GIT_CONFIG_GLOBAL=/data/.gitconfig"
+    # Without mouse tracking the terminal does its own selection, which is the
+    # only way to select and copy text with a finger on a phone
+    if [[ "${disable_mouse}" == "true" ]]; then
+        echo "export CLAUDE_CODE_DISABLE_MOUSE=1"
+    fi
 } > /etc/profile.d/claude.sh
 bashio::log.info 'Log in with Claude Code on first start; the login is kept across restarts.'
 
