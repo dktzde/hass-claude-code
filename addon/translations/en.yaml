@@ -15,6 +15,13 @@ configuration:
       While Claude Code waits for the login, send the login link as a
       notification in Home Assistant, so you can tap it on a phone instead of
       copying it. Takes effect after a restart.
+  mobile_tabs:
+    name: Mobile tabs
+    description: >-
+      Show a tappable bar at the bottom of the terminal: one tab per Claude
+      Code window and a + button that starts another one, so you can run
+      several sessions from a phone. Turns on the mouse in tmux. Takes effect
+      after a restart.
   disable_mouse:
     name: Disable mouse support
     description: >-

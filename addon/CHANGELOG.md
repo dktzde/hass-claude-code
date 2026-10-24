@@ -1,3 +1,14 @@
+## 0.6.0
+
+<sub>2026-10-24</sub>
+
+Several Claude Code sessions from a phone: switching tmux windows needs <kbd>Ctrl</kbd>+<kbd>b</kbd>, which a phone keyboard does not have.
+
+### Changes
+
+- New option `mobile_tabs`, **off by default**. Turn it on and restart the add-on to get a bar at the bottom of the terminal with one tab per Claude Code window and a `+` button. Tap `+` to start another Claude Code, tap a number to switch. Leave a window with `/exit`
+- With the option on, tmux handles the mouse (swiping scrolls through the history). With the option off, nothing changes
+
 ## 0.5.1
 
 <sub>2026-10-24</sub>
