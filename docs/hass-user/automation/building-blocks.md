@@ -77,12 +77,21 @@ automation: |
 
 `enabled` can also be a [limited template](/docs/templating/limited-templates/). The limited template can't use variables, such as `trigger`, `this`, or values from the `variables` section. It also can't use the state of entities or the current time. If the limited template refers to a variable, Home Assistant skips the step or stops the run with an error.
 
-In a {% term blueprint %}, set `enabled` directly to a blueprint input with `!input`, not through a template:
+In a {% term blueprint %}, set `enabled` directly to a blueprint input with `!input`, not through a template. Use a [boolean selector](/docs/blueprint/selectors/#boolean-selector) for the input, so its value is `true` or `false`. With another selector, such as an entity selector, the value is an entity ID, which counts as `true`, so the step always runs.
 
 ```yaml
+blueprint:
+  name: "Optional delay"
+  domain: automation
+  input:
+    use_delay:
+      name: "Wait 35 minutes"
+      selector:
+        boolean:
+
 actions:
   - delay: "0:35"
-    enabled: !input input_boolean
+    enabled: !input use_delay
 ```
 
 ## Writing steps in YAML
@@ -121,4 +130,4 @@ script: |
         message: "Turned on the ceiling light!"
 {% endexample %}
 
-In an automation, templates in the steps can use the `trigger` variable, which describes what started the automation. For details, refer to [available trigger data](/docs/automation/templating/#available-trigger-data).
+In an automation, templates in the steps can use the `trigger` variable, which describes what started the automation. For details, refer to [available trigger data](/docs/automation/trigger-data/#trigger-properties).

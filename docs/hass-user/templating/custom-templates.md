@@ -4,17 +4,21 @@ This page is optional. If you are starting out with templates, you can skip it. 
 
 ## Setting up the folder
 
-Create a folder called `custom_templates` inside your Home Assistant configuration directory (the one that holds `configuration.yaml`). Inside it, create files with the `.jinja` extension. The name before the extension is what you will import by.
+Create a folder called `custom_templates` inside your Home Assistant configuration directory (the one that holds `configuration.yaml`). Inside it, create files with the `.jinja` extension. To import a file, use its full file name, including `.jinja`, such as `formatter.jinja`.
 
 ```text
 config/
 ├── configuration.yaml
 ├── automations.yaml
 └── custom_templates/
-    └── formatter.jinja
+    ├── formatter.jinja
+    └── formatting/
+        └── entities.jinja
 ```
 
-Each file must be under 5 MiB. Home Assistant loads everything in this folder at startup.
+You can also organize your files in subfolders. To import a file from a subfolder, include the subfolder in the name, such as `formatting/entities.jinja`.
+
+Home Assistant loads all `.jinja` files in this folder and its subfolders when it starts, and when you [reload custom templates](#reloading-without-a-restart). A file can be up to 5 MiB. Home Assistant skips larger files, so importing them fails.
 
 ### Reloading without a restart
 
@@ -59,6 +63,8 @@ Home Assistant supports both of the usual ways to pull in a template file:
 - **`{% include 'file.jinja' %}`** runs the entire file as if its contents were at the current spot. Use this for drop-in content.
 
 For most reuse cases, `import` is cleaner because it keeps the macro names explicit.
+
+An imported macro doesn't see the variables of the template that imports it, such as `trigger`, `this`, or variables you set with `{% set %}`. Functions such as `states` still work. To use a variable in the macro, pass it as an argument, or add `with context` to the import, such as `{% from 'formatter.jinja' import format_entity with context %}`. An included file sees these variables without `with context`.
 
 ## Macros that return values
 
