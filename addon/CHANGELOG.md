@@ -1,3 +1,11 @@
+## 0.5.1
+
+<sub>2026-10-24</sub>
+
+### Changes
+
+- The login link notification of 0.5.0 is now controlled by the new option `mobile_login`, **off by default**. Turn it on and restart the add-on to get the link as a notification in Home Assistant when you log in from a phone. With the option off, the service does nothing
+
 ## 0.5.0
 
 <sub>2026-10-24</sub>

@@ -9,6 +9,12 @@ configuration:
     name: Yolo mode
     description: >-
       Allow all tools without asking. Use with caution.
+  mobile_login:
+    name: Mobile login
+    description: >-
+      While Claude Code waits for the login, send the login link as a
+      notification in Home Assistant, so you can tap it on a phone instead of
+      copying it. Takes effect after a restart.
   disable_mouse:
     name: Disable mouse support
     description: >-
