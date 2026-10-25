@@ -1,3 +1,11 @@
+## 0.7.4
+
+<sub>2026-10-25</sub>
+
+### Removed
+
+- Option `yolo_mode`. Its fixed list of allowed tools missed the newer Claude Code tools, so Claude Code asked anyway. Pick the permission mode in Claude Code instead: <kbd>Shift</kbd>+<kbd>Tab</kbd> (or ⇧⇥ in the `mobile_tabs` bar), `/permissions`, or `"permissions": {"defaultMode": "..."}` in `/data/.claude/settings.json`. The stored value is removed on the next start
+
 ## 0.7.3
 
 <sub>2026-10-25</sub>

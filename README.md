@@ -62,7 +62,6 @@ Thank you both!
 | Option | Type | Default | Description |
 |--------|------|---------|-------------|
 | `model` | list | `default` | Model to use: `default`, `sonnet`, `opus` or `haiku` |
-| `yolo_mode` | bool | `false` | Allow all tools without asking (use with caution) |
 | `mobile_login` | bool | `false` | While Claude Code waits for the login, send the login link as a notification in Home Assistant, so you can tap it on a phone instead of copying it |
 | `mobile_tabs` | bool | `false` | Tappable tabs and a `+` button at the bottom of the terminal, to start and switch between several Claude Code sessions from a phone, plus ▲/▼ scroll buttons and a Shift+Tab button. Turns on the mouse in tmux |
 | `disable_mouse` | bool | `false` | Claude Code stops capturing the mouse, so a finger can select and copy text on a phone. Mouse wheel scrolling and clicks inside Claude Code stop working |

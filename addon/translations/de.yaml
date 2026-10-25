@@ -5,10 +5,6 @@ configuration:
     description: >-
       Login: Claude Code fragt beim ersten Start nach der Anmeldung, hier ist
       kein Token nötig. Diese Option wählt das Claude-Modell.
-  yolo_mode:
-    name: Yolo-Modus
-    description: >-
-      Alle Werkzeuge ohne Nachfrage erlauben. Mit Vorsicht verwenden.
   mobile_login:
     name: Mobiler Login
     description: >-

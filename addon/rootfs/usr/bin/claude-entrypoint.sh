@@ -20,9 +20,6 @@ if [[ -n "${CLAUDE_MODEL:-}" && "${CLAUDE_MODEL}" != "default" ]]; then
     CLAUDE_ARGS+=(--model "${CLAUDE_MODEL}")
 fi
 
-# Yolo mode is handled via managed-settings.json (permissions.allow all tools)
-# instead of --dangerously-skip-permissions which is blocked when running as root.
-
 echo "Starting Claude Code..."
 echo "Working directory: $(pwd)"
 echo ""
