@@ -5,10 +5,6 @@ configuration:
     description: >-
       Login: Claude Code asks you to log in on first start, no token is needed
       here. This option selects the Claude model.
-  yolo_mode:
-    name: Yolo mode
-    description: >-
-      Allow all tools without asking. Use with caution.
   mobile_login:
     name: Mobile login
     description: >-
@@ -20,7 +16,7 @@ configuration:
     description: >-
       Show a tappable bar at the bottom of the terminal: one tab per Claude
       Code window and a + button that starts another one, so you can run
-      several sessions from a phone. Also ▲/▼ to scroll and ⇧⇥ (Shift+Tab,
+      several sessions from a phone. Also ▲/▼ to scroll (with a page counter), ⤓ to jump to the bottom and ⇧⇥ (Shift+Tab,
       switches the Claude Code mode). Turns on the mouse in tmux. Takes effect
       after a restart.
   disable_mouse:

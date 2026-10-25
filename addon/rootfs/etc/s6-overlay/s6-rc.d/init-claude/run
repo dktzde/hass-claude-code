@@ -5,14 +5,12 @@
 # Sets up environment, CLAUDE.md, MCP config, persistent storage
 # ==============================================================================
 declare model
-declare yolo_mode
 declare disable_mouse
 
 bashio::log.info 'Setting up Claude Code environment...'
 
 # --- Read config ---
 model=$(bashio::config 'model')
-yolo_mode=$(bashio::config 'yolo_mode')
 disable_mouse=$(bashio::config 'disable_mouse')
 
 # --- Drop stored values of removed options ---
@@ -22,7 +20,7 @@ disable_mouse=$(bashio::config 'disable_mouse')
 # configuration is saved again. Remove them once through the Supervisor API.
 # A failure only logs a warning, it never stops the add-on.
 declare stored_options
-declare removed_options='["api_key","enable_embeddings"]'
+declare removed_options='["api_key","enable_embeddings","yolo_mode"]'
 if stored_options=$(curl -fsS -H "Authorization: Bearer ${SUPERVISOR_TOKEN}" \
         http://supervisor/addons/self/info | jq -c '.data.options') &&
    jq -e --argjson removed "${removed_options}" \
@@ -32,7 +30,7 @@ if stored_options=$(curl -fsS -H "Authorization: Bearer ${SUPERVISOR_TOKEN}" \
        curl -fsS -X POST -H "Authorization: Bearer ${SUPERVISOR_TOKEN}" \
             -H 'Content-Type: application/json' --data @- \
             http://supervisor/addons/self/options > /dev/null; then
-        bashio::log.info 'Removed the stored values of removed options (api_key, enable_embeddings).'
+        bashio::log.info 'Removed the stored values of removed options (api_key, enable_embeddings, yolo_mode).'
     else
         bashio::log.warning 'Could not remove old options; saving the add-on configuration once removes them too.'
     fi
@@ -47,7 +45,6 @@ printf '%s' "/opt/docs" > /var/run/s6/container_environment/DOCS_PATH
     echo "export SUPERVISOR_TOKEN=\"${SUPERVISOR_TOKEN}\""
     echo "export DISABLE_AUTOUPDATER=1"
     echo "export CLAUDE_MODEL=\"${model}\""
-    echo "export CLAUDE_YOLO=\"${yolo_mode}\""
     # Keep the GitHub CLI login and the git config in /data across restarts
     echo "export GH_CONFIG_DIR=/data/.config/gh"
     echo "export GIT_CONFIG_GLOBAL=/data/.gitconfig"
@@ -112,52 +109,10 @@ ln -sfn /share /root/share
 # --- Generate managed settings (system-wide) ---
 mkdir -p /etc/claude-code
 
-# When yolo mode is enabled, use managed settings to allow all tools.
-# This works as root (unlike --dangerously-skip-permissions which blocks on root).
-# No permissions.defaultMode here: the allow list already approves every tool, and a
-# managed default mode would override the mode users pick in their own settings.
-if bashio::config.true 'yolo_mode'; then
-    bashio::log.info 'Yolo mode enabled — configuring auto-approve for all tools.'
-    cat > /etc/claude-code/managed-settings.json << 'SETTINGSEOF'
-{
-  "permissions": {
-    "allow": [
-      "Bash",
-      "Edit",
-      "Write",
-      "Read",
-      "Glob",
-      "Grep",
-      "WebFetch",
-      "WebSearch",
-      "NotebookEdit",
-      "TodoWrite",
-      "Task",
-      "EnterPlanMode",
-      "ExitPlanMode",
-      "SendMessage",
-      "TeamCreate",
-      "TeamDelete",
-      "AskUserQuestion",
-      "mcp__home-assistant__search_entities",
-      "mcp__home-assistant__get_entity_state",
-      "mcp__home-assistant__call_service",
-      "mcp__home-assistant__search_automations",
-      "mcp__home-assistant__get_ha_config",
-      "mcp__home-assistant__list_areas",
-      "mcp__home-assistant__search_devices",
-      "mcp__home-assistant__get_config_entries",
-      "mcp__home-assistant__search_docs",
-      "mcp__home-assistant__read_doc",
-      "mcp__home-assistant__get_doc_stats"
-    ],
-    "deny": []
-  }
-}
-SETTINGSEOF
-else
-    echo '{}' > /etc/claude-code/managed-settings.json
-fi
+# Empty on purpose: the option yolo_mode was removed in 0.7.4 (its fixed allow
+# list missed newer tools). Writing {} also clears the list of older versions.
+# Pick the permission mode in Claude Code instead (Shift+Tab, /permissions).
+echo '{}' > /etc/claude-code/managed-settings.json
 
 # --- Generate managed MCP config (system-wide, always loaded) ---
 bashio::log.info 'Generating MCP server configuration...'
@@ -281,7 +236,6 @@ EOF
 EOF
     printf '\n## Add-on settings\n\n'
     printf -- '- Model: `%s`\n' "${model}"
-    printf -- '- Yolo mode (all tools allowed without asking): `%s`\n' "${yolo_mode}"
 } > /etc/claude-code/CLAUDE.md
 
 # --- /homeassistant/CLAUDE.md is for the user's own notes ---
