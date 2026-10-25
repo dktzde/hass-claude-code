@@ -1,3 +1,11 @@
+## 0.7.1
+
+<sub>2026-10-25</sub>
+
+- **Automated update** by the GitHub Action "Update add-on" ([workflow run](https://github.com/dktzde/hass-claude-code/actions/runs/40169995295))
+- Update system packages: `musl-1.2.6-r3`, `musl-utils-1.2.6-r3`
+- Update npm dependencies of the MCP server: `@modelcontextprotocol/sdk@1.32.2`
+
 ## 0.7.0
 
 <sub>2026-10-25</sub>

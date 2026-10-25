@@ -42,8 +42,8 @@ libwebsockets-evlib_uv-4.3.5-r2
 mosquitto-clients-2.1.2-r1
 mosquitto-libs-2.1.2-r1
 mpdecimal-4.0.1-r0
-musl-1.2.6-r2
-musl-utils-1.2.6-r2
+musl-1.2.6-r3
+musl-utils-1.2.6-r3
 ncurses-terminfo-base-6.6_p20260516-r0
 nghttp2-libs-1.70.0-r0
 nodejs-24.22.1-r0
