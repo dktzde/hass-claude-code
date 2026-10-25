@@ -1,3 +1,12 @@
+## 0.7.3
+
+<sub>2026-10-25</sub>
+
+### New features
+
+- Option `mobile_tabs`: the status bar gets the buttons ▲ and ▼ to scroll a page up or down, because a swipe on a phone does not scroll Claude Code. In Claude Code they send PageUp/PageDown, otherwise they page through the tmux history
+- Option `mobile_tabs`: the button ⇧⇥ sends Shift+Tab, which switches the Claude Code mode (default, accept edits, plan, auto)
+
 ## 0.7.2
 
 <sub>2026-10-25</sub>

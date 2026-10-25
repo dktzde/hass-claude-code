@@ -2,10 +2,12 @@
 
 Handover file for the maintainer and for Claude Code sessions working on this repository. **Read this first, and update it after every step** (state, decisions, next steps), so the next session can continue without the chat history.
 
-Last updated: 2026-10-25 (0.7.2 checked on the device)
+Last updated: 2026-10-25 (mobile options confirmed on the phone)
 
 ## Current state
 
+- **2026-10-25: the maintainer confirmed on the phone that `mobile_tabs` (0.6.0) and `mobile_login` are tested and work.** Open: scrolling works on a PC but not on the phone (for about 3 weeks, likely a Claude Code update: Claude Code captures the mouse; a swipe in xterm.js sends no wheel events and the alternate screen has no browser scrollback). 
+- **0.7.3 (branch `claude/adoring-heisenberg-8g5j1l`): scroll and Shift+Tab buttons** in `tmux-mobile.conf` (option `mobile_tabs`): ▲/▼ send PageUp/PageDown when the pane is on the alternate screen (Claude Code), page through tmux copy mode otherwise (▼ at the bottom leaves it); ⇧⇥ sends `BTab`. Tested here with simulated taps in a pty (tmux 3.4); **not tested on the phone yet**. Open question: whether Claude Code scrolls on PageUp/PageDown; if not, switch ▲/▼ to tmux copy mode always.
 - **0.7.2 on the device since 2026-10-25 ≈ 08:55 (local time), checked the same day:** add-on started, version 0.7.2, Claude Code 2.1.310, `gh` logged in. The s6-overlay warning "defining user bundles in /etc/s6-overlay/s6-rc.d is deprecated" is gone (it still appears before every start up to 0.7.1). All four user services start (`init-claude`, `init-packages`, `ttyd`, `login-link`; `ps` shows ttyd, tmux and `sleep infinity`). MCP: `list_areas` (15 areas) and `call_service` (`logbook.log`) work. No errors in the log.
 - **0.7.2 (branch `s6-user-bundles`): start-up warning of s6-overlay fixed.** s6-overlay 3.2.3.2 (base image) warns when `/etc/s6-overlay/s6-rc.d/user` exists and reads the `user` bundle from `/etc/s6-overlay/user-bundles.d` instead (see `rc.init`). The four `contents.d` entries moved there; the base image already ships `user-bundles.d/user/type`, so the add-on only adds `contents.d`. No new service directory under `s6-rc.d` may be called `user` or `user2`. New services go into `addon/rootfs/etc/s6-overlay/user-bundles.d/user/contents.d/`.
 - **0.7.1 on the device since 2026-10-25 ≈ 07:45 (local time), checked the same day:** add-on started, version 0.7.1, Alpine 3.24.3, Python 3.14.8, Node.js 24.22.1, Claude Code 2.1.310, `gh` logged in. MCP: `search_docs`, `list_areas` (15 areas), `search_devices` and `call_service` (`logbook.log`) work. The log has no errors and no bashio warning; only the known s6-overlay note "defining user bundles in /etc/s6-overlay/s6-rc.d is deprecated" (harmless). #18 closed.
@@ -49,7 +51,7 @@ Last updated: 2026-10-25 (0.7.2 checked on the device)
 
 ## Next steps
 
-0. Test 0.6.0 on the phone: turn on `mobile_tabs`, restart, tap `+`, switch tabs; also `mobile_login`. Run the Action on `main` once (nothing was test-run on a branch for 0.5.x and 0.6.0).
+0. Test 0.7.3 on the phone: `mobile_tabs` on, tap ▲/▼ in Claude Code, tap ⇧⇥ and watch the mode change. Run the Action on `main` once (nothing was test-run on a branch for 0.5.x and 0.6.0).
 1. #16: test run of the Action on the branch, merge, run the Action on `main`, update and check `list_areas` on the device.
 2. 0.4.1 on the device (installed, see above): still open is only that Claude can switch a light on and off (this exercises `call_service` with zod 4). Checked 2026-10-10: the add-on starts, the log shows no `bashio::addon` deprecation warning, `search_docs` works, `python3 --version` says 3.14.
    - If something breaks, revert only the commit at fault (`058f07d` base image or `dc94830` npm majors, see above) on a branch, test-run, merge and release again.
