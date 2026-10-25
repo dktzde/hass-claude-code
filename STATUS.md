@@ -7,6 +7,7 @@ Last updated: 2026-10-25 (mobile options confirmed on the phone)
 ## Current state
 
 - **0.7.4 (branch `claude/adoring-heisenberg-8g5j1l`): option `yolo_mode` removed** at the maintainer's request (its fixed allow list missed newer tools). `init-claude` always writes `{}` to `managed-settings.json` and drops the stored value (`removed_options`). Users pick the mode in Claude Code (Shift+Tab, ⇧⇥ button, `defaultMode` in their own settings).
+- **0.7.4 also: page counter and ⤓ button** in `tmux-mobile.conf`. ▲/▼ count pages in the pane option `@scroll` (shown as `-N` between the arrows while > 0); ⤓ sends `C-End` (Claude Code jumps to the bottom) and Enter (`bind -n Enter`) set it to 0. The counter is an estimate: tmux cannot see Claude Code's scroll position. Tested with simulated taps in a pty; not on the phone yet.
 - **0.7.3 merged (dktzde/hass-claude-code#24)**, not tested on the phone yet.
 - **2026-10-25: the maintainer confirmed on the phone that `mobile_tabs` (0.6.0) and `mobile_login` are tested and work.** Open: scrolling works on a PC but not on the phone (for about 3 weeks, likely a Claude Code update: Claude Code captures the mouse; a swipe in xterm.js sends no wheel events and the alternate screen has no browser scrollback). 
 - **0.7.3 (branch `claude/adoring-heisenberg-8g5j1l`): scroll and Shift+Tab buttons** in `tmux-mobile.conf` (option `mobile_tabs`): ▲/▼ send PageUp/PageDown when the pane is on the alternate screen (Claude Code), page through tmux copy mode otherwise (▼ at the bottom leaves it); ⇧⇥ sends `BTab`. Tested here with simulated taps in a pty (tmux 3.4); **not tested on the phone yet**. Open question: whether Claude Code scrolls on PageUp/PageDown; if not, switch ▲/▼ to tmux copy mode always.
@@ -53,7 +54,7 @@ Last updated: 2026-10-25 (mobile options confirmed on the phone)
 
 ## Next steps
 
-0. Test 0.7.3 on the phone: `mobile_tabs` on, tap ▲/▼ in Claude Code, tap ⇧⇥ and watch the mode change. Run the Action on `main` once (nothing was test-run on a branch for 0.5.x and 0.6.0).
+0. Test 0.7.4 on the phone: counter between ▲/▼, ⤓ jumps to the bottom, Enter resets the counter, `yolo_mode` gone from the form. (0.7.3 scrolling confirmed on the phone, works.) Run the Action on `main` once (nothing was test-run on a branch for 0.5.x and 0.6.0).
 1. #16: test run of the Action on the branch, merge, run the Action on `main`, update and check `list_areas` on the device.
 2. 0.4.1 on the device (installed, see above): still open is only that Claude can switch a light on and off (this exercises `call_service` with zod 4). Checked 2026-10-10: the add-on starts, the log shows no `bashio::addon` deprecation warning, `search_docs` works, `python3 --version` says 3.14.
    - If something breaks, revert only the commit at fault (`058f07d` base image or `dc94830` npm majors, see above) on a branch, test-run, merge and release again.

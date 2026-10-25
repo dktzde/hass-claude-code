@@ -36,7 +36,7 @@ Thank you both!
 - **Copy:** hold <kbd>Shift</kbd> and select text with the mouse. The selection goes straight to the clipboard.
 - **Paste:** <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>V</kbd> on Linux.
 - **Log in from a phone:** a finger cannot select the login URL in the terminal. Turn on `mobile_login` (see [Configuration](#configuration)) and restart the add-on. While Claude Code waits for the login, the add-on then sends the link as a notification in Home Assistant (bell icon in the sidebar or the app). Tap it, log in, then copy the code from the page and paste it into the terminal. It disappears once you are logged in. If you would rather select text in the terminal, turn on `disable_mouse` instead.
-- **Second Claude session on a phone:** turn on `mobile_tabs` (see [Configuration](#configuration)) and restart the add-on. A bar at the bottom of the terminal then shows one tab per Claude Code window and a `+` button. Tap `+` to start another Claude Code in a new window, tap a number to switch. To close a window, leave Claude Code with `/exit`. A swipe does not scroll Claude Code on a phone, so tap ▲ and ▼ to scroll a page up or down (PageUp/PageDown inside Claude Code, the tmux history otherwise). Tap ⇧⇥ to send <kbd>Shift</kbd>+<kbd>Tab</kbd>, which switches the Claude Code mode (default, accept edits, plan, auto). Selecting text works through tmux.
+- **Second Claude session on a phone:** turn on `mobile_tabs` (see [Configuration](#configuration)) and restart the add-on. A bar at the bottom of the terminal then shows one tab per Claude Code window and a `+` button. Tap `+` to start another Claude Code in a new window, tap a number to switch. To close a window, leave Claude Code with `/exit`. A swipe does not scroll Claude Code on a phone, so tap ▲ and ▼ to scroll a page up or down (PageUp/PageDown inside Claude Code, the tmux history otherwise). The number between them (for example `-3`) counts the pages you scrolled up; it is an estimate and goes back to 0 on Enter. Tap ⤓ to jump to the bottom (Ctrl+End). Tap ⇧⇥ to send <kbd>Shift</kbd>+<kbd>Tab</kbd>, which switches the Claude Code mode (default, accept edits, plan, auto). Selecting text works through tmux.
 - **Second Claude session with a keyboard:** press <kbd>Ctrl</kbd>+<kbd>b</kbd>, then <kbd>c</kbd>. tmux opens a new window with a shell. Start Claude Code in it with:
 
   ```bash
@@ -63,7 +63,7 @@ Thank you both!
 |--------|------|---------|-------------|
 | `model` | list | `default` | Model to use: `default`, `sonnet`, `opus` or `haiku` |
 | `mobile_login` | bool | `false` | While Claude Code waits for the login, send the login link as a notification in Home Assistant, so you can tap it on a phone instead of copying it |
-| `mobile_tabs` | bool | `false` | Tappable tabs and a `+` button at the bottom of the terminal, to start and switch between several Claude Code sessions from a phone, plus ▲/▼ scroll buttons and a Shift+Tab button. Turns on the mouse in tmux |
+| `mobile_tabs` | bool | `false` | Tappable tabs and a `+` button at the bottom of the terminal, to start and switch between several Claude Code sessions from a phone, plus ▲/▼ scroll buttons with a page counter, a ⤓ jump-to-bottom button and a Shift+Tab button. Turns on the mouse in tmux |
 | `disable_mouse` | bool | `false` | Claude Code stops capturing the mouse, so a finger can select and copy text on a phone. Mouse wheel scrolling and clicks inside Claude Code stop working |
 | `additional_packages` | list | `[]` | Extra Alpine packages, installed on every start (e.g. `vim`) |
 
