@@ -1,3 +1,11 @@
+## 0.7.2
+
+<sub>2026-10-25</sub>
+
+### Fixes
+
+- The list of services to start (`init-packages`, `init-claude`, `ttyd`, `login-link`) moved from `/etc/s6-overlay/s6-rc.d/user/contents.d/` to `/etc/s6-overlay/user-bundles.d/user/contents.d/`, the place s6-overlay 3.2 expects. This removes the start-up warning "defining user bundles in /etc/s6-overlay/s6-rc.d is deprecated". The services themselves are unchanged
+
 ## 0.7.1
 
 <sub>2026-10-25</sub>
