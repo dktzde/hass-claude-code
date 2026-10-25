@@ -2,10 +2,11 @@
 
 Handover file for the maintainer and for Claude Code sessions working on this repository. **Read this first, and update it after every step** (state, decisions, next steps), so the next session can continue without the chat history.
 
-Last updated: 2026-10-25 (0.7.0: base image 21.0.9)
+Last updated: 2026-10-25 (0.7.1 on the device, checked)
 
 ## Current state
 
+- **0.7.1 on the device since 2026-10-25 ≈ 07:45 (local time), checked the same day:** add-on started, version 0.7.1, Alpine 3.24.3, Python 3.14.8, Node.js 24.22.1, Claude Code 2.1.310, `gh` logged in. MCP: `search_docs`, `list_areas` (15 areas), `search_devices` and `call_service` (`logbook.log`) work. The log has no errors and no bashio warning; only the known s6-overlay note "defining user bundles in /etc/s6-overlay/s6-rc.d is deprecated" (harmless). #18 closed.
 - **0.7.0 (branch `base-image-21.0.9`, Refs #18): base image 21.0.9** (Alpine 3.24.3, musl 1.2.6-r3; bashio, s6-overlay and tempio unchanged, so `addon/rootfs` needs no change). Only `ARG BUILD_FROM` in `addon/Dockerfile` and `addon/build.yaml` changed; the builder stays `alpine:3.24`. The next automated release becomes 0.7.1 and refreshes `addon/packages.txt`.
 - **0.6.0 (merged 2026-10-24): several sessions from a phone.** New option `mobile_tabs` (default `false`, maintainer's request). With it on, `ttyd/run` starts tmux with `-f /etc/tmux-mobile.conf` (`addon/rootfs/etc/tmux-mobile.conf`): mouse on, `base-index 1`, a status bar with one tappable range per window (`range=window|N`) and a `+` button (`range=user|new`, needs tmux 3.4 or newer; the image has 3.7). `MouseDown1Status` starts `claude-entrypoint.sh` in a new window for `+` and selects the window otherwise. Leaving a window with `/exit` closes it. Tested here only with simulated taps in a pty (tmux 3.4); **not tested on the phone yet**. Known limits: tmux owns the mouse then (swipe scrolls the history, selection goes through tmux), and `login-link` reads only the active window of the session.
 - **0.5.1 (#20, merged 2026-10-24):** the login link notification of 0.5.0 is now behind the option `mobile_login` (default `false`, maintainer's request). With it off, `login-link/run` only does `exec sleep infinity` (a longrun that exits is restarted by s6). The maintainer confirmed on the phone that 0.5.0 works.
