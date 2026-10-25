@@ -2,10 +2,11 @@
 
 Handover file for the maintainer and for Claude Code sessions working on this repository. **Read this first, and update it after every step** (state, decisions, next steps), so the next session can continue without the chat history.
 
-Last updated: 2026-10-25 (0.7.2: s6 user bundle in user-bundles.d)
+Last updated: 2026-10-25 (0.7.2 checked on the device)
 
 ## Current state
 
+- **0.7.2 on the device since 2026-10-25 ≈ 08:55 (local time), checked the same day:** add-on started, version 0.7.2, Claude Code 2.1.310, `gh` logged in. The s6-overlay warning "defining user bundles in /etc/s6-overlay/s6-rc.d is deprecated" is gone (it still appears before every start up to 0.7.1). All four user services start (`init-claude`, `init-packages`, `ttyd`, `login-link`; `ps` shows ttyd, tmux and `sleep infinity`). MCP: `list_areas` (15 areas) and `call_service` (`logbook.log`) work. No errors in the log.
 - **0.7.2 (branch `s6-user-bundles`): start-up warning of s6-overlay fixed.** s6-overlay 3.2.3.2 (base image) warns when `/etc/s6-overlay/s6-rc.d/user` exists and reads the `user` bundle from `/etc/s6-overlay/user-bundles.d` instead (see `rc.init`). The four `contents.d` entries moved there; the base image already ships `user-bundles.d/user/type`, so the add-on only adds `contents.d`. No new service directory under `s6-rc.d` may be called `user` or `user2`. New services go into `addon/rootfs/etc/s6-overlay/user-bundles.d/user/contents.d/`.
 - **0.7.1 on the device since 2026-10-25 ≈ 07:45 (local time), checked the same day:** add-on started, version 0.7.1, Alpine 3.24.3, Python 3.14.8, Node.js 24.22.1, Claude Code 2.1.310, `gh` logged in. MCP: `search_docs`, `list_areas` (15 areas), `search_devices` and `call_service` (`logbook.log`) work. The log has no errors and no bashio warning; only the known s6-overlay note "defining user bundles in /etc/s6-overlay/s6-rc.d is deprecated" (harmless). #18 closed.
 - **0.7.0 (branch `base-image-21.0.9`, Refs #18): base image 21.0.9** (Alpine 3.24.3, musl 1.2.6-r3; bashio, s6-overlay and tempio unchanged, so `addon/rootfs` needs no change). Only `ARG BUILD_FROM` in `addon/Dockerfile` and `addon/build.yaml` changed; the builder stays `alpine:3.24`. The next automated release becomes 0.7.1 and refreshes `addon/packages.txt`.
