@@ -2,17 +2,18 @@
 
 Handover file for the maintainer and for Claude Code sessions working on this repository. **Read this first, and update it after every step** (state, decisions, next steps), so the next session can continue without the chat history.
 
-Last updated: 2026-10-24 (0.6.0 released)
+Last updated: 2026-10-25 (0.7.0: base image 21.0.9)
 
 ## Current state
 
+- **0.7.0 (branch `base-image-21.0.9`, Refs #18): base image 21.0.9** (Alpine 3.24.3, musl 1.2.6-r3; bashio, s6-overlay and tempio unchanged, so `addon/rootfs` needs no change). Only `ARG BUILD_FROM` in `addon/Dockerfile` and `addon/build.yaml` changed; the builder stays `alpine:3.24`. The next automated release becomes 0.7.1 and refreshes `addon/packages.txt`.
 - **0.6.0 (merged 2026-10-24): several sessions from a phone.** New option `mobile_tabs` (default `false`, maintainer's request). With it on, `ttyd/run` starts tmux with `-f /etc/tmux-mobile.conf` (`addon/rootfs/etc/tmux-mobile.conf`): mouse on, `base-index 1`, a status bar with one tappable range per window (`range=window|N`) and a `+` button (`range=user|new`, needs tmux 3.4 or newer; the image has 3.7). `MouseDown1Status` starts `claude-entrypoint.sh` in a new window for `+` and selects the window otherwise. Leaving a window with `/exit` closes it. Tested here only with simulated taps in a pty (tmux 3.4); **not tested on the phone yet**. Known limits: tmux owns the mouse then (swipe scrolls the history, selection goes through tmux), and `login-link` reads only the active window of the session.
 - **0.5.1 (#20, merged 2026-10-24):** the login link notification of 0.5.0 is now behind the option `mobile_login` (default `false`, maintainer's request). With it off, `login-link/run` only does `exec sleep infinity` (a longrun that exits is restarted by s6). The maintainer confirmed on the phone that 0.5.0 works.
 - **0.5.0 (#19, merged 2026-10-24): login from a phone.** The maintainer could not copy the login URL in the web terminal on a phone: Claude Code captures the mouse (it prints "Hold Shift while selecting…"), and the URL is wrapped over several lines. Two fixes:
   - New service `login-link` (`addon/rootfs/etc/s6-overlay/s6-rc.d/login-link/run`): every 3 s it reads the tmux pane `claude`, joins the wrapped `oauth/authorize` URL and sends it as the persistent notification `claude_code_login` (Core API through the Supervisor proxy); it dismisses the notification once the URL is gone. Works on the maintainer's phone.
   - New option `disable_mouse` (default `false`): `init-claude` writes `CLAUDE_CODE_DISABLE_MOUSE=1`, so the terminal does its own selection.
   - If a Claude Code update changes the login screen and the URL is no longer found, adjust `find_login_url`.
-  - Versions 0.5.0, 0.5.1 and 0.6.0 and their changelog entries were written by hand; the next automated release becomes 0.6.1.
+  - Versions 0.5.0, 0.5.1 and 0.6.0 and their changelog entries were written by hand.
 - **0.4.2 in review: dktzde/hass-claude-code#16** (branch `fix/mcp-websocket-registry`). The MCP tools `list_areas`, `search_devices` and `get_config_entries` always returned `[]`: they sent websocket commands as a REST `POST` to `/core/api` (405, error hidden). They now use `ws://supervisor/core/websocket`, errors are reported, and the smoke test checks it. Tested on the device over stdio (15 areas, 77 devices, 37 config entries).
 - **0.4.1 on the device since 2026-10-09 22:23 (local time)**, checked 2026-10-10: the add-on starts without errors, Alpine 3.24.2, Python 3.14.8, Node.js 24.18, `gh` logged in, MQTT and the Core API work, `search_docs` and `get_entity_state` work. Not checked yet: `call_service` (switching a light).
 - **Add-on version on `main`: 0.4.1**, released 2026-10-09 20:12 UTC (run 37985313879).
@@ -36,7 +37,7 @@ Last updated: 2026-10-24 (0.6.0 released)
   - Claude Code 2.1.296 (pinned)
   - Python 3.14 with PyYAML, `mosquitto_pub` and `mosquitto_sub`, the GitHub CLI `gh` 2.97
   - Node.js 24, git, ripgrep, tmux, ttyd
-  - Base image `ghcr.io/hassio-addons/base:21.0.8` (Alpine 3.24)
+  - Base image `ghcr.io/hassio-addons/base:21.0.9` (Alpine 3.24, since 0.7.0)
 - **Weekly GitHub Action** (`.github/workflows/update-claude-code.yml`, Saturday 05:47 UTC, also started by hand):
   - Updates Claude Code, the Alpine packages (`addon/packages.txt` and `PACKAGES_STAMP`), the npm lockfile (within the majors) and the docs (`DOCS_STAMP`).
   - Test-builds the image, checks the tools and smoke-tests the MCP server, then releases any change as one add-on version.
