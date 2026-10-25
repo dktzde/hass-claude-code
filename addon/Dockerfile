@@ -2,7 +2,7 @@
 # HA Supervisor uses the config.yaml directory as build context.
 
 # Global ARG — must be before any FROM to be visible across stages
-ARG BUILD_FROM=ghcr.io/hassio-addons/base:21.0.8
+ARG BUILD_FROM=ghcr.io/hassio-addons/base:21.0.9
 
 # Stage 1: Build MCP server and pre-index docs
 # Use the same Alpine version as the HA base image (see MAINTENANCE.md in the

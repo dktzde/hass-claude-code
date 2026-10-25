@@ -1,3 +1,13 @@
+## 0.7.0
+
+<sub>2026-10-25</sub>
+
+New base image (dktzde/hass-claude-code#18).
+
+### Changes
+
+- Base image `ghcr.io/hassio-addons/base` 21.0.9 (was 21.0.8): Alpine 3.24.3 (was 3.24.2) with musl 1.2.6-r3. Alpine stays at 3.24, so Python 3.14 and Node.js 24 stay the same. bashio, s6-overlay and tempio are unchanged
+
 ## 0.6.0
 
 <sub>2026-10-24</sub>
