@@ -1,3 +1,15 @@
+## 0.7.6
+
+<sub>2026-10-27</sub>
+
+### Changes
+
+- Option `mobile_tabs`: the bar is narrower, so it fits on a phone: the buttons ⇧⇥, + and Esc have one space of padding instead of two or three. The tabs and ▲/▼ keep their size
+
+### Removed
+
+- Option `mobile_tabs`: the button ⤓ (jump to the bottom). Enter still sets the page counter back to 0
+
 ## 0.7.5
 
 <sub>2026-10-27</sub>
