@@ -16,8 +16,8 @@ configuration:
     description: >-
       Show a tappable bar at the bottom of the terminal: one tab per Claude
       Code window and a + button that starts another one, so you can run
-      several sessions from a phone. Also ▲/▼ to scroll (with a page counter), ⤓ to jump to the bottom and ⇧⇥ (Shift+Tab,
-      switches the Claude Code mode). Turns on the mouse in tmux. Takes effect
+      several sessions from a phone. Also ▲/▼ to scroll (with a page counter), ⤓ to jump to the bottom, ⇧⇥ (Shift+Tab,
+      switches the Claude Code mode) and Esc on the far right. Turns on the mouse in tmux. Takes effect
       after a restart.
   disable_mouse:
     name: Disable mouse support
