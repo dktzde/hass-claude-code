@@ -2,11 +2,12 @@
 
 Handover file for the maintainer and for Claude Code sessions working on this repository. **Read this first, and update it after every step** (state, decisions, next steps), so the next session can continue without the chat history.
 
-Last updated: 2026-10-27 (0.7.6: narrower mobile bar, ⤓ removed)
+Last updated: 2026-10-27 (0.7.6 checked on the phone)
 
 ## Current state
 
-- **0.7.6 (branch `claude/confident-thompson-ufzywg`): narrower `mobile_tabs` bar** (maintainer: too wide on the phone). The ⤓ button (Ctrl+End) is removed; only Enter resets the page counter now. ⇧⇥, + and Esc have one space of padding; **tabs and ▲/▼ keep their wide padding on purpose (maintainer: smaller is unusable)**. The counter shows as `-N` without spaces. With 2 tabs the bar is 36 columns (38 with the counter), was 49. Tested here with simulated taps in a pty (tmux 3.4, 40 columns); not tested on the phone yet.
+- **0.7.6 on the phone, checked 2026-10-27 (dktzde/hass-claude-code#28 merged):** the maintainer confirmed it works.
+- **0.7.6: narrower `mobile_tabs` bar** (maintainer: too wide on the phone). The ⤓ button (Ctrl+End) is removed; only Enter resets the page counter now. ⇧⇥, + and Esc have one space of padding; **tabs and ▲/▼ keep their wide padding on purpose (maintainer: smaller is unusable)**. The counter shows as `-N` without spaces. With 2 tabs the bar is 36 columns (38 with the counter), was 49. Tested here with simulated taps in a pty (tmux 3.4, 40 columns).
 - **0.7.5 (branch `claude/determined-brown-z062et`): Esc button** at the far right of the `mobile_tabs` bar (maintainer's request: a phone keyboard has no Esc). Sends `Escape`; in tmux copy mode it leaves copy mode instead. Tested here with a simulated tap in a pty (tmux 3.4); not tested on the phone yet.
 - **0.7.4 on the phone, checked 2026-10-25 (dktzde/hass-claude-code#25 merged):** scrolling, counter, ⤓ and `yolo_mode` removal work. Known limit, accepted by the maintainer: typing does not reset the counter to 0 (only Enter and ⤓ do). Leave it as is.
 - **0.7.4 (branch `claude/adoring-heisenberg-8g5j1l`): option `yolo_mode` removed** at the maintainer's request (its fixed allow list missed newer tools). `init-claude` always writes `{}` to `managed-settings.json` and drops the stored value (`removed_options`). Users pick the mode in Claude Code (Shift+Tab, ⇧⇥ button, `defaultMode` in their own settings).
