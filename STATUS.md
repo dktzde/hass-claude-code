@@ -2,10 +2,11 @@
 
 Handover file for the maintainer and for Claude Code sessions working on this repository. **Read this first, and update it after every step** (state, decisions, next steps), so the next session can continue without the chat history.
 
-Last updated: 2026-10-25 (mobile options confirmed on the phone)
+Last updated: 2026-10-27 (0.7.5: Esc button)
 
 ## Current state
 
+- **0.7.5 (branch `claude/determined-brown-z062et`): Esc button** at the far right of the `mobile_tabs` bar (maintainer's request: a phone keyboard has no Esc). Sends `Escape`; in tmux copy mode it leaves copy mode instead. Tested here with a simulated tap in a pty (tmux 3.4); not tested on the phone yet.
 - **0.7.4 on the phone, checked 2026-10-25 (dktzde/hass-claude-code#25 merged):** scrolling, counter, ⤓ and `yolo_mode` removal work. Known limit, accepted by the maintainer: typing does not reset the counter to 0 (only Enter and ⤓ do). Leave it as is.
 - **0.7.4 (branch `claude/adoring-heisenberg-8g5j1l`): option `yolo_mode` removed** at the maintainer's request (its fixed allow list missed newer tools). `init-claude` always writes `{}` to `managed-settings.json` and drops the stored value (`removed_options`). Users pick the mode in Claude Code (Shift+Tab, ⇧⇥ button, `defaultMode` in their own settings).
 - **0.7.4 also: page counter and ⤓ button** in `tmux-mobile.conf`. ▲/▼ count pages in the pane option `@scroll` (shown as `-N` between the arrows while > 0); ⤓ sends `C-End` (Claude Code jumps to the bottom) and Enter (`bind -n Enter`) set it to 0. The counter is an estimate: tmux cannot see Claude Code's scroll position. Tested with simulated taps in a pty; not on the phone yet.

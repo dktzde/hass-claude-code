@@ -1,3 +1,11 @@
+## 0.7.5
+
+<sub>2026-10-27</sub>
+
+### New features
+
+- Option `mobile_tabs`: the button Esc on the far right of the bar sends <kbd>Esc</kbd>, for example to stop Claude Code or close a menu, because a phone keyboard has no Esc key. In the tmux history it leaves the history
+
 ## 0.7.4
 
 <sub>2026-10-25</sub>
