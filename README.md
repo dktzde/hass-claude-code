@@ -2,11 +2,6 @@
 
 A Home Assistant add-on that runs [Claude Code](https://docs.anthropic.com/en/docs/claude-code) inside your Home Assistant instance. You get a web terminal in the sidebar, full access to your configuration and a built-in MCP server, so Claude can look up entities, call services and search the Home Assistant docs.
 
-Not long-term tested yet. This fork contains several recent changes that have only been tested briefly:
-- Weekly automatic updates of Claude Code, the system packages and the bundled docs
-- Python 3 with PyYAML, the MQTT clients `mosquitto_pub`/`mosquitto_sub` and the GitHub CLI `gh` in the add-on image
-- A changed Docker build order (cache stamps for packages and docs)
-- Login only through Claude Code (the API key option is gone) and a generated `CLAUDE.md` describing the add-on
 The weekly test build only covers `amd64`. **Raspberry Pi and other `aarch64` devices are not tested.**
 If something breaks after an update, please [open an issue](https://github.com/dktzde/hass-claude-code/issues).
 
