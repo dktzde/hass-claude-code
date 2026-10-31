@@ -20,7 +20,8 @@ These rules apply to every session, also to Claude Code on the web.
 - **Changelog:** every version gets its date as `<sub>YYYY-MM-DD</sub>` under its heading. Versions by earlier authors are separated by a `---` line and a bold sentence naming them.
 - **Language:** everything in the repository is English (code, comments, docs, commits, PR and issue texts). Commit messages in the imperative, e.g. `feat(scope): …`, `fix: …`, `docs: …`, `chore: …`, `ci: …`; in PRs to the upstream follow its style.
 - **No secrets or private data** (tokens, passwords, IP addresses, radio addresses, serial numbers, entity IDs) in the repository; use placeholders.
-- **README:** a credit line for Claude Code only after asking the maintainer.
+- **README:** a credit line for Claude Code only after asking the maintainer. It always links to the maintainer's add-on [hass-claude-code](https://github.com/dktzde/hass-claude-code) as well as to Claude Code.
+- **License:** with every PR, remind the maintainer if `LICENSE` is missing or the copyright line does not name `dktzde` (keep the lines of earlier authors). Do not change the license without asking; a license change is its own PR on our `main`.
 - **Handover:** keep `STATUS.md` (create it if missing) with the current state, next steps, known issues, decisions and key files. Record what runs on the device with date and time, what was checked and what not. Update it after every step.
 
 ## Home Assistant add-on (`addon/`)
