@@ -1,0 +1,62 @@
+# yaml-language-server: $schema=https://coderabbit.ai/integrations/schema.v2.json
+# CodeRabbit settings: reviews the add-on, the MCP server and the workflows, with few and relevant comments.
+# Free for public repositories. Docs: https://docs.coderabbit.ai/reference/configuration
+# The weekly automated update pushes straight to main (no PR), so CodeRabbit never sees it.
+language: en-US
+
+reviews:
+  # quiet = only important findings, chill = balanced, assertive = many (nitpicky)
+  profile: chill
+  request_changes_workflow: false
+  high_level_summary: true
+  collapse_walkthrough: true
+  changed_files_summary: false
+  sequence_diagrams: false
+  estimate_code_review_effort: false
+  related_prs: false
+  suggested_labels: false
+  suggested_reviewers: false
+  poem: false
+  in_progress_fortune: false
+
+  auto_review:
+    enabled: true
+    drafts: false
+    # documentation-only PRs need no automatic review
+    ignore_title_keywords:
+      - "docs:"
+      - "docs("
+
+  # Only hand-written code: no Markdown, generated docs or generated package lists
+  path_filters:
+    - "!**/*.md"
+    - "!docs/**"
+    - "!addon/packages.txt"
+    - "!**/*.png"
+    - "!**/pnpm-lock.yaml"
+    - "!**/package-lock.json"
+
+  path_instructions:
+    - path: "addon/mcp-server/**"
+      instructions: >-
+        MCP server (stdio) for Home Assistant inside the add-on. It talks to Home Assistant through the Supervisor proxy:
+        REST at http://supervisor/core/api and websocket commands at ws://supervisor/core/websocket.
+        Check that websocket-only commands are not sent over REST, that errors are reported instead of returning empty results,
+        and that the Supervisor token is never logged.
+    - path: "addon/rootfs/**"
+      instructions: >-
+        s6-overlay services and init scripts (bashio) on Alpine Linux. Check quoting, error handling, that longrun services
+        do not exit (s6 restarts them), and that no secrets are written to logs. New services belong in
+        user-bundles.d/user/contents.d, not in an s6-rc.d directory named user.
+    - path: "addon/{Dockerfile,build.yaml,config.yaml}"
+      instructions: >-
+        The Supervisor builds the image on the user's device with the Docker layer cache, so everything that must update is pinned.
+        The version in config.yaml and the io.hass.version label in the Dockerfile must match.
+        PACKAGES_STAMP and DOCS_STAMP are changed only by the weekly workflow.
+    - path: ".github/**"
+      instructions: >-
+        The weekly workflow pushes releases straight to main and the add-on installs from main, so a mistake reaches users at once.
+        Runs on other branches must never push to main or change issues.
+
+chat:
+  auto_reply: true
