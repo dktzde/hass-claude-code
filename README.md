@@ -159,6 +159,10 @@ docker run -it -e SUPERVISOR_TOKEN=fake -e ANTHROPIC_API_KEY=your-key claude-cod
 - `amd64`: test-built every week by a GitHub Action
 - `aarch64` (for example Raspberry Pi 4 and 5): offered, but **not tested**. The Action does not build it, so a problem would only show up when a device builds the add-on
 
+## License
+
+The original code by [dkmaker](https://github.com/dkmaker/hass-claude-code) has no license. Changes made in this fork by dktzde are licensed under MIT.
+
 ---
 
-*Fittingly, this add-on was itself developed with the help of [Claude Code](https://www.anthropic.com/claude-code).*
+*Fittingly, this add-on was itself developed with the help of Claude Code.*
