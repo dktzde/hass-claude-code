@@ -2,10 +2,11 @@
 
 Handover file for the maintainer and for Claude Code sessions working on this repository. **Read this first, and update it after every step** (state, decisions, next steps), so the next session can continue without the chat history.
 
-Last updated: 2026-10-31 (0.8.2: ↑/↓ scroll buttons)
+Last updated: 2026-10-31 (README: keep `CLAUDE.md` short)
 
 ## Current state
 
+- **README quick guide: keep `CLAUDE.md` short** (docs only, no new version): `CLAUDE.md` and `MEMORY.md` are loaded into every session and cost tokens each time.
 - **0.8.2: `mobile_tabs` scroll buttons show ↑/↓ instead of ▲/▼.** After a Firefox update on the maintainer's phone (October 2026), ▲/▼ (Geometric Shapes) showed as empty boxes; the buttons still worked. tmux sent the symbols correctly (checked in a pty). Arrows (Unicode block Arrows, like ⇧) still show: the maintainer checked ↑/↓ on the phone 2026-10-31 with `tmux set -g status-right` on the running add-on. Claude Code's own `⏵⏵` before "auto mode on" shows as boxes too (not ours to fix). Not installed yet.
 - **0.8.1 on the device since 2026-10-31 11:04 (local time, update with backup), checked 2026-10-31 11:10:** add-on version 0.8.1, it starts and the log has no errors or warnings; Claude Code 2.1.316, curl 8.23.0, Python 3.14.10, Node.js 24.22.1; `gh` logged in; the `MQTT_*` variables are set and `mosquitto_sub` receives messages; MCP `list_areas` (15 areas), `search_docs` and `call_service` (`logbook.log`) work. Nothing left to check. 0.8.0 = dktzde/hass-claude-code#35 (base image 21.0.10, Refs #33: only curl 8.23.0) and #36 (`glob` 14, Refs #34: no code change, same files, same `tools/list` and search results, same `dist/`). Both had a test run of the Action on their branch; the run on `main` (41190305042) released 0.8.1 (curl in `addon/packages.txt`) and closed #33 and #34. Before the update the device ran 0.7.6 (Claude Code 2.1.310, curl 8.22.0); `list_areas`, `search_docs` and `call_service` (`logbook.log`) worked.
 - **CodeRabbit does not review automatically** in this repository ("fewer than 10 stars"). Comment `@coderabbitai review` on a PR to get a review.
