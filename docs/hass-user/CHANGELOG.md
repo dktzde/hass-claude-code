@@ -2,23 +2,24 @@
 
 ## Latest update
 
-### Added (2 files)
-- durations.md
-- trigger-data.md
+### Added (4 files)
+- apps-and-integrations.md
+- customizing-entities.md
+- network.md
+- overview.md
 
-### Modified (35 files)
-- automation/building-blocks.md differ
-- automation/editor.md differ
+### Modified (10 files)
+- automation/action.md differ
+- automation/how-automations-react-to-changes.md differ
 - automation/targets.md differ
-- automation/testing.md differ
-- automation/trigger.md differ
 - automation/troubleshooting.md differ
-- automation/using_blueprints.md differ
-- automation/yaml.md differ
-- automation.md differ
-- blueprint/tutorial.md differ
-- ... and 25 more
+- configuration/basic.md differ
+- configuration/packages.md differ
+- configuration/troubleshooting.md differ
+- frontend/icons.md differ
+- organizing/tables.md differ
+- scene.md differ
 
 ### Removed (2 files)
 - CHANGELOG.md
-- templating.md
+- customizing-devices.md
