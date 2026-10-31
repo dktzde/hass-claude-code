@@ -2,10 +2,12 @@
 
 Handover file for the maintainer and for Claude Code sessions working on this repository. **Read this first, and update it after every step** (state, decisions, next steps), so the next session can continue without the chat history.
 
-Last updated: 2026-10-27 (0.7.6 checked on the phone)
+Last updated: 2026-10-31 (0.8.0/0.8.1: base image 21.0.10 and glob 14, update on the device started)
 
 ## Current state
 
+- **0.8.1 released 2026-10-31 (UTC), update on the device started 2026-10-31 ≈ 11:00 local time (with backup), not checked yet.** 0.8.0 = dktzde/hass-claude-code#35 (base image 21.0.10, Refs #33: only curl 8.23.0) and #36 (`glob` 14, Refs #34: no code change, same files, same `tools/list` and search results, same `dist/`). Both had a test run of the Action on their branch; the run on `main` (41190305042) released 0.8.1 (curl in `addon/packages.txt`) and closed #33 and #34. Before the update the device ran 0.7.6 (Claude Code 2.1.310, curl 8.22.0); `list_areas`, `search_docs` and `call_service` (`logbook.log`) worked. **To check after the update:** add-on starts, log without errors, `curl --version` 8.23.0, Claude Code 2.1.316, `list_areas`, `search_docs`, `call_service`.
+- **CodeRabbit does not review automatically** in this repository ("fewer than 10 stars"). Comment `@coderabbitai review` on a PR to get a review.
 - **0.7.6 on the phone, checked 2026-10-27 (dktzde/hass-claude-code#28 merged):** the maintainer confirmed it works.
 - **0.7.6: narrower `mobile_tabs` bar** (maintainer: too wide on the phone). The ⤓ button (Ctrl+End) is removed; only Enter resets the page counter now. ⇧⇥, + and Esc have one space of padding; **tabs and ▲/▼ keep their wide padding on purpose (maintainer: smaller is unusable)**. The counter shows as `-N` without spaces. With 2 tabs the bar is 36 columns (38 with the counter), was 49. Tested here with simulated taps in a pty (tmux 3.4, 40 columns).
 - **0.7.5 (branch `claude/determined-brown-z062et`): Esc button** at the far right of the `mobile_tabs` bar (maintainer's request: a phone keyboard has no Esc). Sends `Escape`; in tmux copy mode it leaves copy mode instead. Tested here with a simulated tap in a pty (tmux 3.4); not tested on the phone yet.
