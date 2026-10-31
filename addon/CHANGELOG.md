@@ -2,11 +2,12 @@
 
 <sub>2026-10-31</sub>
 
-New base image (dktzde/hass-claude-code#33).
+New base image (dktzde/hass-claude-code#33) and a new major version of a dependency of the MCP server (dktzde/hass-claude-code#34).
 
 ### Changes
 
 - Base image `ghcr.io/hassio-addons/base` 21.0.10 (was 21.0.9): only curl 8.23.0 (was 8.22.0). Alpine stays at 3.24, so Python 3.14 and Node.js 24 stay the same. bashio, s6-overlay and tempio are unchanged
+- MCP server: `glob` 14 (was 13), because version 13 gets no more updates. The docs search finds the same files as before
 
 ## 0.7.7
 

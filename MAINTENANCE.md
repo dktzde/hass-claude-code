@@ -72,6 +72,7 @@ Pitfalls of the update in 0.4.0:
   - For this code TypeScript 7 emits the same JavaScript as TypeScript 5 (checked by diffing `dist/`).
 - **better-sqlite3 11 → 13:** needs Node.js 22 or newer. It has no install script any more and ships prebuilt N-API binaries for linux and linuxmusl (x64 and arm64), so the builder no longer installs `build-base` and `python3`. If a later version needs compiling again, add both back to the builder's `apk add`. The package is bigger (about 27 MB, with the SQLite sources and the binaries for all platforms).
 - **glob 11 → 13:** no code change; `glob('**/*.md', { cwd, ignore })` works as before.
+- **glob 13 → 14** (add-on 0.8.0): no code change either. glob 14 uses minimatch 11 and matches with `@isaacs/nonrecursive-glob-match` instead of regular expressions; `ignore` patterns starting with `/` changed meaning, ours (`**/CLAUDE.md`, `**/CHANGELOG.md`) do not start with `/`. Same file count, same `tools/list`, same search results and same `dist/` as with glob 13.
 
 ## Test without Docker
 
