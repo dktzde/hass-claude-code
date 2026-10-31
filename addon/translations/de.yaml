@@ -16,7 +16,7 @@ configuration:
     description: >-
       Zeigt unten im Terminal eine antippbare Leiste: ein Tab pro Claude-Code-
       Fenster und einen +-Knopf, der ein weiteres startet, damit sich auf dem
-      Handy mehrere Sitzungen nutzen lassen. Dazu ▲/▼ zum Scrollen (mit Seitenzähler), ⇧⇥
+      Handy mehrere Sitzungen nutzen lassen. Dazu ↑/↓ zum Scrollen (mit Seitenzähler), ⇧⇥
       (Shift+Tab, wechselt den Modus von Claude Code) und ganz rechts Esc. Schaltet die Maus in tmux ein.
       Wirkt nach einem Neustart.
   disable_mouse:

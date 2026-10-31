@@ -1,3 +1,9 @@
+## 0.8.2
+
+<sub>2026-10-31</sub>
+
+- `mobile_tabs`: the scroll buttons show ↑/↓ instead of ▲/▼. Since a Firefox update, phones showed ▲/▼ as empty boxes (the buttons still worked)
+
 ## 0.8.1
 
 <sub>2026-10-31</sub>
