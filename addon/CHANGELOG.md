@@ -1,3 +1,10 @@
+## 0.8.1
+
+<sub>2026-10-31</sub>
+
+- **Automated update** by the GitHub Action "Update add-on" ([workflow run](https://github.com/dktzde/hass-claude-code/actions/runs/41190305042))
+- Update system packages: `curl-8.23.0-r0`, `libcurl-8.23.0-r0`
+
 ## 0.8.0
 
 <sub>2026-10-31</sub>
