@@ -165,4 +165,4 @@ The original code by [dkmaker](https://github.com/dkmaker/hass-claude-code) has 
 
 ---
 
-*Fittingly, this add-on was itself developed with the help of [Claude Code](https://www.anthropic.com/claude-code).*
+*Fittingly, this add-on was itself developed with the help of Claude Code.*
