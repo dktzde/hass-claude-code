@@ -21,8 +21,11 @@ reviews:
   # no "review skipped" or "review in progress" status comments on PRs
   review_status: false
 
+  # Automatic reviews off: CodeRabbit does not review public repositories with fewer than 10 stars on its own and
+  # instead posted a "does not receive automatic reviews" comment on every PR (review_status: false does not stop it).
+  # Start a review by hand with the PR comment `@coderabbitai review`. The keys below apply once this is true again.
   auto_review:
-    enabled: true
+    enabled: false
     drafts: false
     # documentation-only PRs need no automatic review
     ignore_title_keywords:
