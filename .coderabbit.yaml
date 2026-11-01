@@ -18,6 +18,8 @@ reviews:
   suggested_reviewers: false
   poem: false
   in_progress_fortune: false
+  # no "review skipped" or "review in progress" status comments on PRs
+  review_status: false
 
   auto_review:
     enabled: true
