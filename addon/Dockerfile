@@ -89,6 +89,29 @@ RUN echo "Packages stamp: ${PACKAGES_STAMP}" && \
     tmux \
     ttyd
 
+# Save ttyd's built-in page, so the ttyd service can add the browser scripts
+# from /usr/share/ttyd-addon/ to it (see ttyd/run). ttyd has no option to
+# print the page, so serve it briefly on a UNIX socket. This layer comes
+# right after the package install, so a new ttyd version saves its new page.
+# The page must contain window.term (the terminal the scripts use); if it is
+# missing, the add-on runs with ttyd's own page.
+RUN mkdir -p /usr/share/ttyd-addon; \
+    ttyd -i /tmp/ttyd.sock true > /dev/null 2>&1 & \
+    ttyd_pid=$!; \
+    for _ in $(seq 1 20); do \
+        curl -fsS --unix-socket /tmp/ttyd.sock http://localhost/ \
+            -o /usr/share/ttyd-addon/ttyd-index.html 2>/dev/null && break; \
+        sleep 0.5; \
+    done; \
+    kill "${ttyd_pid}"; \
+    rm -f /tmp/ttyd.sock; \
+    if grep -q 'window.term=' /usr/share/ttyd-addon/ttyd-index.html 2>/dev/null; then \
+        echo "Saved the page of $(ttyd --version)"; \
+    else \
+        echo "WARNING: could not save ttyd's page" && \
+        rm -f /usr/share/ttyd-addon/ttyd-index.html; \
+    fi
+
 # Pinned so a version change busts the Docker layer cache; the Supervisor
 # builds without --no-cache, so an unpinned install would stay stale forever.
 ARG CLAUDE_CODE_VERSION=2.1.316

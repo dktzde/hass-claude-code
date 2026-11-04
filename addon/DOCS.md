@@ -23,7 +23,7 @@ Changes to the options take effect after a restart of the add-on.
 
 ## Tips
 
-- **Copy:** hold <kbd>Shift</kbd> and select text with the mouse.
+- **Copy:** hold <kbd>Shift</kbd> and select text with the mouse. Text that Claude Code copies itself, for example with `/copy`, lands in the browser clipboard too, also on a phone.
 - **Paste:** <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>V</kbd> on Linux.
 - **Sessions keep running:** tmux keeps Claude Code running when you close the browser tab. A second browser tab shows the same session.
 - **Your own notes for Claude** go into `/homeassistant/CLAUDE.md`. Claude Code loads it into every session, so keep it short. The add-on describes its own environment in `/etc/claude-code/CLAUDE.md` and refreshes that file on every start.

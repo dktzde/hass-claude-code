@@ -27,6 +27,36 @@ options+=(--writable)
 ingress_port=$(bashio::app.ingress_port)
 options+=(-p "${ingress_port}")
 
+# Browser scripts in ttyd's page: clipboard.js writes what tmux copies
+# (OSC 52) into the browser clipboard, which ttyd 1.7.7 drops. The Dockerfile
+# saved ttyd's own page; the scripts go in before </body>. If anything fails,
+# ttyd serves its built-in page and the terminal works as before.
+declare page=/usr/share/ttyd-addon/ttyd-index.html
+declare index=/run/ttyd-addon/index.html
+declare -a scripts=(/usr/share/ttyd-addon/clipboard.js)
+if [[ -s "${page}" ]] && mkdir -p /run/ttyd-addon &&
+   python3 - "${page}" "${index}" "${scripts[@]}" << 'PY'
+import sys
+
+page, index, *scripts = sys.argv[1:]
+with open(page, encoding="utf-8") as f:
+    html = f.read()
+end = html.rfind("</body>")
+if end < 0:
+    sys.exit("no </body> in ttyd's page")
+tags = ""
+for script in scripts:
+    with open(script, encoding="utf-8") as f:
+        tags += "<script>" + f.read() + "</script>"
+with open(index, "w", encoding="utf-8") as f:
+    f.write(html[:end] + tags + html[end:])
+PY
+then
+    options+=(--index "${index}")
+else
+    bashio::log.warning "Could not add the browser scripts to ttyd's page; copying into the browser clipboard will not work."
+fi
+
 # Change working directory
 cd /homeassistant || cd /root || bashio::exit.nok 'Unable to change working directory'
 
