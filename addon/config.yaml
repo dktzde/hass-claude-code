@@ -1,6 +1,6 @@
 ---
 name: Claude Code
-version: 0.10.0
+version: 0.11.0
 slug: claude_code
 description: AI coding assistant with full Home Assistant access
 # Linked as "more information" on the add-on page in Home Assistant
@@ -33,6 +33,7 @@ options:
   protect_internal_files: true
   mobile_login: false
   mobile_tabs: false
+  mobile_scroll: false
   disable_mouse: false
   additional_packages: []
 schema:
@@ -40,6 +41,7 @@ schema:
   protect_internal_files: bool
   mobile_login: bool
   mobile_tabs: bool
+  mobile_scroll: bool
   disable_mouse: bool
   additional_packages:
     - str

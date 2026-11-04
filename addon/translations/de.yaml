@@ -25,6 +25,12 @@ configuration:
       Handy mehrere Sitzungen nutzen lassen. Dazu ↑/↓ zum Scrollen (mit Seitenzähler), ⇧⇥
       (Shift+Tab, wechselt den Modus von Claude Code) und ganz rechts Esc. Schaltet die Maus in tmux ein.
       Wirkt nach einem Neustart.
+  mobile_scroll:
+    name: Wischen zum Scrollen
+    description: >-
+      Auf einem Touchscreen scrollt ein senkrechtes Wischen im Terminal wie ein
+      Mausrad, auch in Claude Code. Tippen funktioniert weiter. Ohne
+      Touchscreen ändert sich nichts. Wirkt nach einem Neustart.
   disable_mouse:
     name: Maus-Unterstützung abschalten
     description: >-

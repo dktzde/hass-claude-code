@@ -1,3 +1,15 @@
+## 0.11.0
+
+<sub>2026-11-04</sub>
+
+Scroll with a swipe on a phone.
+
+### Changes
+
+- New option `mobile_scroll` (off by default). On a touch screen, a vertical swipe on the terminal then scrolls like a mouse wheel, also inside Claude Code. Until now a swipe scrolled nothing while Claude Code was running, because the web terminal (xterm.js 5 in ttyd 1.7.7) ignores touch gestures while a program uses the mouse
+- Taps keep working: tapping to open the keyboard and the tabs of `mobile_tabs` behave as before. Devices without a touch screen are not affected
+- Works with and without `mobile_tabs`. The ↑/↓ buttons of `mobile_tabs` stay
+
 ## 0.10.0
 
 <sub>2026-11-04</sub>

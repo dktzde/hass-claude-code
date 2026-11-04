@@ -81,14 +81,16 @@ The web terminal is the Alpine package `ttyd` (1.7.7, with xterm.js 5 inside). T
 - `addon/Dockerfile`: right after the package install, starts ttyd once on a UNIX socket and saves its page as `/usr/share/ttyd-addon/ttyd-index.html`. If the page has no `window.term=`, the file is dropped and the add-on runs with ttyd's own page.
 - `addon/rootfs/etc/s6-overlay/s6-rc.d/ttyd/run`: puts the scripts from `/usr/share/ttyd-addon/` before `</body>` and starts ttyd with `--index`. On any failure it logs a warning and uses ttyd's own page.
 - `addon/rootfs/usr/share/ttyd-addon/clipboard.js`: OSC 52 handler (copy into the browser clipboard). It uses only the public xterm.js API on `window.term`.
+- `addon/rootfs/usr/share/ttyd-addon/touch-scroll.js` (only with the option `mobile_scroll`): turns a vertical swipe into one mouse wheel event per text row of finger travel, dispatched on `.xterm-screen`. It listens in the capture phase on the parent of the terminal element, so the touch handlers of xterm.js never see a swipe; taps and two-finger gestures pass through.
 - The workflow fails if the saved page is missing or has no `window.term=`, so a ttyd update that changes the page shows up in the test build.
 
 When a new ttyd version reaches Alpine:
 
 - **Clipboard:** ttyd's main branch already loads `@xterm/addon-clipboard` (not in 1.7.7). Once a release with it is in the image, remove `clipboard.js`, or two handlers copy the same text.
-- Check that `window.term` still exists and the scripts still attach (browser console: `window.term.claudeCodeClipboard` is `true`).
+- **Touch scrolling:** xterm.js sends touch scrolls as wheel reports itself on its main branch (milestone 7.0, not released). Once ttyd ships it, remove `touch-scroll.js` and the option `mobile_scroll` (add it to `removed_options` in `init-claude`).
+- Check that `window.term` still exists and the scripts still attach (browser console: `window.term.claudeCodeClipboard` and, with `mobile_scroll` on a touch screen, `window.term.claudeCodeTouchScroll` are `true`).
 
-Test locally without Docker: download the static ttyd binary of the same version from its GitHub release (check its SHA-256), run `ttyd -i lo -W -p <port> --index <page> tmux …`, and drive it with Playwright (Chromium is preinstalled in cloud sessions). Bind to `lo`, never to all interfaces: the terminal is a writable shell. `tmux load-buffer -w -` is what Claude Code runs to copy inside tmux.
+Test locally without Docker: download the static ttyd binary of the same version from its GitHub release (check its SHA-256), run `ttyd -i lo -W -p <port> --index <page> tmux …`, and drive it with Playwright (Chromium is preinstalled in cloud sessions). Bind to `lo`, never to all interfaces: the terminal is a writable shell. `tmux load-buffer -w -` is what Claude Code runs to copy inside tmux. For swipes, emulate a phone (`devices['Pixel 7']`) and send touch events through CDP (`Input.dispatchTouchEvent`); a small program that turns on mouse tracking (`\e[?1000h\e[?1006h`) and logs its input stands in for Claude Code (wheel up `\e[<64;`, down `\e[<65;`).
 
 ## Test without Docker
 

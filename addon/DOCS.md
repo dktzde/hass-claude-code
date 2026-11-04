@@ -16,6 +16,7 @@ The [README](https://github.com/dktzde/hass-claude-code#readme) has all the deta
 - **Protect internal files** (on by default): Claude Code cannot change Home Assistant's internal files under `/homeassistant/`. These are `.storage/` (registries, UI automations, dashboards, helpers), `.cloud/`, `deps/`, `tts/` and the recorder database `home-assistant_v2.db`. A broken `.storage/` file can keep Home Assistant from starting. Reading them still works. Turn the option off only to repair such a file on purpose. Scripts that open files themselves, for example Python or `sqlite3`, are not blocked; Claude is told not to use them for it.
 - **Mobile login**: send the login link as a notification while Claude Code waits for the login.
 - **Mobile tabs**: a tappable bar at the bottom of the terminal, with one tab per Claude Code window, a `+` button for another session, ↑/↓ to scroll, ⇧⇥ (Shift+Tab, switches the Claude Code mode) and Esc.
+- **Swipe to scroll**: on a touch screen, a vertical swipe on the terminal scrolls like a mouse wheel, also inside Claude Code. Taps keep working.
 - **Disable mouse support**: Claude Code stops capturing the mouse, so you can select text with a finger. Mouse wheel scrolling inside Claude Code stops working.
 - **Additional packages**: extra Alpine packages, installed on every start (for example `vim`).
 
