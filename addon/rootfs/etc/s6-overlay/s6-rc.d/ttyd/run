@@ -28,12 +28,18 @@ ingress_port=$(bashio::app.ingress_port)
 options+=(-p "${ingress_port}")
 
 # Browser scripts in ttyd's page: clipboard.js writes what tmux copies
-# (OSC 52) into the browser clipboard, which ttyd 1.7.7 drops. The Dockerfile
-# saved ttyd's own page; the scripts go in before </body>. If anything fails,
-# ttyd serves its built-in page and the terminal works as before.
+# (OSC 52) into the browser clipboard, which ttyd 1.7.7 drops. With the
+# option mobile_scroll, touch-scroll.js turns swipes into mouse wheel events.
+# The Dockerfile saved ttyd's own page; the scripts go in before </body>. If
+# anything fails, ttyd serves its built-in page and the terminal works as
+# before.
 declare page=/usr/share/ttyd-addon/ttyd-index.html
 declare index=/run/ttyd-addon/index.html
 declare -a scripts=(/usr/share/ttyd-addon/clipboard.js)
+if bashio::config.true 'mobile_scroll'; then
+    bashio::log.info 'Swipe to scroll on touch screens is on (mobile_scroll).'
+    scripts+=(/usr/share/ttyd-addon/touch-scroll.js)
+fi
 if [[ -s "${page}" ]] && mkdir -p /run/ttyd-addon &&
    python3 - "${page}" "${index}" "${scripts[@]}" << 'PY'
 import sys
@@ -54,7 +60,7 @@ PY
 then
     options+=(--index "${index}")
 else
-    bashio::log.warning "Could not add the browser scripts to ttyd's page; copying into the browser clipboard will not work."
+    bashio::log.warning "Could not add the browser scripts to ttyd's page; copying into the browser clipboard and mobile_scroll will not work."
 fi
 
 # Change working directory
