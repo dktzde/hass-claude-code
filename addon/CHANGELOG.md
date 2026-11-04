@@ -1,3 +1,15 @@
+## 0.9.0
+
+<sub>2026-11-04</sub>
+
+Claude Code can no longer change Home Assistant's internal files. A broken `.storage/` registry can keep Home Assistant from starting; until now only the generated `CLAUDE.md` asked Claude to leave these files alone.
+
+### Changes
+
+- New option `protect_internal_files`, **on by default, also for existing installations**. The add-on writes deny rules (`permissions.deny`) into `/etc/claude-code/managed-settings.json`, so Claude Code's file tools cannot change `.storage/`, `.cloud/`, `deps/`, `tts/` and the recorder database (`home-assistant_v2.db` with its `-wal` and `-shm` files) under `/homeassistant`. Reading stays possible
+- The rules apply in every permission mode, also with bypass permissions, and your own Claude Code settings cannot lift them. They also cover file commands Claude Code recognizes in shell commands (`cat`, `sed`, `tee`, `> file`), but not every program that opens files itself, for example a Python script or `sqlite3`; the generated `CLAUDE.md` tells Claude not to work around the rules that way
+- To repair such a file on purpose, turn the option off and restart the add-on
+
 ## 0.8.2
 
 <sub>2026-10-31</sub>

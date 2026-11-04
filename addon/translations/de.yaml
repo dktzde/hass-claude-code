@@ -5,6 +5,12 @@ configuration:
     description: >-
       Login: Claude Code fragt beim ersten Start nach der Anmeldung, hier ist
       kein Token nötig. Diese Option wählt das Claude-Modell.
+  protect_internal_files:
+    name: Interne Dateien schützen
+    description: >-
+      Claude Code kann die internen Dateien von Home Assistant nicht ändern:
+      .storage, .cloud, deps, tts und die Recorder-Datenbank. Nur ausschalten,
+      um so eine Datei gezielt zu reparieren. Wirkt nach einem Neustart.
   mobile_login:
     name: Mobiler Login
     description: >-

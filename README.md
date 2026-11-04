@@ -58,6 +58,7 @@ Thank you both!
 | Option | Type | Default | Description |
 |--------|------|---------|-------------|
 | `model` | list | `default` | Model to use: `default`, `sonnet`, `opus` or `haiku` |
+| `protect_internal_files` | bool | `true` | Claude Code cannot change Home Assistant's internal files under `/homeassistant/`: `.storage/`, `.cloud/`, `deps/`, `tts/` and the recorder database `home-assistant_v2.db`. See [File access](#file-access) |
 | `mobile_login` | bool | `false` | While Claude Code waits for the login, send the login link as a notification in Home Assistant, so you can tap it on a phone instead of copying it |
 | `mobile_tabs` | bool | `false` | Tappable tabs and a `+` button at the bottom of the terminal, to start and switch between several Claude Code sessions from a phone, plus ↑/↓ scroll buttons with a page counter, a Shift+Tab button and an Esc button. Turns on the mouse in tmux |
 | `disable_mouse` | bool | `false` | Claude Code stops capturing the mouse, so a finger can select and copy text on a phone. Mouse wheel scrolling and clicks inside Claude Code stop working |
@@ -124,6 +125,8 @@ The built-in MCP server `home-assistant` gives Claude these tools:
 | `/share/` | Storage shared between add-ons | Read/write |
 | `/ssl/` | Certificates | Read-only |
 | `/media/` | Media files | Read-only |
+
+Home Assistant manages `.storage/` (entity, device and area registries, UI automations, dashboards, helpers), `.cloud/`, `deps/`, `tts/` and the recorder database `home-assistant_v2.db` itself, and a broken `.storage/` file can keep Home Assistant from starting. With `protect_internal_files` on (the default), the add-on writes deny rules into `/etc/claude-code/managed-settings.json`, so Claude Code's file tools cannot change them. The rules apply in every permission mode, also with bypass permissions, and your own Claude Code settings cannot lift them. They also cover file commands Claude Code recognizes in shell commands (`cat`, `sed`, `tee`, `> file`), but not every program that opens files itself, for example a Python script or `sqlite3`; the generated `CLAUDE.md` tells Claude not to use those for it. Reading stays possible. To repair such a file on purpose, turn the option off and restart the add-on.
 
 On every start, the add-on writes `/etc/claude-code/CLAUDE.md` with an overview of the paths, tools and APIs, which Claude Code loads automatically. `/homeassistant/CLAUDE.md` is for your own notes: the add-on creates it if it is missing and never changes an existing one.
 
