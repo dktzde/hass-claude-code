@@ -1,3 +1,12 @@
+## 0.11.1
+
+<sub>2026-11-04</sub>
+
+- **Automated update** by the GitHub Action "Update add-on" ([workflow run](https://github.com/dktzde/hass-claude-code/actions/runs/41813710749))
+- Update Claude Code to 2.1.318
+- Update system packages: `apk-tools-3.0.9-r0`, `libapk-3.0.9-r0`, `libexpat-2.10.0-r0`
+- Update npm dependencies of the MCP server: `@hono/node-server@2.1.6`, `express-rate-limit@8.7.3`, `hono@4.13.16`, `jose@6.2.15`, `minimatch@11.0.4`
+
 ## 0.11.0
 
 <sub>2026-11-04</sub>
