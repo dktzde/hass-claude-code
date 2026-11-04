@@ -43,7 +43,11 @@
     document.body.appendChild(area);
     area.select();
     try {
-      document.execCommand('copy');
+      // false: the browser refused the copy, for example without a recent
+      // keypress or tap
+      if (!document.execCommand('copy')) {
+        console.warn('[claude-code] copy failed: the browser refused it');
+      }
     } catch (e) {
       console.warn('[claude-code] copy failed:', e);
     }
