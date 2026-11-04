@@ -1,3 +1,16 @@
+## 0.10.0
+
+<sub>2026-11-04</sub>
+
+Text that Claude Code copies now lands in the clipboard of your browser, also on a phone.
+
+### Changes
+
+- When Claude Code copies text (for example with `/copy`), it hands the text to tmux, and tmux sends it to the terminal as an OSC 52 sequence. The same happens when you copy in tmux copy mode, for example by selecting with the mouse while `mobile_tabs` is on. The web terminal (ttyd 1.7.7) threw these sequences away. A small script in the terminal page now writes them into the browser clipboard
+- Only copies made through tmux reach the clipboard. Text that a program merely prints cannot change it, and requests to read the clipboard are never answered
+- Without the Clipboard API of the browser (Home Assistant over plain HTTP), the script falls back to the older copy command of the browser
+- No option and no tmux setting needed. If the script cannot be added, the terminal works as before and the add-on log shows a warning
+
 ## 0.9.0
 
 <sub>2026-11-04</sub>

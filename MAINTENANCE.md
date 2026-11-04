@@ -74,6 +74,22 @@ Pitfalls of the update in 0.4.0:
 - **glob 11 → 13:** no code change; `glob('**/*.md', { cwd, ignore })` works as before.
 - **glob 13 → 14** (add-on 0.8.0): no code change either. glob 14 uses minimatch 11 and matches with `@isaacs/nonrecursive-glob-match` instead of regular expressions; `ignore` patterns starting with `/` changed meaning, ours (`**/CLAUDE.md`, `**/CHANGELOG.md`) do not start with `/`. Same file count, same `tools/list`, same search results and same `dist/` as with glob 13.
 
+## ttyd and the browser scripts
+
+The web terminal is the Alpine package `ttyd` (1.7.7, with xterm.js 5 inside). The add-on adds its own scripts to ttyd's page:
+
+- `addon/Dockerfile`: right after the package install, starts ttyd once on a UNIX socket and saves its page as `/usr/share/ttyd-addon/ttyd-index.html`. If the page has no `window.term=`, the file is dropped and the add-on runs with ttyd's own page.
+- `addon/rootfs/etc/s6-overlay/s6-rc.d/ttyd/run`: puts the scripts from `/usr/share/ttyd-addon/` before `</body>` and starts ttyd with `--index`. On any failure it logs a warning and uses ttyd's own page.
+- `addon/rootfs/usr/share/ttyd-addon/clipboard.js`: OSC 52 handler (copy into the browser clipboard). It uses only the public xterm.js API on `window.term`.
+- The workflow fails if the saved page is missing or has no `window.term=`, so a ttyd update that changes the page shows up in the test build.
+
+When a new ttyd version reaches Alpine:
+
+- **Clipboard:** ttyd's main branch already loads `@xterm/addon-clipboard` (not in 1.7.7). Once a release with it is in the image, remove `clipboard.js`, or two handlers copy the same text.
+- Check that `window.term` still exists and the scripts still attach (browser console: `window.term.claudeCodeClipboard` is `true`).
+
+Test locally without Docker: download the static ttyd binary of the same version from its GitHub release (check its SHA-256), run `ttyd -i lo -W -p <port> --index <page> tmux …`, and drive it with Playwright (Chromium is preinstalled in cloud sessions). Bind to `lo`, never to all interfaces: the terminal is a writable shell. `tmux load-buffer -w -` is what Claude Code runs to copy inside tmux.
+
 ## Test without Docker
 
 Claude Code cloud sessions cannot build the image: Docker starts, but image layers from `ghcr.io` (blob storage) are blocked, Docker Hub answers with a rate limit, and `dl-cdn.alpinelinux.org` is blocked too. Build the image with the test run of the Action, and test the MCP server locally with Node.js:

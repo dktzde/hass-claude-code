@@ -28,7 +28,7 @@ Thank you both!
 
 ## Quick guide
 
-- **Copy:** hold <kbd>Shift</kbd> and select text with the mouse. The selection goes straight to the clipboard.
+- **Copy:** hold <kbd>Shift</kbd> and select text with the mouse. The selection goes straight to the clipboard. Text that Claude Code copies itself (for example with `/copy`) and copies in tmux copy mode land in the browser clipboard too.
 - **Paste:** <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>V</kbd> on Linux.
 - **Log in from a phone:** a finger cannot select the login URL in the terminal. Turn on `mobile_login` (see [Configuration](#configuration)) and restart the add-on. While Claude Code waits for the login, the add-on then sends the link as a notification in Home Assistant (bell icon in the sidebar or the app). Tap it, log in, then copy the code from the page and paste it into the terminal. It disappears once you are logged in. If you would rather select text in the terminal, turn on `disable_mouse` instead.
 - **Second Claude session on a phone:** turn on `mobile_tabs` (see [Configuration](#configuration)) and restart the add-on. A bar at the bottom of the terminal then shows one tab per Claude Code window and a `+` button. Tap `+` to start another Claude Code in a new window, tap a number to switch. To close a window, leave Claude Code with `/exit`. A swipe does not scroll Claude Code on a phone, so tap ↑ and ↓ to scroll a page up or down (PageUp/PageDown inside Claude Code, the tmux history otherwise). The number between them (for example `-3`) counts the pages you scrolled up; it is an estimate and goes back to 0 on Enter. Tap ⇧⇥ to send <kbd>Shift</kbd>+<kbd>Tab</kbd>, which switches the Claude Code mode (default, accept edits, plan, auto). Tap Esc on the far right to send <kbd>Esc</kbd> (for example to stop Claude Code or close a menu; in the tmux history it leaves the history). Selecting text works through tmux.
@@ -137,7 +137,7 @@ The image is built in two stages:
 1. **Builder:** installs the MCP server dependencies, clones the docs from this repository and builds a keyword search index.
 2. **Add-on image:** based on the Home Assistant community add-on base image. Installs Claude Code, Python 3 with PyYAML, the MQTT clients, Node.js, ttyd, tmux and a few tools, and copies in the MCP server, the index and the docs.
 
-s6-overlay starts the services: environment setup, optional packages, and finally ttyd, which runs Claude Code inside tmux. Claude Code starts the MCP server itself as a child process over stdio, so it needs no network port.
+s6-overlay starts the services: environment setup, optional packages, and finally ttyd, which runs Claude Code inside tmux. The image saves ttyd's own web page at build time, and the ttyd service adds the scripts from `addon/rootfs/usr/share/ttyd-addon/` to it (`clipboard.js`: copy into the browser clipboard). Claude Code starts the MCP server itself as a child process over stdio, so it needs no network port.
 
 ```
 addon/
