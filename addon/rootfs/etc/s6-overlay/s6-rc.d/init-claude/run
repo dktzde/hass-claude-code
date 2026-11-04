@@ -6,12 +6,18 @@
 # ==============================================================================
 declare model
 declare disable_mouse
+declare protect_internal_files
 
 bashio::log.info 'Setting up Claude Code environment...'
 
 # --- Read config ---
 model=$(bashio::config 'model')
 disable_mouse=$(bashio::config 'disable_mouse')
+# Off only when set to false on purpose; a missing value counts as on
+protect_internal_files=true
+if [[ "$(bashio::config 'protect_internal_files')" == "false" ]]; then
+    protect_internal_files=false
+fi
 
 # --- Drop stored values of removed options ---
 # The configuration form only shows options of the current schema, but Home
@@ -109,10 +115,39 @@ ln -sfn /share /root/share
 # --- Generate managed settings (system-wide) ---
 mkdir -p /etc/claude-code
 
-# Empty on purpose: the option yolo_mode was removed in 0.7.4 (its fixed allow
-# list missed newer tools). Writing {} also clears the list of older versions.
-# Pick the permission mode in Claude Code instead (Shift+Tab, /permissions).
-echo '{}' > /etc/claude-code/managed-settings.json
+# Rewritten on every start, which also clears the allow list of the option
+# yolo_mode (removed in 0.7.4). No allow rules and no default mode here: users
+# pick the permission mode in Claude Code (Shift+Tab, /permissions).
+#
+# Option protect_internal_files: deny rules that keep Claude Code's file tools
+# from changing Home Assistant's internal state. A broken .storage/ registry
+# can keep Home Assistant from starting. Managed rules apply in every
+# permission mode, including bypassPermissions, and the user's own settings
+# cannot lift them. They also cover file commands Claude Code recognizes in
+# Bash (cat, sed, tee, redirections), not scripts that open files themselves.
+# `//` makes a rule path absolute: a single leading `/` would be relative to
+# the settings file. Deny rules also match a path reached through a symlink
+# such as /root/homeassistant. `home-assistant_v2.db*` covers the -wal and
+# -shm files of the recorder database.
+if [[ "${protect_internal_files}" == true ]]; then
+    bashio::log.info "Home Assistant's internal files (.storage, .cloud, deps, tts, recorder database) are read-only for Claude Code."
+    cat > /etc/claude-code/managed-settings.json << 'EOF'
+{
+  "permissions": {
+    "deny": [
+      "Edit(//homeassistant/.storage/**)",
+      "Edit(//homeassistant/.cloud/**)",
+      "Edit(//homeassistant/deps/**)",
+      "Edit(//homeassistant/tts/**)",
+      "Edit(//homeassistant/home-assistant_v2.db*)"
+    ]
+  }
+}
+EOF
+else
+    bashio::log.warning "protect_internal_files is off: Claude Code may change Home Assistant's internal files, including .storage."
+    echo '{}' > /etc/claude-code/managed-settings.json
+fi
 
 # --- Generate managed MCP config (system-wide, always loaded) ---
 bashio::log.info 'Generating MCP server configuration...'
@@ -165,7 +200,17 @@ You are running inside the Claude Code add-on of a Home Assistant instance. The 
 Rules for working on the configuration:
 
 - Copy a file before larger edits, for example to `<file>.bak`.
+EOF
+    if [[ "${protect_internal_files}" == true ]]; then
+        cat << 'EOF'
+- `.storage/`, `.cloud/`, `deps/`, `tts/` and the recorder database `home-assistant_v2.db` under `/homeassistant/` belong to Home Assistant. The add-on option **Protect internal files** makes them read-only for you (managed permission rules). Do not work around it with scripts, `cp`, `mv` or `sqlite3`. Change what is stored there through the MCP tools, the APIs or the Home Assistant UI. If none of them can do it, tell the user; only they can turn the option off.
+EOF
+    else
+        cat << 'EOF'
 - Do not edit files in `/homeassistant/.storage/` while Home Assistant is running, unless the user explicitly asks. Home Assistant keeps them in memory and overwrites them. Use the MCP tools or the APIs instead.
+EOF
+    fi
+    cat << 'EOF'
 - After changing YAML configuration, run the config check (see below) before reloading.
 - Prefer reloading (for example the service `automation.reload`) over restarting. Never restart Home Assistant, the host or an add-on without asking the user.
 - Never print secrets from `secrets.yaml` or tokens in full.
@@ -236,6 +281,7 @@ EOF
 EOF
     printf '\n## Add-on settings\n\n'
     printf -- '- Model: `%s`\n' "${model}"
+    printf -- '- Protect internal files: `%s`\n' "${protect_internal_files}"
 } > /etc/claude-code/CLAUDE.md
 
 # --- /homeassistant/CLAUDE.md is for the user's own notes ---
