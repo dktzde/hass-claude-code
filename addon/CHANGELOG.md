@@ -1,3 +1,11 @@
+## 0.12.1
+
+<sub>2026-11-05</sub>
+
+- **Automated update** by the GitHub Action "Update add-on" ([workflow run](https://github.com/dktzde/hass-claude-code/actions/runs/42114645702))
+- Update system packages: `alpine-release-3.24.4-r0`
+- Update the bundled Home Assistant docs (2 files changed)
+
 ## 0.12.0
 
 <sub>2026-11-05</sub>

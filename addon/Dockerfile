@@ -38,7 +38,7 @@ COPY mcp-server/ ./mcp-server/
 # after the dependency install so a docs change does not re-resolve npm deps.
 ARG DOCS_REPO=https://github.com/dktzde/hass-claude-code.git
 ARG DOCS_REF=main
-ARG DOCS_STAMP=de693788c6fae941a3ed74a028fabdece667b71c
+ARG DOCS_STAMP=50772938acc04cecda8e7aad8dbfe2278e4d828c
 RUN echo "Docs stamp: ${DOCS_STAMP}" && \
     git clone --depth 1 --branch "${DOCS_REF}" "${DOCS_REPO}" /tmp/repo && \
     cp -r /tmp/repo/docs /build/docs && \
@@ -69,7 +69,7 @@ ENV TERM="xterm-256color"
 # last CI build), refreshed by the weekly workflow when Alpine ships updates.
 # A new value busts the Docker layer cache; otherwise the Supervisor keeps the
 # versions from the first install forever.
-ARG PACKAGES_STAMP=fa7250d99ac5
+ARG PACKAGES_STAMP=4116d0367444
 # hadolint ignore=DL3017,DL3018
 RUN echo "Packages stamp: ${PACKAGES_STAMP}" && \
     apk upgrade --no-cache && \
