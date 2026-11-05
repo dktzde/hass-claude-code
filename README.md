@@ -51,13 +51,15 @@ Thank you both!
    Or manually: **Settings** > **Add-ons** > **Add-on Store**, three-dot menu > **Repositories**, add `https://github.com/dktzde/hass-claude-code`.
 2. Find **Claude Code** in the add-on store and select **Install**. Home Assistant builds the image on your device, which takes a few minutes the first time.
 3. Select **Start** and open **Claude Code** in the sidebar.
-4. Log in when Claude Code asks for it on first start, with your Claude subscription or an Anthropic Console account. The login is kept across restarts and updates.
+4. Log in when Claude Code asks for it on first start, with your Claude subscription or an Anthropic Console account. The login is kept across restarts and updates. To use an API key or another provider with an Anthropic-compatible API instead, set `anthropic_auth_token` (and `anthropic_base_url`) in the configuration; Claude Code then needs no login.
 
 ## Configuration
 
 | Option | Type | Default | Description |
 |--------|------|---------|-------------|
-| `model` | list | `default` | Model to use: `default`, `sonnet`, `opus` or `haiku` |
+| `anthropic_base_url` | str | empty | Exported as `ANTHROPIC_BASE_URL`: another address for the API requests, for example an API gateway or another provider with an Anthropic-compatible API. Empty: the Anthropic API |
+| `anthropic_auth_token` | password | empty | Exported as `ANTHROPIC_AUTH_TOKEN`: API key of that provider, sent as a bearer token. Empty: log in with a Claude subscription or an Anthropic Console account. Never written to the log |
+| `anthropic_model` | str | `opus` | Exported as `ANTHROPIC_MODEL`: any model name, for example `sonnet`, `opus`, `haiku`, a full name such as `claude-opus-5-5`, or a model name of another provider. Empty: the default model of Claude Code |
 | `protect_internal_files` | bool | `true` | Claude Code cannot change Home Assistant's internal files under `/homeassistant/`: `.storage/`, `.cloud/`, `deps/`, `tts/` and the recorder database `home-assistant_v2.db`. See [File access](#file-access) |
 | `mobile_login` | bool | `false` | While Claude Code waits for the login, send the login link as a notification in Home Assistant, so you can tap it on a phone instead of copying it |
 | `mobile_tabs` | bool | `false` | Tappable tabs and a `+` button at the bottom of the terminal, to start and switch between several Claude Code sessions from a phone, plus ↑/↓ scroll buttons with a page counter, a Shift+Tab button and an Esc button. Turns on the mouse in tmux |

@@ -1,10 +1,20 @@
 ---
 configuration:
-  model:
-    name: Modell
+  anthropic_base_url:
+    name: ANTHROPIC_BASE_URL
     description: >-
-      Login: Claude Code fragt beim ersten Start nach der Anmeldung, hier ist
-      kein Token nötig. Diese Option wählt das Claude-Modell.
+      Andere Adresse für die API-Anfragen. Leer: die Anthropic-API. Wirkt nach
+      einem Neustart.
+  anthropic_auth_token:
+    name: ANTHROPIC_AUTH_TOKEN
+    description: >-
+      API-Key des Anbieters, gesendet als Bearer-Token. Leer: Login mit
+      Claude-Abo oder Anthropic-Console. Wirkt nach einem Neustart.
+  anthropic_model:
+    name: ANTHROPIC_MODEL
+    description: >-
+      Freier Modellname, z. B. sonnet oder opus. Leer: das Standardmodell.
+      Wirkt nach einem Neustart.
   protect_internal_files:
     name: Interne Dateien schützen
     description: >-

@@ -12,17 +12,12 @@ if [[ -f /etc/profile.d/claude.sh ]]; then
     source /etc/profile.d/claude.sh
 fi
 
-# Build claude args
-declare -a CLAUDE_ARGS=()
-
-# Model selection
-if [[ -n "${CLAUDE_MODEL:-}" && "${CLAUDE_MODEL}" != "default" ]]; then
-    CLAUDE_ARGS+=(--model "${CLAUDE_MODEL}")
-fi
+# The model, API URL and token come from the ANTHROPIC_* variables of
+# claude.sh (add-on options anthropic_*), which Claude Code reads itself.
 
 echo "Starting Claude Code..."
 echo "Working directory: $(pwd)"
 echo ""
 
 # Launch Claude Code
-exec claude "${CLAUDE_ARGS[@]}"
+exec claude
