@@ -23,6 +23,16 @@ fi
 if bashio::config.has_value 'anthropic_model'; then
     model=$(bashio::config 'anthropic_model')
 fi
+# For the log and the generated CLAUDE.md only scheme and host of the base URL:
+# a login (user:pass@), path or query (?key=...) may hold a secret.
+declare base_url_shown=''
+if [[ -n "${base_url}" ]]; then
+    if [[ "${base_url}" =~ ^([A-Za-z][A-Za-z0-9+.-]*)://([^/?#]*) ]]; then
+        base_url_shown="${BASH_REMATCH[1]}://${BASH_REMATCH[2]##*@}"
+    else
+        base_url_shown='(not a URL with scheme://host)'
+    fi
+fi
 disable_mouse=$(bashio::config 'disable_mouse')
 # Off only when set to false on purpose; a missing value counts as on
 protect_internal_files=true
@@ -95,7 +105,11 @@ printf '%s' "/opt/docs" > /var/run/s6/container_environment/DOCS_PATH
     fi
 } > /etc/profile.d/claude.sh
 if [[ -n "${base_url}" ]]; then
-    bashio::log.info "API requests go to ${base_url} (anthropic_base_url)."
+    bashio::log.info "API requests go to ${base_url_shown} (anthropic_base_url)."
+    # Not enforced: a gateway in the home network often has plain HTTP only
+    if [[ -n "${auth_token}" && "${base_url,,}" == http://* ]]; then
+        bashio::log.warning 'anthropic_base_url uses http://: the token of anthropic_auth_token goes over the network unencrypted. Use https:// unless the address is on a trusted network.'
+    fi
 fi
 if [[ -n "${auth_token}" ]]; then
     bashio::log.info 'Claude Code uses the token of the option anthropic_auth_token.'
@@ -322,7 +336,7 @@ EOF
 EOF
     printf '\n## Add-on settings\n\n'
     printf -- '- Model (`ANTHROPIC_MODEL`): `%s`\n' "${model:-Claude Code default}"
-    printf -- '- API (`ANTHROPIC_BASE_URL`): `%s`\n' "${base_url:-Anthropic API}"
+    printf -- '- API (`ANTHROPIC_BASE_URL`): `%s`\n' "${base_url_shown:-Anthropic API}"
     printf -- '- Protect internal files: `%s`\n' "${protect_internal_files}"
 } > /etc/claude-code/CLAUDE.md
 
