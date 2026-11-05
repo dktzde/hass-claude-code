@@ -1,3 +1,9 @@
+## 0.11.2
+
+<sub>2026-11-05</sub>
+
+- The browser no longer asks "Leave site?" when you leave the add-on page in Home Assistant. The web terminal (ttyd) asked this because it assumes that closing the page ends the running command. In this add-on tmux keeps Claude Code running, and the page reconnects to the same session when you open it again
+
 ## 0.11.1
 
 <sub>2026-11-04</sub>
