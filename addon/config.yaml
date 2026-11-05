@@ -1,6 +1,6 @@
 ---
 name: Claude Code
-version: 0.11.3
+version: 0.12.0
 slug: claude_code
 description: AI coding assistant with full Home Assistant access
 # Linked as "more information" on the add-on page in Home Assistant
@@ -29,7 +29,9 @@ map:
 services:
   - mqtt:want
 options:
-  model: "default"
+  anthropic_base_url: ""
+  anthropic_auth_token: ""
+  anthropic_model: "opus"
   protect_internal_files: true
   mobile_login: false
   mobile_tabs: false
@@ -37,7 +39,9 @@ options:
   disable_mouse: false
   additional_packages: []
 schema:
-  model: "list(default|sonnet|opus|haiku)"
+  anthropic_base_url: "str?"
+  anthropic_auth_token: "password?"
+  anthropic_model: "str?"
   protect_internal_files: bool
   mobile_login: bool
   mobile_tabs: bool

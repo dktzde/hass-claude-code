@@ -1,3 +1,22 @@
+## 0.12.0
+
+<sub>2026-11-05</sub>
+
+Set the API address, a token and any model name in the configuration.
+
+### Changes
+
+- New option `anthropic_base_url` (shown as **ANTHROPIC_BASE_URL**, empty by default): another address for the API requests, for example an API gateway or another provider with an Anthropic-compatible API
+- New option `anthropic_auth_token` (shown as **ANTHROPIC_AUTH_TOKEN**, empty by default): API key of that provider, sent as a bearer token. With it set, Claude Code needs no login. The field is masked in the configuration form, and the add-on never writes the token to the log
+- The selection **Model** (`default`, `sonnet`, `opus`, `haiku`) is replaced by the free text option `anthropic_model` (shown as **ANTHROPIC_MODEL**, `opus` by default). It takes any model name, for example `sonnet`, a full name such as `claude-opus-5-5`, or a model name of another provider
+- Empty options set nothing, so Claude Code keeps its own defaults (Anthropic API, login, default model)
+- The add-on log and the generated `CLAUDE.md` show only scheme and host of **ANTHROPIC_BASE_URL**, never a login, path or query in it. With an `http://` address and a token set, the log warns that the token goes over the network unencrypted
+
+### Upgrade notes
+
+- A saved model `sonnet`, `opus` or `haiku` moves to **ANTHROPIC_MODEL** on the first start. `default` becomes `opus`; clear the field to get the default model of Claude Code again
+- The model is now passed to Claude Code as the variable `ANTHROPIC_MODEL` instead of `--model`. `/model` in Claude Code still switches it for the running session
+
 ## 0.11.3
 
 <sub>2026-11-05</sub>

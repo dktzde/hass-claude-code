@@ -4,14 +4,35 @@
 # Claude Code Add-on: Environment setup
 # Sets up environment, CLAUDE.md, MCP config, persistent storage
 # ==============================================================================
-declare model
+declare base_url=''
+declare auth_token=''
+declare model=''
 declare disable_mouse
 declare protect_internal_files
 
 bashio::log.info 'Setting up Claude Code environment...'
 
 # --- Read config ---
-model=$(bashio::config 'model')
+# Empty options export nothing, so Claude Code keeps its own defaults
+if bashio::config.has_value 'anthropic_base_url'; then
+    base_url=$(bashio::config 'anthropic_base_url')
+fi
+if bashio::config.has_value 'anthropic_auth_token'; then
+    auth_token=$(bashio::config 'anthropic_auth_token')
+fi
+if bashio::config.has_value 'anthropic_model'; then
+    model=$(bashio::config 'anthropic_model')
+fi
+# For the log and the generated CLAUDE.md only scheme and host of the base URL:
+# a login (user:pass@), path or query (?key=...) may hold a secret.
+declare base_url_shown=''
+if [[ -n "${base_url}" ]]; then
+    if [[ "${base_url}" =~ ^([A-Za-z][A-Za-z0-9+.-]*)://([^/?#]*) ]]; then
+        base_url_shown="${BASH_REMATCH[1]}://${BASH_REMATCH[2]##*@}"
+    else
+        base_url_shown='(not a URL with scheme://host)'
+    fi
+fi
 disable_mouse=$(bashio::config 'disable_mouse')
 # Off only when set to false on purpose; a missing value counts as on
 protect_internal_files=true
@@ -22,21 +43,34 @@ fi
 # --- Drop stored values of removed options ---
 # The configuration form only shows options of the current schema, but Home
 # Assistant keeps the saved values of removed ones (api_key until 0.1.x,
-# enable_embeddings until 0.2.x; visible in the YAML editor) until the
-# configuration is saved again. Remove them once through the Supervisor API.
-# A failure only logs a warning, it never stops the add-on.
+# enable_embeddings until 0.2.x, yolo_mode until 0.7.3, model until 0.11.x;
+# visible in the YAML editor) until the configuration is saved again. Remove
+# them once through the Supervisor API. A failure only logs a warning, it
+# never stops the add-on.
+#
+# The selection model (default|sonnet|opus|haiku) became the free text option
+# anthropic_model in 0.12.0. A stored sonnet, opus or haiku moves over;
+# default leaves the new default (opus).
 declare stored_options
-declare removed_options='["api_key","enable_embeddings","yolo_mode"]'
+declare migrated_model=''
+declare removed_options='["api_key","enable_embeddings","yolo_mode","model"]'
 if stored_options=$(curl -fsS -H "Authorization: Bearer ${SUPERVISOR_TOKEN}" \
         http://supervisor/addons/self/info | jq -c '.data.options') &&
    jq -e --argjson removed "${removed_options}" \
         'any(keys[]; IN($removed[]))' <<< "${stored_options}" > /dev/null; then
-    if jq -c --argjson removed "${removed_options}" \
-            '{options: with_entries(select(.key | IN($removed[]) | not))}' <<< "${stored_options}" |
+    migrated_model=$(jq -r '.model // empty | select(IN("sonnet", "opus", "haiku"))' <<< "${stored_options}")
+    if [[ -n "${migrated_model}" ]]; then
+        # options.json of this start still holds the old value; use the new one now
+        model="${migrated_model}"
+        bashio::log.info "Moved the model '${migrated_model}' to the option anthropic_model."
+    fi
+    if jq -c --argjson removed "${removed_options}" --arg model "${migrated_model}" \
+            '{options: (with_entries(select(.key | IN($removed[]) | not))
+                        + (if $model != "" then {anthropic_model: $model} else {} end))}' <<< "${stored_options}" |
        curl -fsS -X POST -H "Authorization: Bearer ${SUPERVISOR_TOKEN}" \
             -H 'Content-Type: application/json' --data @- \
             http://supervisor/addons/self/options > /dev/null; then
-        bashio::log.info 'Removed the stored values of removed options (api_key, enable_embeddings, yolo_mode).'
+        bashio::log.info 'Removed the stored values of removed options (api_key, enable_embeddings, yolo_mode, model).'
     else
         bashio::log.warning 'Could not remove old options; saving the add-on configuration once removes them too.'
     fi
@@ -50,7 +84,17 @@ printf '%s' "/opt/docs" > /var/run/s6/container_environment/DOCS_PATH
 {
     echo "export SUPERVISOR_TOKEN=\"${SUPERVISOR_TOKEN}\""
     echo "export DISABLE_AUTOUPDATER=1"
-    echo "export CLAUDE_MODEL=\"${model}\""
+    # Options anthropic_*: only set ones are exported. %q quotes the values
+    # for the shell; the token is never logged.
+    if [[ -n "${base_url}" ]]; then
+        printf 'export ANTHROPIC_BASE_URL=%q\n' "${base_url}"
+    fi
+    if [[ -n "${auth_token}" ]]; then
+        printf 'export ANTHROPIC_AUTH_TOKEN=%q\n' "${auth_token}"
+    fi
+    if [[ -n "${model}" ]]; then
+        printf 'export ANTHROPIC_MODEL=%q\n' "${model}"
+    fi
     # Keep the GitHub CLI login and the git config in /data across restarts
     echo "export GH_CONFIG_DIR=/data/.config/gh"
     echo "export GIT_CONFIG_GLOBAL=/data/.gitconfig"
@@ -60,7 +104,18 @@ printf '%s' "/opt/docs" > /var/run/s6/container_environment/DOCS_PATH
         echo "export CLAUDE_CODE_DISABLE_MOUSE=1"
     fi
 } > /etc/profile.d/claude.sh
-bashio::log.info 'Log in with Claude Code on first start; the login is kept across restarts.'
+if [[ -n "${base_url}" ]]; then
+    bashio::log.info "API requests go to ${base_url_shown} (anthropic_base_url)."
+    # Not enforced: a gateway in the home network often has plain HTTP only
+    if [[ -n "${auth_token}" && "${base_url,,}" == http://* ]]; then
+        bashio::log.warning 'anthropic_base_url uses http://: the token of anthropic_auth_token goes over the network unencrypted. Use https:// unless the address is on a trusted network.'
+    fi
+fi
+if [[ -n "${auth_token}" ]]; then
+    bashio::log.info 'Claude Code uses the token of the option anthropic_auth_token.'
+else
+    bashio::log.info 'Log in with Claude Code on first start; the login is kept across restarts.'
+fi
 
 # --- MQTT broker credentials (config.yaml: services: mqtt:want) ---
 # The Supervisor provides them when the Mosquitto broker add-on is installed.
@@ -280,7 +335,8 @@ EOF
 - Publishing can switch real devices. Ask before publishing to command topics, and never publish retained messages (`-r`) to discovery topics without being asked.
 EOF
     printf '\n## Add-on settings\n\n'
-    printf -- '- Model: `%s`\n' "${model}"
+    printf -- '- Model (`ANTHROPIC_MODEL`): `%s`\n' "${model:-Claude Code default}"
+    printf -- '- API (`ANTHROPIC_BASE_URL`): `%s`\n' "${base_url_shown:-Anthropic API}"
     printf -- '- Protect internal files: `%s`\n' "${protect_internal_files}"
 } > /etc/claude-code/CLAUDE.md
 
