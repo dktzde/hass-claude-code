@@ -2,24 +2,21 @@
 
 ## Latest update
 
-### Added (4 files)
-- apps-and-integrations.md
-- customizing-entities.md
-- network.md
-- overview.md
+### Added (1 files)
+- home-consumption.md
 
-### Modified (10 files)
+### Modified (16 files)
 - automation/action.md differ
-- automation/how-automations-react-to-changes.md differ
+- automation/building-blocks.md differ
+- automation/condition.md differ
 - automation/targets.md differ
+- automation/trigger-data.md differ
+- automation/trigger.md differ
 - automation/troubleshooting.md differ
-- configuration/basic.md differ
-- configuration/packages.md differ
-- configuration/troubleshooting.md differ
-- frontend/icons.md differ
-- organizing/tables.md differ
-- scene.md differ
+- blueprint/schema.md differ
+- blueprint/selectors.md differ
+- configuration/customizing-entities.md differ
+- ... and 6 more
 
-### Removed (2 files)
+### Removed (1 files)
 - CHANGELOG.md
-- customizing-devices.md
