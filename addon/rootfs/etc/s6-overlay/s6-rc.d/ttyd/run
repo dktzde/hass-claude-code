@@ -22,6 +22,11 @@ options+=(-i 0.0.0.0)
 # Enable terminal input
 options+=(--writable)
 
+# No "leave site?" prompt when leaving the page: tmux keeps the session, so
+# the command does not end when the browser disconnects (ttyd's prompt says
+# it would). The page reconnects to the same session when it is opened again.
+options+=(-t disableLeaveAlert=true)
+
 # Get assigned Ingress port. bashio 0.18 renamed the bashio::addon.* functions
 # to bashio::app.*; the old names still work but log a deprecation warning.
 ingress_port=$(bashio::app.ingress_port)
