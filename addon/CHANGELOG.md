@@ -1,3 +1,12 @@
+## 0.12.2
+
+<sub>2026-11-07</sub>
+
+- **Automated update** by the GitHub Action "Update add-on" ([workflow run](https://github.com/dktzde/hass-claude-code/actions/runs/42370244586))
+- Update Claude Code to 2.1.319
+- Update system packages: `zlib-1.4-r0`
+- Update npm dependencies of the MCP server: `@isaacs/nonrecursive-glob-match@1.1.0`, `glob@14.0.4`, `minimatch@11.0.5`
+
 ## 0.12.1
 
 <sub>2026-11-05</sub>

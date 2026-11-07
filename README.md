@@ -73,7 +73,7 @@ The Home Assistant Supervisor builds add-ons with the Docker layer cache. A buil
 
 This add-on therefore pins everything that should update in `addon/Dockerfile`:
 
-- `CLAUDE_CODE_VERSION`: the Claude Code version (currently **2.1.318**)
+- `CLAUDE_CODE_VERSION`: the Claude Code version (currently **2.1.319**)
 - `PACKAGES_STAMP`: a hash of `addon/packages.txt`, the list of installed Alpine package versions
 - `DOCS_STAMP`: the git tree hash of the bundled docs
 
