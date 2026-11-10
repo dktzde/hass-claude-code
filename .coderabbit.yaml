@@ -31,6 +31,9 @@ reviews:
     ignore_title_keywords:
       - "docs:"
       - "docs("
+    # Dependabot only bumps action versions in the workflows (.github/dependabot.yml); no review needed
+    ignore_usernames:
+      - "dependabot[bot]"
 
   # Only hand-written code: no Markdown, generated docs or generated package lists
   path_filters:
