@@ -1,11 +1,3 @@
-# Docs search service runtime data
-.claude/skills/hass-dev-docs/service/data/
-.claude/skills/hass-dev-docs/service/node_modules/
-.claude/skills/hass-dev-docs/service/package-lock.json
-.claude/skills/hass-dev-docs/service/pnpm-lock.yaml
-.hass-docs-port
-.hass-docs-pid
-
 # Addon MCP server runtime data
 addon/mcp-server/node_modules/
 addon/mcp-server/data/

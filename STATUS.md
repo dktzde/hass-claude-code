@@ -83,7 +83,7 @@ Last updated: 2026-11-10 (Dependabot for GitHub Actions and Dependabot alerts; b
 - `addon/README.md` does not exist, so the add-on overview in the store shows only the description. `url` in `config.yaml` links to this repository. `addon/DOCS.md` (Documentation tab) exists since dktzde/hass-claude-code#47; keep it in step with the README (options, tips, paths) and keep it short, the README has the details.
 - The option `additional_packages` installs packages on every start (needs internet, start fails if a package is missing).
 - **Docs search** is SQLite FTS5 with the fallbacks and typo correction above. Alternatives such as MiniSearch, Fuse.js or Typesense were considered; FTS5 plus its own vocabulary needs no new dependency and keeps the index built at image build time.
-- The semantic doc search was **removed** in 0.3.0 at the maintainer's request (Claude does not need it; it never worked because the docs were never indexed with embeddings). Do not bring back Transformers.js, ONNX Runtime or sqlite-vec without a new decision.
+- The semantic doc search was **removed** in 0.3.0 at the maintainer's request (Claude does not need it; it never worked because the docs were never indexed with embeddings). Do not bring back Transformers.js, ONNX Runtime or sqlite-vec without a new decision. On 2026-11-10 the old search service of the `hass-dev-docs` skill (`.claude/skills/hass-dev-docs/service/`, Express + sqlite-vec + Transformers.js, not part of the image) was removed as well; the skill and the `hass-docs-search` subagent now search with `rg`. Trigger: Dependabot alert #1 (`glob`, dismissed as not used).
 - Prebuilt images (building in CI and pulling instead of building on the device) were considered and **rejected** for now. Building on the device works, and the stamps solve the layer cache problem.
 - better-sqlite3 13 adds about 15 MB to the image (SQLite sources and prebuilt binaries for all platforms). The builder could delete `deps/`, `src/` and the binaries of other platforms after `pnpm prune --prod`; not done, to keep the build simple.
 - Claude Code cloud sessions cannot build the image (image layers from `ghcr.io`, Docker Hub and the Alpine CDN are blocked or rate-limited there). Build with the test run of the Action; `MAINTENANCE.md` shows how to test the MCP server locally with Node.js.
@@ -123,4 +123,5 @@ Last updated: 2026-11-10 (Dependabot for GitHub Actions and Dependabot alerts; b
 - `.github/dependabot.yml`: monthly updates of the GitHub Actions only
 - `.github/scripts/`: `mcp-smoke-test.sh`, `sync-issue.sh`, `support-lib.sh`, `base-image-report.sh`, `npm-report.sh`
 - `.claude/skills/update-claude/SKILL.md`: manual Claude Code update
+- `.claude/skills/hass-dev-docs/`, `.claude/agents/hass-docs-search.md`: update scripts for `docs/`, search with `rg` (development only)
 - `examples/chat-log-hook/`: optional Stop hook for users (daily chat log), not part of the image
