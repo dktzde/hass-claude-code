@@ -1,0 +1,11 @@
+# Keeps the actions used in .github/workflows/ up to date (e.g. actions/checkout).
+# Everything in the add-on itself (Claude Code, Alpine packages, npm lockfile,
+# docs, base image) is handled by the weekly Action "Update add-on", not here.
+version: 2
+updates:
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: monthly
+    commit-message:
+      prefix: ci

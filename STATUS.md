@@ -2,7 +2,7 @@
 
 Handover file for the maintainer and for Claude Code sessions working on this repository. **Read this first, and update it after every step** (state, decisions, next steps), so the next session can continue without the chat history.
 
-Last updated: 2026-11-05 (0.12.1 on `main`: options ANTHROPIC_BASE_URL, ANTHROPIC_AUTH_TOKEN, ANTHROPIC_MODEL; 0.9.0 to 0.12.1 not on the device yet)
+Last updated: 2026-11-10 (Dependabot for GitHub Actions and Dependabot alerts; before: 0.12.1 on `main`, 0.9.0 to 0.12.1 not on the device yet)
 
 ## Current state
 
@@ -109,6 +109,7 @@ Last updated: 2026-11-05 (0.12.1 on `main`: options ANTHROPIC_BASE_URL, ANTHROPI
   - One PR per topic.
   - Before merging, run the Action by hand on the PR branch (Run workflow → choose the branch). That run never pushes and never changes issues; its step summary shows what it would release and which issues it would open or close.
   - After merging, run it on `main` once, so the release has the current package list.
+- **Dependabot** (since 2026-11-10): only for the actions used in the workflows (`.github/dependabot.yml`, monthly, PRs with prefix `ci:`); such a PR needs no add-on version, nothing in the image changes. Dependabot alerts (security warnings for the npm lockfile) are on, automatic security fix PRs are off. Everything in the add-on stays with the weekly Action, because Dependabot knows neither the Claude Code pin, the Alpine packages nor the docs, and opens no release with version bump and changelog.
 - **Report scripts** (`.github/scripts/`) exit with an error instead of printing nothing when a data source is down, so an outage never closes an issue.
 - **Issue titles** are the key the workflow finds its issues by. When a title changes, add the old one to `retitle_issue` (or the failure job's lookup), so the open issue is renamed instead of a second one opened. The German titles there can go once no open issue carries them.
 
@@ -119,6 +120,7 @@ Last updated: 2026-11-05 (0.12.1 on `main`: options ANTHROPIC_BASE_URL, ANTHROPI
 - `addon/rootfs/etc/s6-overlay/s6-rc.d/init-claude/run`: environment, persistence, MQTT, managed CLAUDE.md
 - `addon/mcp-server/`: MCP server (TypeScript), lockfile, `pnpm-workspace.yaml` (`allowBuilds`)
 - `.github/workflows/update-claude-code.yml`: weekly update, issues, failure issue
+- `.github/dependabot.yml`: monthly updates of the GitHub Actions only
 - `.github/scripts/`: `mcp-smoke-test.sh`, `sync-issue.sh`, `support-lib.sh`, `base-image-report.sh`, `npm-report.sh`
 - `.claude/skills/update-claude/SKILL.md`: manual Claude Code update
 - `examples/chat-log-hook/`: optional Stop hook for users (daily chat log), not part of the image
