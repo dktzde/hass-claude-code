@@ -13,10 +13,10 @@ importers:
         version: 1.32.2(zod@4.6.7)
       better-sqlite3:
         specifier: ^13.0.0
-        version: 13.0.3
+        version: 13.1.1
       glob:
         specifier: ^14.0.0
-        version: 14.0.4
+        version: 14.0.6
       zod:
         specifier: ^4.0.0
         version: 4.6.7
@@ -192,8 +192,8 @@ packages:
     cpu: [x64]
     os: [win32]
 
-  '@hono/node-server@2.1.6':
-    resolution: {integrity: sha512-p/KH9MnfNcsm3sR6x4lNgm5j+QN4Et8srKredl9DZfXiyZ1UQ3aQ2YVpFLbqktYN5JI+DB+VZFKM2PqE5hLKjQ==}
+  '@hono/node-server@2.1.8':
+    resolution: {integrity: sha512-jdf7FHh6A1lzjpHHQUgxsg2GeER2vMetnAOfeActzcoli6jamlK+NAwL6Dsr5Fl3BS3tYUQzCdtZjU8Qxv7bEA==}
     engines: {node: '>=20'}
     peerDependencies:
       hono: ^4 || ^5.0.0-0
@@ -356,16 +356,16 @@ packages:
     resolution: {integrity: sha512-BLrgEcRTwX2o6gGxGOCNyMvGSp35YofuYzw9h1IMTRmKqttAZZVU67bdb9Pr2vUHA8+j3i2tJfjO6C6+4myGTA==}
     engines: {node: 18 || 20 || >=22}
 
-  better-sqlite3@13.0.3:
-    resolution: {integrity: sha512-RbOBxmLBG8uvFUc15X9+9SFemKcQ0WBuISBVkpuiaUB2qblC8UWlHEjdWVoZ8AdhSwmoEgsiXKfopX0CQxaACQ==}
+  better-sqlite3@13.1.1:
+    resolution: {integrity: sha512-JjyLCATp+VLxZVFyWkicyzKYwpEFLCrV4MmshW97xv3JXdhw5jBDcsbEWRGm2L/96E+k7rtjON8q9nml05h3Pw==}
     engines: {node: '>=22'}
 
   body-parser@2.4.0:
     resolution: {integrity: sha512-Ifk1KcLrxaGt1occQagQNFNNOqRt1LFuehEnHHzB8Z6cRgIxRU1TBaiIsUiCdA+gy5PL7Y1IX31DNKkRmxtXjQ==}
     engines: {node: '>=18'}
 
-  brace-expansion@5.0.12:
-    resolution: {integrity: sha512-YovQ3rzhaLMIrDjNDMkNS01tea93qhEhG5xy8f6+R0l+dw3Ki+5sCoIoI942iuLZTHWogWktgwVDhU09iNEimQ==}
+  brace-expansion@5.0.13:
+    resolution: {integrity: sha512-Vh3dmFbc4wZeox7M9I/0L9GfFd83Su4+yCck/OF9Gi/P/dAHn0RT7X4K9R7gMNMhDck3DvhR6QXsnQdjjgwNvQ==}
     engines: {node: 20 || >=22}
 
   bytes@3.1.2:
@@ -428,8 +428,8 @@ packages:
   ee-first@1.1.1:
     resolution: {integrity: sha512-WMwm9LhRUo+WUaRN+vRuETqG89IgZphVSNkdFgeb6sS/E4OrDIN7t48CAewSHXc6C8lefD8KKfr5vY61brQlow==}
 
-  encodeurl@2.0.1:
-    resolution: {integrity: sha512-Ev/hIyePLZtpL98x562lvPtenrUfGr0lfaf44HFZ+hDEwso7ccV9QAZrEVLg0hxNAzygaAFxy2dYaAKKM0G06A==}
+  encodeurl@2.0.3:
+    resolution: {integrity: sha512-mIteYONiEfc4xWf2F1WXovh1c8npzS00vNeiUPdwFF+QlVJni+gNvpQltLMQhob8rew/bWWc/bGTuUr0EUGt0w==}
     engines: {node: '>= 0.8'}
 
   es-define-property@1.0.1:
@@ -508,8 +508,8 @@ packages:
     resolution: {integrity: sha512-sTSfBjoXBp89JvIKIefqw7U2CCebsc74kiY6awiGogKtoSGbgjYE/G/+l9sF3MWFPNc9IcoOC4ODfKHfxFmp0g==}
     engines: {node: '>= 0.4'}
 
-  glob@14.0.4:
-    resolution: {integrity: sha512-mMiwNKoJZ4HAIRVJxotO6LsNRReA30gQwP9E2/p94tfLv+jygCNpKDjhhSL6OLY6LE371EZm5EAf7RpYuUqlsw==}
+  glob@14.0.6:
+    resolution: {integrity: sha512-OwXjVP2svY5EyLY75Vek96C8qK43gqrt4xsZ+qSILdnaEiJPXkd62mcfUSNx/TQErQRdu5uM5kF67sfONragKw==}
     engines: {node: 18 || 20 || >=22}
 
   gopd@1.2.0:
@@ -524,8 +524,8 @@ packages:
     resolution: {integrity: sha512-T2UbfbBEF32wiepXIsMlTW9+dDYC6wMh/t/vYA4tuOMKqWz/n3vr1NFSxQiyP+zk2mXsoMA/i/7qV6LKut1t1A==}
     engines: {node: '>= 0.4'}
 
-  hono@4.13.17:
-    resolution: {integrity: sha512-vZIcbkvjOR5hHRWERbGkr8fGfF0GGM1ooYkuH448iO3b2AdVEr3AXZSw4Z3Kn+1L5z0CVoVeyV29VGYmFh05kQ==}
+  hono@4.13.18:
+    resolution: {integrity: sha512-H9q/E1XizaWstJxUW881dmLxEj+t/TrGGnyxINkm4+sK0qUwsMtFdo2BWI9Vs3cIS19MU6b6iCijoUoEf4f3DA==}
     engines: {node: '>=16.9.0'}
 
   http-errors@2.0.1:
@@ -586,8 +586,8 @@ packages:
     resolution: {integrity: sha512-Lbgzdk0h4juoQ9fCKXW4by0UJqj+nOOrI9MJ1sSj4nI8aI2eo1qmvQEie4VD1glsS250n15LsWsYtCugiStS5A==}
     engines: {node: '>=18'}
 
-  minimatch@11.0.7:
-    resolution: {integrity: sha512-Tnk+M9mPjqKDZlUd77eMSjPjhnlBIa1mABOwetMryIshUwi1YmOBdGFfQnHgn4Z8A66eLT8ENzJrxwYmKfqrZg==}
+  minimatch@11.0.8:
+    resolution: {integrity: sha512-nFQuYSTVrGvysVBps5Ih+0BdnYFN/Cj3C816r6+p7yK+FHrVLGE4O4N9AFwykrlNlvM2HYt+Rad1Uiro6h88Ig==}
     engines: {node: 20 || >=22}
 
   minipass@7.1.3:
@@ -830,15 +830,15 @@ snapshots:
   '@esbuild/win32-x64@0.28.2':
     optional: true
 
-  '@hono/node-server@2.1.6(hono@4.13.17)':
+  '@hono/node-server@2.1.8(hono@4.13.18)':
     dependencies:
-      hono: 4.13.17
+      hono: 4.13.18
 
   '@isaacs/nonrecursive-glob-match@1.1.0': {}
 
   '@modelcontextprotocol/sdk@1.32.2(zod@4.6.7)':
     dependencies:
-      '@hono/node-server': 2.1.6(hono@4.13.17)
+      '@hono/node-server': 2.1.8(hono@4.13.18)
       ajv: 8.20.0
       ajv-formats: 3.0.1
       content-type: 1.0.5
@@ -848,7 +848,7 @@ snapshots:
       eventsource-parser: 3.1.1
       express: 5.3.0
       express-rate-limit: 8.7.4(express@5.3.0)
-      hono: 4.13.17
+      hono: 4.13.18
       jose: 6.2.17
       json-schema-typed: 8.0.2
       pkce-challenge: 5.0.1
@@ -944,7 +944,7 @@ snapshots:
 
   balanced-match@4.0.4: {}
 
-  better-sqlite3@13.0.3:
+  better-sqlite3@13.1.1:
     dependencies:
       node-addon-api: 8.9.2
 
@@ -962,7 +962,7 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  brace-expansion@5.0.12:
+  brace-expansion@5.0.13:
     dependencies:
       balanced-match: 4.0.4
 
@@ -1013,7 +1013,7 @@ snapshots:
 
   ee-first@1.1.1: {}
 
-  encodeurl@2.0.1: {}
+  encodeurl@2.0.3: {}
 
   es-define-property@1.0.1: {}
 
@@ -1080,7 +1080,7 @@ snapshots:
       cookie-signature: 1.2.2
       debug: 4.4.3
       depd: 2.0.0
-      encodeurl: 2.0.1
+      encodeurl: 2.0.3
       escape-html: 1.0.3
       etag: 1.8.1
       finalhandler: 2.1.1
@@ -1110,7 +1110,7 @@ snapshots:
   finalhandler@2.1.1:
     dependencies:
       debug: 4.4.3
-      encodeurl: 2.0.1
+      encodeurl: 2.0.3
       escape-html: 1.0.3
       on-finished: 2.4.2
       parseurl: 1.3.3
@@ -1145,9 +1145,9 @@ snapshots:
       dunder-proto: 1.0.1
       es-object-atoms: 1.1.2
 
-  glob@14.0.4:
+  glob@14.0.6:
     dependencies:
-      minimatch: 11.0.7
+      minimatch: 11.0.8
       minipass: 7.1.3
       path-scurry: 3.0.0
 
@@ -1159,7 +1159,7 @@ snapshots:
     dependencies:
       function-bind: 1.1.2
 
-  hono@4.13.17: {}
+  hono@4.13.18: {}
 
   http-errors@2.0.1:
     dependencies:
@@ -1203,10 +1203,10 @@ snapshots:
     dependencies:
       mime-db: 1.54.0
 
-  minimatch@11.0.7:
+  minimatch@11.0.8:
     dependencies:
       '@isaacs/nonrecursive-glob-match': 1.1.0
-      brace-expansion: 5.0.12
+      brace-expansion: 5.0.13
 
   minipass@7.1.3: {}
 
@@ -1279,7 +1279,7 @@ snapshots:
   send@1.2.1:
     dependencies:
       debug: 4.4.3
-      encodeurl: 2.0.1
+      encodeurl: 2.0.3
       escape-html: 1.0.3
       etag: 1.8.1
       fresh: 2.0.0
@@ -1294,7 +1294,7 @@ snapshots:
 
   serve-static@2.2.1:
     dependencies:
-      encodeurl: 2.0.1
+      encodeurl: 2.0.3
       escape-html: 1.0.3
       parseurl: 1.3.3
       send: 1.2.1
