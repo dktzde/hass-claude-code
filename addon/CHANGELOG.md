@@ -1,3 +1,10 @@
+## 0.13.1
+
+<sub>2026-11-14</sub>
+
+- **Automated update** by the GitHub Action "Update add-on" ([workflow run](https://github.com/dktzde/hass-claude-code/actions/runs/43610361326))
+- Update the bundled Home Assistant docs (1 files changed)
+
 ## 0.13.0
 
 <sub>2026-11-14</sub>

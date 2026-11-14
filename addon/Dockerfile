@@ -38,7 +38,7 @@ COPY mcp-server/ ./mcp-server/
 # after the dependency install so a docs change does not re-resolve npm deps.
 ARG DOCS_REPO=https://github.com/dktzde/hass-claude-code.git
 ARG DOCS_REF=main
-ARG DOCS_STAMP=1799ec97ba2df85e335189ca87ab2f6428efa362
+ARG DOCS_STAMP=d9de33186db050e8b47f190265af721f1e2e5142
 RUN echo "Docs stamp: ${DOCS_STAMP}" && \
     git clone --depth 1 --branch "${DOCS_REF}" "${DOCS_REPO}" /tmp/repo && \
     cp -r /tmp/repo/docs /build/docs && \
