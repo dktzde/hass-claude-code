@@ -1,3 +1,15 @@
+## 0.13.0
+
+<sub>2026-11-14</sub>
+
+The web terminal reconnects on its own, also after the computer slept.
+
+### Changes
+
+- When the connection of the terminal breaks, the page now reconnects by itself as soon as you look at it again. Pressing Enter at "Press ⏎ to Reconnect" is no longer needed
+- After a laptop sleep, a phone in the background or a frozen browser tab, Enter at "Press ⏎ to Reconnect" did nothing; only reloading the page in the address bar helped. Cause: Home Assistant lets the browser into the add-on with an Ingress session, which expires while the page does not run, and the web terminal (ttyd 1.7.7) tried once more with the expired session only. The page now notices the expired session and reloads Home Assistant once, which starts a new session, as a manual reload does
+- While the add-on or Home Assistant restarts, the page keeps trying (after 2 s, 4 s, 8 s, up to every 30 s) and reconnects when they are back
+
 ## 0.12.4
 
 <sub>2026-11-14</sub>

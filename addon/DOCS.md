@@ -29,6 +29,7 @@ Changes to the options take effect after a restart of the add-on.
 - **Copy:** hold <kbd>Shift</kbd> and select text with the mouse. Text that Claude Code copies itself, for example with `/copy`, lands in the browser clipboard too, also on a phone.
 - **Paste:** <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>V</kbd> on Linux.
 - **Sessions keep running:** tmux keeps Claude Code running when you close the browser tab. A second browser tab shows the same session.
+- **Reconnects by itself:** after a lost connection (computer asleep, add-on restarted) the terminal reconnects as soon as you look at the page again. If the Home Assistant login of the page expired meanwhile, the page reloads Home Assistant once.
 - **Your own notes for Claude** go into `/homeassistant/CLAUDE.md`. Claude Code loads it into every session, so keep it short. The add-on describes its own environment in `/etc/claude-code/CLAUDE.md` and refreshes that file on every start.
 - **Permanent tools:** packages you install with `apk add` are gone after a restart. Add them to **Additional packages** instead.
 - **MQTT:** with the Mosquitto broker add-on installed, Claude gets the broker credentials as `MQTT_HOST`, `MQTT_PORT`, `MQTT_USERNAME` and `MQTT_PASSWORD`.
