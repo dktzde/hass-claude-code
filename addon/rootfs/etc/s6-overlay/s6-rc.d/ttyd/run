@@ -32,40 +32,55 @@ options+=(-t disableLeaveAlert=true)
 ingress_port=$(bashio::app.ingress_port)
 options+=(-p "${ingress_port}")
 
-# Browser scripts in ttyd's page: clipboard.js writes what tmux copies
-# (OSC 52) into the browser clipboard, which ttyd 1.7.7 drops. With the
-# option mobile_scroll, touch-scroll.js turns swipes into mouse wheel events.
-# The Dockerfile saved ttyd's own page; the scripts go in before </body>. If
-# anything fails, ttyd serves its built-in page and the terminal works as
-# before.
+# Browser scripts in ttyd's page: reconnect.js reconnects the terminal on
+# its own, also after the Ingress session of Home Assistant expired (ttyd's
+# "Press ⏎ to Reconnect" fails then). It goes into <head>, before ttyd's code,
+# so it sees ttyd's WebSocket. clipboard.js writes what tmux copies (OSC 52)
+# into the browser clipboard, which ttyd 1.7.7 drops. With the option
+# mobile_scroll, touch-scroll.js turns swipes into mouse wheel events. These
+# go in before </body>. The Dockerfile saved ttyd's own page. If anything
+# fails, ttyd serves its built-in page and the terminal works as before.
 declare page=/usr/share/ttyd-addon/ttyd-index.html
 declare index=/run/ttyd-addon/index.html
-declare -a scripts=(/usr/share/ttyd-addon/clipboard.js)
+declare -a head_scripts=(/usr/share/ttyd-addon/reconnect.js)
+declare -a body_scripts=(/usr/share/ttyd-addon/clipboard.js)
 if bashio::config.true 'mobile_scroll'; then
     bashio::log.info 'Swipe to scroll on touch screens is on (mobile_scroll).'
-    scripts+=(/usr/share/ttyd-addon/touch-scroll.js)
+    body_scripts+=(/usr/share/ttyd-addon/touch-scroll.js)
 fi
 if [[ -s "${page}" ]] && mkdir -p /run/ttyd-addon &&
-   python3 - "${page}" "${index}" "${scripts[@]}" << 'PY'
+   python3 - "${page}" "${index}" "${head_scripts[@]}" -- "${body_scripts[@]}" << 'PY'
 import sys
 
-page, index, *scripts = sys.argv[1:]
+page, index, *rest = sys.argv[1:]
+separator = rest.index("--")
+head_scripts, body_scripts = rest[:separator], rest[separator + 1:]
+
+
+def tags(scripts):
+    result = ""
+    for script in scripts:
+        with open(script, encoding="utf-8") as f:
+            result += "<script>" + f.read() + "</script>"
+    return result
+
+
 with open(page, encoding="utf-8") as f:
     html = f.read()
+# The first </head> ends the real head (ttyd's code is in <body>); the last
+# </body> ends the body (ttyd's code may contain the text "</body>").
+head = html.find("</head>")
 end = html.rfind("</body>")
-if end < 0:
-    sys.exit("no </body> in ttyd's page")
-tags = ""
-for script in scripts:
-    with open(script, encoding="utf-8") as f:
-        tags += "<script>" + f.read() + "</script>"
+if head < 0 or end < head:
+    sys.exit("no </head> or </body> in ttyd's page")
 with open(index, "w", encoding="utf-8") as f:
-    f.write(html[:end] + tags + html[end:])
+    f.write(html[:head] + tags(head_scripts) + html[head:end]
+            + tags(body_scripts) + html[end:])
 PY
 then
     options+=(--index "${index}")
 else
-    bashio::log.warning "Could not add the browser scripts to ttyd's page; copying into the browser clipboard and mobile_scroll will not work."
+    bashio::log.warning "Could not add the browser scripts to ttyd's page; reconnecting on its own, copying into the browser clipboard and mobile_scroll will not work."
 fi
 
 # Change working directory
