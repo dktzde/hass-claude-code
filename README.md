@@ -23,7 +23,7 @@ Thank you both!
 - **MQTT clients** `mosquitto_pub` and `mosquitto_sub`, to inspect and test MQTT devices. With the Mosquitto broker add-on installed, the add-on gets the broker credentials from Home Assistant and passes them to Claude as `MQTT_HOST`, `MQTT_PORT`, `MQTT_USERNAME` and `MQTT_PASSWORD`
 - **GitHub CLI** `gh`, for example to keep your configuration in a GitHub repository
 - **Knows its environment**: on every start the add-on writes `/etc/claude-code/CLAUDE.md`, which Claude Code loads automatically. It lists the paths, MCP tools, APIs and command line tools. Your own notes for Claude go into `/homeassistant/CLAUDE.md`
-- **Persistent sessions**: tmux keeps Claude running when you close the browser tab. The Claude Code login, history and memory, the GitHub CLI login and the git config survive restarts
+- **Persistent sessions**: tmux keeps Claude running when you close the browser tab, and the page reconnects on its own after a lost connection. The Claude Code login, history and memory, the GitHub CLI login and the git config survive restarts
 - **Weekly updates** of Claude Code, system packages and docs (see [Updates](#updates))
 
 ## Quick guide
@@ -140,7 +140,7 @@ The image is built in two stages:
 1. **Builder:** installs the MCP server dependencies, clones the docs from this repository and builds a keyword search index.
 2. **Add-on image:** based on the Home Assistant community add-on base image. Installs Claude Code, Python 3 with PyYAML, the MQTT clients, Node.js, ttyd, tmux and a few tools, and copies in the MCP server, the index and the docs.
 
-s6-overlay starts the services: environment setup, optional packages, and finally ttyd, which runs Claude Code inside tmux. The image saves ttyd's own web page at build time, and the ttyd service adds the scripts from `addon/rootfs/usr/share/ttyd-addon/` to it (`clipboard.js`: copy into the browser clipboard; `touch-scroll.js`: swipe to scroll, with `mobile_scroll`). Claude Code starts the MCP server itself as a child process over stdio, so it needs no network port.
+s6-overlay starts the services: environment setup, optional packages, and finally ttyd, which runs Claude Code inside tmux. The image saves ttyd's own web page at build time, and the ttyd service adds the scripts from `addon/rootfs/usr/share/ttyd-addon/` to it (`reconnect.js`: reconnect on its own, also after the Ingress session expired; `clipboard.js`: copy into the browser clipboard; `touch-scroll.js`: swipe to scroll, with `mobile_scroll`). Claude Code starts the MCP server itself as a child process over stdio, so it needs no network port.
 
 ```
 addon/
