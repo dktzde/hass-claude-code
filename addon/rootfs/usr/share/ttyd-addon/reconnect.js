@@ -43,6 +43,8 @@
   // Backoff between checks while the add-on cannot be reached
   var RETRY_MIN = 2000;
   var RETRY_MAX = 30000;
+  // Longest wait for an answer from /token
+  var FETCH_TIMEOUT = 10000;
   // Reload limits, counted per browser tab (sessionStorage)
   var WINDOW = 60000;
   var MAX_TERMINAL_RELOADS = 3;
@@ -156,10 +158,27 @@
       return;
     }
     checking = true;
-    fetch(tokenUrl(), { cache: 'no-store', credentials: 'same-origin' })
+    // A stalled request would block every later check; abort it after a
+    // deadline, so it ends in retry() like a network error
+    var options = { cache: 'no-store', credentials: 'same-origin' };
+    var deadline = null;
+    if (typeof AbortController === 'function') {
+      var controller = new AbortController();
+      options.signal = controller.signal;
+      deadline = setTimeout(function () {
+        controller.abort();
+      }, FETCH_TIMEOUT);
+    }
+    fetch(tokenUrl(), options)
       .then(function (response) {
+        clearTimeout(deadline);
         checking = false;
         if (!lost()) {
+          return;
+        }
+        if (document.visibilityState === 'hidden') {
+          // Hidden while the request ran: no reload in the background,
+          // visibilitychange starts the next check
           return;
         }
         if (response.ok) {
@@ -170,6 +189,7 @@
           retry();
         }
       }, function () {
+        clearTimeout(deadline);
         checking = false;
         retry();
       });
