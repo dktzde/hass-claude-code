@@ -49,7 +49,7 @@ USAGE_BETA = "oauth-2025-04-20"  # header anthropic-beta
 CREDENTIALS = Path(os.environ.get("HOME", "/root")) / ".claude" / ".credentials.json"  # Claude Code login (read only)
 USER_AGENT_FALLBACK = "claude-code/2.1.0"  # used if `claude --version` fails (without a real-looking agent: HTTP 429)
 API_TIMEOUT_S = 20
-TMUX_NAME = "usagecap"  # separate tmux session, only for the fallback
+TMUX_NAME = f"usagecap_{os.getpid()}"  # separate tmux session per run, only for the fallback
 WORK_DIR = "/homeassistant"  # must be a trusted folder, or Claude asks first
 WAIT_START_S = 60  # wait this long for the Claude prompt
 WAIT_USAGE_S = 40  # wait this long for the numbers in /usage
@@ -145,15 +145,18 @@ def pattern_share(start, end, now, costs):
     for d, k in costs.items():
         per_day[d.weekday()].append(k)
     mean = {w: (sum(v) / len(v) if v else 0.0) for w, v in per_day.items()}
+
+    def overlap(day, a, b):  # part of the calendar day that lies between a and b (0..1)
+        d0 = dt.datetime.combine(day, dt.time())
+        lo, hi = max(d0, a), min(d0 + dt.timedelta(days=1), b)
+        return max((hi - lo).total_seconds(), 0.0) / 86400
+
     total = passed = 0.0
     day = start.date()
-    for _ in range(WINDOW_DAYS):
+    while day <= end.date():  # every calendar day the window touches, the partial first and last ones included
         m = mean[day.weekday()]
-        total += m
-        if day < now.date():
-            passed += m
-        elif day == now.date():
-            passed += m * (now.hour * 60 + now.minute) / 1440
+        total += m * overlap(day, start, end)
+        passed += m * overlap(day, start, now)
         day += dt.timedelta(days=1)
     return passed / total if total > 0 else None
 
@@ -229,7 +232,6 @@ def screen():
 
 def read_screen():
     """Start claude in its own tmux session, open /usage, return the screen text."""
-    subprocess.run(["tmux", "kill-session", "-t", TMUX_NAME], capture_output=True)
     subprocess.run(["tmux", "new-session", "-d", "-s", TMUX_NAME, "-x", "160", "-y", "60", "-c", WORK_DIR, "claude"],
                    check=True, capture_output=True, timeout=20)
     try:
