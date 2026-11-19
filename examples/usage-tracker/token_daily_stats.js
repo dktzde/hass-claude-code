@@ -179,7 +179,7 @@ async function run(rebuild) {
   try {
     const t0 = Date.now();
     let old = '';
-    try { old = fs.readFileSync(CSV_FILE, 'utf8'); } catch (_) { /* no CSV yet */ }
+    try { old = fs.readFileSync(CSV_FILE, 'utf8'); } catch (e) { if (e.code !== 'ENOENT') throw e; /* no CSV yet */ }  // never replace a CSV we cannot read
     if (rebuild && old) {  // keep a copy; the live CSV stays until the new one is complete
       const stamp = new Date().toISOString().replace(/[-:]/g, '').replace('T', '_').slice(0, 15);
       fs.copyFileSync(CSV_FILE, `${CSV_FILE}.bak_${stamp}`);
