@@ -41,6 +41,7 @@ Thank you both!
   The new window is a login shell whose `PATH` lacks `/root/.local/bin`, so a plain `claude` ends in "claude: not found". Switch between the windows with <kbd>Ctrl</kbd>+<kbd>b</kbd>, then <kbd>n</kbd> (next) or <kbd>p</kbd> (previous). A second browser tab does not start a second session, it shows the same one.
 - **Keep `CLAUDE.md` short:** Claude Code loads `/homeassistant/CLAUDE.md` and its memory index (`MEMORY.md`) into every session, so every line costs tokens each time. Keep only the rules every session needs there, plus a table of contents. Put details into separate topic files that Claude reads when the topic comes up.
 - **Chat log:** the Stop hook in [`examples/chat-log-hook`](examples/chat-log-hook/) writes your prompts and Claude's answers into one Markdown file per day, with a separate file for the second session, so you can read an answer again after it has scrolled out of the terminal. Its README explains what it does and how to install it.
+- **Usage tracker:** the scripts in [`examples/usage-tracker`](examples/usage-tracker/) write your daily token use with the cost at Claude API list prices and the weekly limit of `/usage` (with a projection to the reset) into CSV files, with an optional sensor for Home Assistant.
 
 ## Installation
 
@@ -152,6 +153,7 @@ addon/
 docs/                  # Bundled Home Assistant docs, generated weekly
 examples/
   chat-log-hook/       # Optional Stop hook: daily Markdown log of your chats
+  usage-tracker/       # Optional: daily token costs and weekly limit as CSV + sensor
 ```
 
 ## Local development

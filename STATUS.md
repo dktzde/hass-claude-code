@@ -2,9 +2,11 @@
 
 Handover file for the maintainer and for Claude Code sessions working on this repository. **Read this first, and update it after every step** (state, decisions, next steps), so the next session can continue without the chat history.
 
-Last updated: 2026-11-14 (0.13.1 on the device and checked by the maintainer; before: 0.13.0 in review, the web terminal reconnects on its own)
+Last updated: 2026-11-19 (examples/usage-tracker in review, docs and scripts only, no new version)
 
 ## Current state
+
+- **`examples/usage-tracker/` (branch `feat/usage-tracker-example`, in review 2026-11-19, no new version):** daily token statistics with the cost at Claude API list prices (`token_daily_stats.js`, Stop hook + schedule), weekly limit from the undocumented usage endpoint behind `/usage` with a tmux fallback and a projection (`weekly_limit.py`), busybox `crond` schedule set up by a SessionStart hook (`cron.sh`), optional `command_line` sensor and Markdown card. Tested 2026-11-19 on the maintainer's device with a scratch data folder: `run` read 10 637 requests and wrote 78 rows for 24 days (cost per day equal to the maintainer's own private version), `weekly_limit.py read` via the endpoint (65 %, Claude Code share 58 %, projections 102.5 % / 106.8 %), `cron.sh ensure` (twice, no duplicate lines, `cron.update` written), `weekly` and `daily`, `costs_sensor.py`, the card template rendered by Home Assistant. **Not tested:** the tmux fallback of this copy (ported unchanged from the private version, which works), the sensor inside Home Assistant.
 
 - **0.13.1 on the device since 2026-11-14 ≈ 16:31 (local time, update with backup), checked 2026-11-14:** dktzde/hass-claude-code#57 merged (merge commit `a99103e`), the Action run on `main` was green and released 0.13.1 (0.13.0 plus the automated docs update `71f3ac6`). Add-on version 0.13.1, started, Claude Code 2.1.325, the log has no errors or warnings; ttyd runs with `--index /run/ttyd-addon/index.html` and `disableLeaveAlert`, the generated page loads `reconnect.js` in `<head>`. **Checked by the maintainer 2026-11-14:** (1) laptop asleep or tab left for more than 15 minutes: the terminal reconnects without Enter; (2) add-on restart with the page open: it reconnects; (3) phone in the background: works. The maintainer closed the topic; (4) copying, `mobile_scroll`, `mobile_tabs` and (5) the browser console were not reported separately.
 
@@ -129,3 +131,4 @@ Last updated: 2026-11-14 (0.13.1 on the device and checked by the maintainer; be
 - `.claude/skills/update-claude/SKILL.md`: manual Claude Code update
 - `.claude/skills/hass-dev-docs/`, `.claude/agents/hass-docs-search.md`: update scripts for `docs/`, search with `rg` (development only)
 - `examples/chat-log-hook/`: optional Stop hook for users (daily chat log), not part of the image
+- `examples/usage-tracker/`: optional usage tracker (token costs, weekly limit, sensor), not part of the image
