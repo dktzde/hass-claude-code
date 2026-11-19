@@ -1,3 +1,11 @@
+## 0.13.2
+
+<sub>2026-11-19</sub>
+
+### Changes
+
+- **Mobile tabs:** the ↑/↓ scroll buttons and the page counter are gone from the bar. Scroll with the mouse wheel, or on a phone with `mobile_scroll` (swipe to scroll). The bar now has the tabs, ⇧⇥, `+` and Esc. Enter is no longer bound by tmux.
+
 ## 0.13.1
 
 <sub>2026-11-14</sub>
