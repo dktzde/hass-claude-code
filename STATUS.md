@@ -2,9 +2,11 @@
 
 Handover file for the maintainer and for Claude Code sessions working on this repository. **Read this first, and update it after every step** (state, decisions, next steps), so the next session can continue without the chat history.
 
-Last updated: 2026-11-14 (0.13.1 on the device and checked by the maintainer; before: 0.13.0 in review, the web terminal reconnects on its own)
+Last updated: 2026-11-19 (0.13.2 in review: mobile tabs without scroll buttons)
 
 ## Current state
+
+- **0.13.2 (branch `feat/mobile-tabs-no-arrows`, in review 2026-11-19): mobile tabs without ↑/↓.** The maintainer asked to remove the scroll buttons: they scroll with `mobile_scroll` on the phone (on, works well) and the mouse wheel on the computer. `tmux-mobile.conf` drops the ↑/↓ buttons, the page counter `@scroll`, their branches in `MouseDown1Status` and the `Enter` binding that only reset the counter. The `+` button stays 3 cells wide (` + `, maintainer's decision). The maintainer reported that a click on `+` on the computer sometimes switches the Claude Code mode instead; not fixed here. Suspected cause, not verified: `⇧` (U+21E7) has the East Asian width "ambiguous", so a browser font may draw it wider than one cell and shift what the user sees against tmux's click ranges; the maintainer keeps `⇧⇥` as it is (2026-11-19). CodeRabbit review 2026-11-19: no findings. Merged at the maintainer's request. Tested here: the config loads in tmux 3.7c on a separate socket, no root `Enter` binding left, YAML of `config.yaml` and the translations parses. **Not tested:** the device (phone and computer).
 
 - **Store icon, logo and description (branch `feat/store-icon-logo`, 2026-11-19, no new version):** `addon/icon.png` and `addon/logo.png` (own design: a plain terminal prompt `>_`, no third-party logos), a clearer `description` in `config.yaml`, the icon at the top of the README. Repository description, topics and homepage were set on GitHub the same day. Not checked yet: how the store shows icon and logo after a repository refresh (light and dark theme).
 
