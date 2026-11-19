@@ -1,3 +1,5 @@
+<img src="addon/icon.png" alt="" width="96" align="right">
+
 # Claude Code for Home Assistant
 
 A Home Assistant add-on that runs [Claude Code](https://docs.anthropic.com/en/docs/claude-code) inside your Home Assistant instance. You get a web terminal in the sidebar, full access to your configuration and a built-in MCP server, so Claude can look up entities, call services and search the Home Assistant docs.
