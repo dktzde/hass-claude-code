@@ -33,18 +33,25 @@ const DECIMAL_COMMA = false;    // true: 1,2345 instead of 1.2345
 // Claude API list prices, USD per million tokens (input, cache write 1 h, cache write 5 min,
 // cache read, output), as of November 2026. Key = start of the model ID, the longest match wins.
 // A model that is missing here gets an empty cost and is named in the log: add it.
+// LONG_PROMPT: models with a higher price for requests whose prompt (input + cache write + cache read)
+// is above "above" tokens; such a request is priced with "prices" instead.
 const PRICES = {
   'claude-fable-5-2':  [8, 16, 10, 0.20, 40],
   'claude-fable-5-1':  [10, 20, 12.5, 0.25, 50],
   'claude-fable-5':    [10, 20, 12.5, 1.00, 50],
   'claude-opus-5-5':   [4, 8, 5, 0.20, 20],
   'claude-opus-5':     [5, 10, 6.25, 0.50, 25],
-  'claude-opus-4':     [5, 10, 6.25, 0.50, 25],
+  'claude-opus-4':     [5, 10, 6.25, 0.50, 25],     // Opus 4.5 and later
+  'claude-opus-4-1':   [15, 30, 18.75, 1.50, 75],   // Opus 4.1
+  'claude-opus-4-2025': [15, 30, 18.75, 1.50, 75],  // Opus 4 (claude-opus-4-20250514)
   'claude-sonnet-5-5': [2, 4, 2.5, 0.10, 10],
   'claude-sonnet-5':   [2, 4, 2.5, 0.20, 10],
   'claude-sonnet-4':   [3, 6, 3.75, 0.30, 15],
   'claude-haiku-5-5':  [0.10, 0.20, 0.125, 0.01, 0.50],
   'claude-haiku-4':    [1, 2, 1.25, 0.10, 5],
+};
+const LONG_PROMPT = {
+  'claude-haiku-5-5': { above: 100000, prices: [0.50, 1.00, 0.625, 0.05, 2.50] },
 };
 // ========================================================================================
 
@@ -64,9 +71,16 @@ function log(text) {
 function readState() { try { return JSON.parse(fs.readFileSync(STATE_FILE, 'utf8')); } catch (_) { return {}; } }
 function writeState(s) { fs.writeFileSync(STATE_FILE, JSON.stringify(s, null, 2)); }
 
-function priceFor(model) {
-  const key = Object.keys(PRICES).filter((k) => model.startsWith(k)).sort((a, b) => b.length - a.length)[0];
-  return key ? PRICES[key] : null;
+const longestKey = (table, model) => Object.keys(table).filter((k) => model.startsWith(k)).sort((a, b) => b.length - a.length)[0];
+
+// Cost of one request in USD, or null if the model has no price
+function costOf(r) {
+  const key = longestKey(PRICES, r.model);
+  if (!key) return null;
+  let p = PRICES[key];
+  const long = LONG_PROMPT[longestKey(LONG_PROMPT, r.model)];
+  if (long && r.input + r.cache_1h + r.cache_5m + r.cache_read > long.above) p = long.prices;
+  return (r.input * p[0] + r.cache_1h * p[1] + r.cache_5m * p[2] + r.cache_read * p[3] + r.output * p[4]) / 1e6;
 }
 
 function allJsonl(dir) {
@@ -130,25 +144,21 @@ function rowsFor(requests, days, unknown) {
     const key = [day, r.model, r.effort].join('|');
     let s = g.get(key);
     if (!s) {
-      s = { day, model: r.model, effort: r.effort, n: 0, input: 0, cache_1h: 0, cache_5m: 0, cache_read: 0, output: 0, thinking: 0 };
+      s = { day, model: r.model, effort: r.effort, n: 0, input: 0, cache_1h: 0, cache_5m: 0, cache_read: 0, output: 0, thinking: 0, cost: 0 };
       g.set(key, s);
     }
     s.n++;
     for (const k of ['input', 'cache_1h', 'cache_5m', 'cache_read', 'output', 'thinking']) s[k] += r[k];
+    const c = costOf(r);  // per request: the price tier can depend on the prompt length
+    if (c === null) unknown.add(r.model); else s.cost += c;
   }
   const rows = [...g.values()].sort((x, y) => x.day.localeCompare(y.day) || x.model.localeCompare(y.model) || x.effort.localeCompare(y.effort));
-  return rows.map((s) => {
-    const p = priceFor(s.model);
-    if (!p) unknown.add(s.model);
-    const cost = p ? (s.input * p[0] + s.cache_1h * p[1] + s.cache_5m * p[2] + s.cache_read * p[3] + s.output * p[4]) / 1e6 : null;
-    return [s.day, s.model, s.effort, s.n, s.input, s.cache_1h, s.cache_5m, s.cache_read, s.output, s.thinking,
-      cost === null ? '' : num(cost, 4)].join(CSV_DELIMITER);
-  });
+  return rows.map((s) => [s.day, s.model, s.effort, s.n, s.input, s.cache_1h, s.cache_5m, s.cache_read, s.output, s.thinking,
+    unknown.has(s.model) ? '' : num(s.cost, 4)].join(CSV_DELIMITER));
 }
 
-function lastDayInCsv() {
-  let text;
-  try { text = fs.readFileSync(CSV_FILE, 'utf8'); } catch (_) { return null; }
+function lastDayInCsv(text) {
+  if (!text) return null;
   let max = null;
   for (const line of text.split('\n').slice(1)) {
     const t = line.slice(0, 10);
@@ -168,19 +178,32 @@ async function run(rebuild) {
   fs.writeSync(fd, String(process.pid)); fs.closeSync(fd);
   try {
     const t0 = Date.now();
-    if (rebuild && fs.existsSync(CSV_FILE)) {
+    let old = '';
+    try { old = fs.readFileSync(CSV_FILE, 'utf8'); } catch (_) { /* no CSV yet */ }
+    if (rebuild && old) {  // keep a copy; the live CSV stays until the new one is complete
       const stamp = new Date().toISOString().replace(/[-:]/g, '').replace('T', '_').slice(0, 15);
-      fs.renameSync(CSV_FILE, `${CSV_FILE}.bak_${stamp}`);
+      fs.copyFileSync(CSV_FILE, `${CSV_FILE}.bak_${stamp}`);
+      old = '';
     }
     const today = localDay(new Date());
-    const last = lastDayInCsv();
+    const last = lastDayInCsv(old);
     const requests = await readRequests();
     const days = new Set();
     for (const r of requests) { const t = localDay(r.time); if (t < today && (!last || t > last)) days.add(t); }
     const unknown = new Set();
     const rows = rowsFor(requests, days, unknown);
-    if (!fs.existsSync(CSV_FILE)) fs.writeFileSync(CSV_FILE, COLUMNS.join(CSV_DELIMITER) + '\n');
-    if (rows.length) fs.appendFileSync(CSV_FILE, rows.join('\n') + '\n');
+    if (rows.length || !old) {
+      // all or nothing: old content + new rows into a temporary file, then replace the CSV in one step
+      const text = (old || COLUMNS.join(CSV_DELIMITER) + '\n') + (old && !old.endsWith('\n') ? '\n' : '')
+        + (rows.length ? rows.join('\n') + '\n' : '');
+      const tmp = `${CSV_FILE}.tmp_${process.pid}`;
+      try {
+        fs.writeFileSync(tmp, text);
+        fs.renameSync(tmp, CSV_FILE);
+      } finally {
+        fs.rmSync(tmp, { force: true });
+      }
+    }
     log(`${rows.length} rows for ${days.size} day(s) [${[...days].sort().join(', ') || '-'}] in ${((Date.now() - t0) / 1000).toFixed(1)} s; `
       + `${requests.length} requests read` + (unknown.size ? `; NO PRICE for: ${[...unknown].join(', ')} (add to PRICES)` : ''));
     const st = readState(); st.last_run = today; st.last_success = new Date().toISOString(); writeState(st);
