@@ -42,24 +42,24 @@ def main():
     rows = read(data / "claude_token_usage.csv")
     for r in rows:
         per_day[r["date"]] = per_day.get(r["date"], 0.0) + number(r.get("cost_usd")) * rate
-    if not per_day:
-        print(json.dumps({"ok": False, "error": "no daily CSV yet"}))
+    weekly = (read(data / "weekly_limit.csv") or [{}])[-1]
+    weekly = {k: weekly.get(k) for k in ("date", "time", "limit_used_pct", "session_pct", "claude_code_share_pct",
+                                         "week_passed_pct", "projection_linear_pct", "projection_pattern_pct", "window_end")}
+    if not per_day:  # new installation: no finished day yet, but the weekly limit may already be there
+        print(json.dumps({"ok": False, "error": "no daily CSV rows yet", "rate": rate, "weekly": weekly}))
         return
     last = dt.date.fromisoformat(max(per_day))
     days = [(last - dt.timedelta(days=i)).isoformat() for i in range(30)]
     for r in rows:
         if r["date"] in days:
             per_model[r["model"]] = per_model.get(r["model"], 0.0) + number(r.get("cost_usd")) * rate
-    weekly = (read(data / "weekly_limit.csv") or [{}])[-1]
     print(json.dumps({
         "ok": True, "last_day": last.isoformat(), "rate": rate,
         "day": round(per_day.get(days[0], 0.0), 2), "day_before": round(per_day.get(days[1], 0.0), 2),
         "week": round(sum(per_day.get(d, 0.0) for d in days[:7]), 2),
         "month": round(sum(per_day.get(d, 0.0) for d in days), 2),
         "month_by_model": {k: round(v, 2) for k, v in sorted(per_model.items(), key=lambda x: -x[1])},
-        "weekly": {k: weekly.get(k) for k in ("date", "time", "limit_used_pct", "session_pct", "claude_code_share_pct",
-                                              "week_passed_pct", "projection_linear_pct", "projection_pattern_pct",
-                                              "window_end")},
+        "weekly": weekly,
     }))
 
 

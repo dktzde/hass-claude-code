@@ -42,10 +42,12 @@ case "$1" in
   daily)
     mkdir -p "$(dirname "$LOG")"
     node "$DIR/token_daily_stats.js" cron
+    rc=$?
     if [ -n "$SENSOR" ]; then
       code=$(ha_post services/homeassistant/update_entity "{\"entity_id\": \"$SENSOR\"}")
       echo "$(date '+%Y-%m-%d %H:%M:%S') daily: $SENSOR refreshed (HTTP $code)" >> "$LOG"
     fi
+    exit "$rc"
     ;;
   weekly)
     mkdir -p "$(dirname "$LOG")"
@@ -56,6 +58,7 @@ case "$1" in
       ha_post services/persistent_notification/create \
         '{"notification_id": "claude_weekly_limit", "title": "Claude weekly limit", "message": "The weekly limit could be read neither from the usage endpoint nor from /usage. See the column raw in weekly_limit.csv."}' >/dev/null
     fi
+    exit "$rc"
     ;;
   *)
     echo "Usage: cron.sh ensure|daily|weekly [label]" >&2; exit 2 ;;
