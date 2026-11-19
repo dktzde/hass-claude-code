@@ -1,0 +1,22 @@
+# Example dashboard card (Markdown card). Add a card, choose "Manual" and paste this.
+type: markdown
+title: Claude Code usage
+content: |-
+  {% set s = 'sensor.claude_usage' %}{% set w = state_attr(s, 'weekly') or {} %}{% set m = state_attr(s, 'month_by_model') or {} %}
+  **Weekly limit:** {{ w.limit_used_pct or '–' }} % used, {{ w.week_passed_pct or '–' }} % of the week passed
+  ({{ w.date }} {{ w.time }}).
+
+  Projection to {{ w.window_end or '–' }}: linear {{ w.projection_linear_pct or '–' }} %, pattern {{ w.projection_pattern_pct or '–' }} %.
+  Claude Code share: {{ w.claude_code_share_pct or '–' }} %.
+
+
+  **What it would cost at API list prices** (up to {{ states(s) }}):
+
+  | | Cost |
+  |:--|--:|
+  | Last day | {{ state_attr(s, 'day') }} |
+  | Day before | {{ state_attr(s, 'day_before') }} |
+  | 7 days | {{ state_attr(s, 'week') }} |
+  | 30 days | {{ state_attr(s, 'month') }} |
+  {% for k, v in m.items() %}| 30 days, {{ k }} | {{ v }} |
+  {% endfor %}
