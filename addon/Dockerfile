@@ -38,7 +38,7 @@ COPY mcp-server/ ./mcp-server/
 # after the dependency install so a docs change does not re-resolve npm deps.
 ARG DOCS_REPO=https://github.com/dktzde/hass-claude-code.git
 ARG DOCS_REF=main
-ARG DOCS_STAMP=d9de33186db050e8b47f190265af721f1e2e5142
+ARG DOCS_STAMP=dd9960fc581d1242149b98ab6ed4ff2f85882c3e
 RUN echo "Docs stamp: ${DOCS_STAMP}" && \
     git clone --depth 1 --branch "${DOCS_REF}" "${DOCS_REPO}" /tmp/repo && \
     cp -r /tmp/repo/docs /build/docs && \
@@ -114,7 +114,7 @@ RUN mkdir -p /usr/share/ttyd-addon; \
 
 # Pinned so a version change busts the Docker layer cache; the Supervisor
 # builds without --no-cache, so an unpinned install would stay stale forever.
-ARG CLAUDE_CODE_VERSION=2.1.325
+ARG CLAUDE_CODE_VERSION=2.1.328
 RUN curl -fsSL https://claude.ai/install.sh | bash -s "${CLAUDE_CODE_VERSION}"
 
 # Add Claude Code to PATH and disable auto-updater
