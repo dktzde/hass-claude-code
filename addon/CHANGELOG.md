@@ -1,3 +1,11 @@
+## 0.13.4
+
+<sub>2026-11-20</sub>
+
+### Changes
+
+- **New icon and logo:** a dark terminal with the prompt `>`, a large block cursor and the tab bar below (tab 1 orange, tab 2 grey), like the add-on itself.
+
 ## 0.13.3
 
 <sub>2026-11-19</sub>
