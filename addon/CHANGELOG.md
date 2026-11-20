@@ -1,3 +1,11 @@
+## 0.13.5
+
+<sub>2026-11-20</sub>
+
+### Changes
+
+- **New sidebar icon:** the Home Assistant sidebar now shows `mdi:console-network` (terminal with network) instead of the robot, matching the new terminal logo.
+
 ## 0.13.4
 
 <sub>2026-11-20</sub>

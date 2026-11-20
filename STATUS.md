@@ -2,9 +2,11 @@
 
 Handover file for the maintainer and for Claude Code sessions working on this repository. **Read this first, and update it after every step** (state, decisions, next steps), so the next session can continue without the chat history.
 
-Last updated: 2026-11-20 (0.13.4: new icon and logo)
+Last updated: 2026-11-20 (0.13.5: new sidebar icon)
 
 ## Current state
+
+- **0.13.5 (branch `feat/sidebar-icon-console-network`, 2026-11-20): new sidebar icon.** The sidebar cannot show the PNG logo, only an MDI icon (`panel_icon` in `addon/config.yaml`). Changed from `mdi:robot` to `mdi:console-network`, chosen by the maintainer. Not checked yet: the sidebar after the update.
 
 - **0.13.4 (branch `feat/icon-terminal-tabs`, 2026-11-20): new icon and logo.** The maintainer did not like the plain `>_` prompt and chose a design drawn from a screenshot of the add-on: dark terminal, grey prompt `>`, a large white block cursor, and the tab bar below (tab 1 orange, tab 2 grey). `assets/icon.svg` and `assets/logo.svg` changed, PNGs rendered with `rsvg-convert` at 128x128 and 250x100. Version bump so Home Assistant offers the update. Not checked yet: the store and the add-on page after the update (light and dark theme).
 

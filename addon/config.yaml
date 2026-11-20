@@ -1,6 +1,6 @@
 ---
 name: Claude Code
-version: 0.13.4
+version: 0.13.5
 slug: claude_code
 description: Claude Code in your sidebar, with an MCP server for entities, services and the Home Assistant docs
 # Linked as "more information" on the add-on page in Home Assistant
@@ -10,7 +10,7 @@ ingress: true
 ingress_port: 0
 ingress_stream: true
 init: false
-panel_icon: mdi:robot
+panel_icon: mdi:console-network
 panel_title: Claude Code
 arch:
   - aarch64
