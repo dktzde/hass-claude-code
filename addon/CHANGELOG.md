@@ -1,3 +1,12 @@
+## 0.13.6
+
+<sub>2026-11-21</sub>
+
+- **Automated update** by the GitHub Action "Update add-on" ([workflow run](https://github.com/dktzde/hass-claude-code/actions/runs/44910244313))
+- Update Claude Code to 2.1.330
+- Update npm dependencies of the MCP server: `@hono/node-server@2.1.11`, `express-rate-limit@8.7.5`, `jose@6.2.18`, `object-inspect@1.14.0`
+- Update the bundled Home Assistant docs (2 files changed)
+
 ## 0.13.5
 
 <sub>2026-11-20</sub>
