@@ -8,16 +8,14 @@
 #                          the second line of the tab bar shows
 #                          (/etc/tmux-mobile.conf). Prints nothing, so Claude
 #                          Code shows no status line of its own.
-# tmux-tab-info --show [N] Body of the popup that a tap on the second line
-#                          opens: full title, model and effort of window N
-#                          (default: the tmux option @hcc_popup_window, set
-#                          by the tap).
+# tmux-tab-info --show N   Body of the popup that a tap on the second line
+#                          opens: full title, model and effort of window N.
 # ==============================================================================
 
 sep=$'\x1f'
 
 show() {
-    local window="${1:-1}" target info title model model_id effort
+    local window="$1" target info title model model_id effort
     target=":${window}"
     # Fields are split at the unit separator (0x1f): a tab would collapse
     # empty fields. The title comes last, so it may contain anything.
@@ -45,7 +43,7 @@ show() {
 }
 
 if [[ "${1:-}" == "--show" ]]; then
-    show "${2:-$(tmux show -gqv @hcc_popup_window)}"
+    show "${2:?window number missing}"
     exit 0
 fi
 
