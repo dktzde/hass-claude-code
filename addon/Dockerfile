@@ -15,7 +15,13 @@ FROM alpine:3.24 AS mcp-builder
 # pnpm-workspace.yaml. An unpinned install broke this build once already (#4).
 # No compiler: better-sqlite3 13 ships prebuilt binaries for musl (x64 and
 # arm64), so nothing is compiled any more.
-RUN apk add --no-cache nodejs npm git && \
+# apk retries after 20 s and 2 min: the Supervisor builds on the user's own
+# network, where a short outage otherwise fails the whole update.
+RUN for wait in 20 120 0; do \
+        apk add --no-cache nodejs npm git && break; \
+        [ "${wait}" -eq 0 ] && exit 1; \
+        echo "apk failed, retrying in ${wait} s"; sleep "${wait}"; \
+    done && \
     npm install -g pnpm@11
 
 WORKDIR /build
@@ -69,25 +75,31 @@ ENV TERM="xterm-256color"
 # last CI build), refreshed by the weekly workflow when Alpine ships updates.
 # A new value busts the Docker layer cache; otherwise the Supervisor keeps the
 # versions from the first install forever.
-ARG PACKAGES_STAMP=317e0062e1b6
+ARG PACKAGES_STAMP=43b5f37c3032
 # hadolint ignore=DL3017,DL3018
+# apk retries after 20 s and 2 min (see the builder stage).
 RUN echo "Packages stamp: ${PACKAGES_STAMP}" && \
-    apk upgrade --no-cache && \
-    apk add --no-cache \
-    bash \
-    ca-certificates \
-    curl \
-    git \
-    github-cli \
-    libgcc \
-    libstdc++ \
-    mosquitto-clients \
-    nodejs \
-    py3-yaml \
-    python3 \
-    ripgrep \
-    tmux \
-    ttyd
+    for wait in 20 120 0; do \
+        apk upgrade --no-cache && \
+        apk add --no-cache \
+        bash \
+        ca-certificates \
+        curl \
+        git \
+        github-cli \
+        libgcc \
+        libstdc++ \
+        mosquitto-clients \
+        nodejs \
+        py3-yaml \
+        python3 \
+        ripgrep \
+        tmux \
+        ttyd \
+        && break; \
+        [ "${wait}" -eq 0 ] && exit 1; \
+        echo "apk failed, retrying in ${wait} s"; sleep "${wait}"; \
+    done
 
 # Save ttyd's built-in page, so the ttyd service can add the browser scripts
 # from /usr/share/ttyd-addon/ to it (see ttyd/run). ttyd has no option to

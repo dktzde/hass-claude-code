@@ -1,3 +1,29 @@
+## 0.15.0
+
+<sub>2026-11-22</sub>
+
+### Changes
+
+- **Mobile tabs show the model and the effort in the tab itself,** for example `1:om` (tab 1, Opus, effort medium). Sometimes I no longer knew which effort the current session was running with, hence the model and the effort right in the tab. All letters are lower case now: model `o` Opus, `s` Sonnet, `h` Haiku, `f` Fable, `?` other; effort `l` low, `m` medium, `h` high, `x` xhigh, `X` max. Before the first reply, or with a status line of your own, the tab shows its number only
+- **New option `mobile_tab_titles`** (Tab titles line, on by default, only with `mobile_tabs`): turns the second line under the tabs on or off. It now shows the session titles only, with more room for each, and `new` for a session without a title yet instead of `Claude Code`. Turn it off for a single line, as before 0.14.0
+- The `+` button of `mobile_tabs` is one column wider
+- README: a screenshot of the add-on
+
+## 0.14.3
+
+<sub>2026-11-22</sub>
+
+### Fixes
+
+- The Docker build retries `apk` after 20 seconds and again after 2 minutes. The Supervisor builds the add-on on the user's own network; a short outage made the update to 0.14.2 fail with `Network unreachable` while fetching the Alpine package index
+
+## 0.14.2
+
+<sub>2026-11-22</sub>
+
+- **Automated update** by the GitHub Action "Update add-on" ([workflow run](https://github.com/dktzde/hass-claude-code/actions/runs/44977664923))
+- Update system packages: `tzdata-2026f-r0`
+
 ## 0.14.1
 
 <sub>2026-11-22</sub>
