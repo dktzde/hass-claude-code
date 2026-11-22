@@ -19,8 +19,8 @@ echo "Starting Claude Code..."
 echo "Working directory: $(pwd)"
 echo ""
 
-# Option mobile_tabs: the second line of the tab bar shows the model and the
-# effort of each tab. Claude Code passes both only to its status line command,
+# Option mobile_tabs: each tab of the tab bar shows the model and the effort
+# of its session. Claude Code passes both only to its status line command,
 # so tmux-tab-info is set as the status line for this session. Only if the
 # user has no status line of their own: settings passed with --settings win
 # over the user's and project settings.

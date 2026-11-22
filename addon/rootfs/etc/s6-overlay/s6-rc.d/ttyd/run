@@ -91,6 +91,10 @@ declare -a tmux_options=(-u)
 if bashio::config.true 'mobile_tabs'; then
     bashio::log.info 'Tappable tmux tabs are on (mobile_tabs).'
     tmux_options+=(-f /etc/tmux-mobile.conf)
+    # Option mobile_tab_titles: a second line with the title of each tab
+    if bashio::config.true 'mobile_tab_titles'; then
+        tmux_options+=(-f /etc/tmux-tab-titles.conf)
+    fi
 fi
 
 # Run ttyd with tmux for session persistence
