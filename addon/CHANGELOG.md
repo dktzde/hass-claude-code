@@ -1,3 +1,12 @@
+## 0.14.0
+
+<sub>2026-11-22</sub>
+
+### Changes
+
+- **Mobile tabs show what each tab works on:** a second line under the tab bar shows one entry per tab: one letter for the model, one for the effort, and the session title that Claude Code sets, for example `Oh:Hass-cla…` (Opus, effort high). Model: `O` Opus, `S` Sonnet, `H` Haiku, `F` Fable, `?` other. Effort: `l` low, `m` medium, `h` high, `x` xhigh, `X` max, `?` unknown. The title gets shorter the more tabs there are, so the line fits on a phone. Tap an entry for a popup with the full title, model and effort; tap the popup or press a key to close it.
+- Model and effort come from Claude Code's status line. The add-on sets its own status line command for this (it prints nothing), but only if you have no `statusLine` of your own in your settings; then the line shows the titles only.
+
 ## 0.13.6
 
 <sub>2026-11-21</sub>
