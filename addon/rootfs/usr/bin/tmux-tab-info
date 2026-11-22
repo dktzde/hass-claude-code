@@ -1,0 +1,81 @@
+#!/usr/bin/env bash
+# ==============================================================================
+# Claude Code Add-on: model and effort of each tmux tab (option mobile_tabs)
+#
+# tmux-tab-info            Claude Code status line command. Reads the status
+#                          line JSON on stdin and stores the model and the
+#                          effort level as options of its own tmux pane, which
+#                          the second line of the tab bar shows
+#                          (/etc/tmux-mobile.conf). Prints nothing, so Claude
+#                          Code shows no status line of its own.
+# tmux-tab-info --show N   Body of the popup that a tap on the second line
+#                          opens: full title, model and effort of window N.
+# ==============================================================================
+
+sep=$'\x1f'
+
+show() {
+    local window="$1" target info title model model_id effort
+    target=":${window}"
+    # Fields are split at the unit separator (0x1f): a tab would collapse
+    # empty fields. The title comes last, so it may contain anything.
+    if ! info=$(tmux display -p -t "${target}" \
+        "#{@hcc_model_name}${sep}#{@hcc_model_id}${sep}#{@hcc_effort_name}${sep}#{pane_title}" 2>/dev/null); then
+        echo "Tab ${window} is gone."
+    else
+        IFS="${sep}" read -r model model_id effort title <<< "${info}"
+        # Claude Code puts a status symbol in front of the title (✳ idle,
+        # a spinner while it works); drop it.
+        title=$(sed -E 's/^[^[:alnum:]]+ //' <<< "${title}")
+        printf 'Tab %s\n\n%s\n\n' "${window}" "${title:-(no title)}"
+        if [[ -n "${model}" ]]; then
+            printf 'Model:  %s (%s)\n' "${model}" "${model_id}"
+            printf 'Effort: %s\n' "${effort:-unknown}"
+        else
+            printf 'Model and effort: not known yet (shown after the first reply).\n'
+        fi
+    fi
+    printf '\nTap or press a key to close.'
+    # Turn on mouse reporting, so a tap on the popup closes it as well.
+    printf '\e[?1000h'
+    read -rsn1 -t 30 || true
+    printf '\e[?1000l'
+}
+
+if [[ "${1:-}" == "--show" ]]; then
+    show "${2:?window number missing}"
+    exit 0
+fi
+
+# Status line mode: never fail and never print, Claude Code calls this often.
+[[ -n "${TMUX_PANE:-}" ]] || exit 0
+json=$(cat) || exit 0
+IFS="${sep}" read -r model_id model_name effort < <(
+    jq -r '[.model.id // "", .model.display_name // "", .effort.level // ""] | join("\u001f")' \
+        <<< "${json}" 2>/dev/null
+) || exit 0
+
+# One upper case letter for the model, one lower case letter for the effort.
+case "${model_id,,}" in
+    *opus*) model_letter=O ;;
+    *sonnet*) model_letter=S ;;
+    *haiku*) model_letter=H ;;
+    *fable*) model_letter=F ;;
+    *) model_letter=? ;;
+esac
+case "${effort,,}" in
+    low) effort_letter=l ;;
+    medium) effort_letter=m ;;
+    high) effort_letter=h ;;
+    xhigh) effort_letter=x ;;
+    max) effort_letter=X ;;
+    *) effort_letter=? ;;
+esac
+
+tmux set -p -t "${TMUX_PANE}" @hcc_model "${model_letter}" \; \
+    set -p -t "${TMUX_PANE}" @hcc_effort "${effort_letter}" \; \
+    set -p -t "${TMUX_PANE}" @hcc_model_id "${model_id}" \; \
+    set -p -t "${TMUX_PANE}" @hcc_model_name "${model_name:-${model_id}}" \; \
+    set -p -t "${TMUX_PANE}" @hcc_effort_name "${effort}" \
+    > /dev/null 2>&1 || true
+exit 0
