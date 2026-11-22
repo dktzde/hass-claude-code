@@ -5,8 +5,7 @@
 # tmux-tab-info            Claude Code status line command. Reads the status
 #                          line JSON on stdin and stores the model and the
 #                          effort level as options of its own tmux pane, which
-#                          the second line of the tab bar shows
-#                          (/etc/tmux-mobile.conf). Prints nothing, so Claude
+#                          the tab bar shows (/etc/tmux-mobile.conf). Prints nothing, so Claude
 #                          Code shows no status line of its own.
 # tmux-tab-info --show N   Body of the popup that a tap on the second line
 #                          opens: full title, model and effort of window N.
@@ -55,12 +54,13 @@ IFS="${sep}" read -r model_id model_name effort < <(
         <<< "${json}" 2>/dev/null
 ) || exit 0
 
-# One upper case letter for the model, one lower case letter for the effort.
+# One lower case letter for the model and one for the effort (X for max, to
+# tell it from xhigh), for example "om" in the tab "1:om".
 case "${model_id,,}" in
-    *opus*) model_letter=O ;;
-    *sonnet*) model_letter=S ;;
-    *haiku*) model_letter=H ;;
-    *fable*) model_letter=F ;;
+    *opus*) model_letter=o ;;
+    *sonnet*) model_letter=s ;;
+    *haiku*) model_letter=h ;;
+    *fable*) model_letter=f ;;
     *) model_letter=? ;;
 esac
 case "${effort,,}" in
