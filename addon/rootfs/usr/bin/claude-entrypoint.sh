@@ -28,7 +28,7 @@ declare -a claude_args=()
 if [[ -n "${TMUX:-}" ]] &&
    [[ "$(tmux show -gqv @hcc_tab_info 2> /dev/null)" == "on" ]]; then
     own_status_line=false
-    for file in "${HOME}/.claude/settings.json" \
+    for file in "${CLAUDE_CONFIG_DIR:-${HOME}/.claude}/settings.json" \
         "${PWD}/.claude/settings.json" "${PWD}/.claude/settings.local.json"; do
         if [[ -f "${file}" ]] &&
            jq -e '.statusLine != null' "${file}" > /dev/null 2>&1; then
