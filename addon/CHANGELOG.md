@@ -1,3 +1,11 @@
+## 0.14.3
+
+<sub>2026-11-22</sub>
+
+### Fixes
+
+- The Docker build retries `apk` after 20 seconds and again after 2 minutes. The Supervisor builds the add-on on the user's own network; a short outage made the update to 0.14.2 fail with `Network unreachable` while fetching the Alpine package index
+
 ## 0.14.2
 
 <sub>2026-11-22</sub>
