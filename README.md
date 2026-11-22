@@ -7,6 +7,8 @@ A Home Assistant add-on that runs [Claude Code](https://docs.anthropic.com/en/do
 The weekly test build only covers `amd64`. **Raspberry Pi and other `aarch64` devices are not tested.**
 If something breaks after an update, please [open an issue](https://github.com/dktzde/hass-claude-code/issues).
 
+![Claude Code in the Home Assistant sidebar: a session working on a GitHub repository, with the mobile_tabs bar at the bottom (tabs 1 to 4, Shift+Tab, + and Esc)](images/screenshot.jpg)
+
 ## Thanks
 
 This add-on would not exist without two other projects:
