@@ -1,3 +1,10 @@
+## 0.14.2
+
+<sub>2026-11-22</sub>
+
+- **Automated update** by the GitHub Action "Update add-on" ([workflow run](https://github.com/dktzde/hass-claude-code/actions/runs/44977664923))
+- Update system packages: `tzdata-2026f-r0`
+
 ## 0.14.1
 
 <sub>2026-11-22</sub>
