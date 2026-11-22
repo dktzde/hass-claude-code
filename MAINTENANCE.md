@@ -29,7 +29,7 @@ Checks:
 - **Do all packages exist under the same names?** `apk add` in the Dockerfile fails otherwise, and so does the test run. Without Docker, read the APKBUILD files on the `<X.Y>-stable` branch of the aports mirror: `https://raw.githubusercontent.com/alpinelinux/aports/3.24-stable/<main|community>/<package>/APKBUILD` (`pkgver`, `subpackages`). `mosquitto-clients` is a subpackage of `mosquitto`, `libgcc` and `libstdc++` are subpackages of `gcc`.
 - **Python and Node.js versions.** Read `pkgver` of `main/python3` and `main/nodejs` there. A new Python version gets a changelog line (users may run their own scripts). A new Node.js major means `@types/node` must follow, see below.
 - **Base image release notes.** Look at the changes of `hassio-addons/app-base` between the two tags (bashio, s6-overlay, tempio versions in `base/Dockerfile`). Then search `addon/rootfs` for every `bashio::` function that changed.
-- **Support dates in the issue.** The base image issue also opens without a new base image, 30 days before the community repository of the installed Alpine version stops getting updates. Until the next Alpine version is out, that date is estimated as release date + 6 months.
+- **Support dates in the issue.** The base image issue also opens without a new base image, 2 days before the community repository of the installed Alpine version stops getting updates (30 days until 2026-11-22: the issue stayed open for weeks with nothing to do). Until the next Alpine version is out, that date is estimated as release date + 6 months.
 
 Pitfalls of the switch to Alpine 3.24 (base image 21.0.8, add-on 0.4.0):
 

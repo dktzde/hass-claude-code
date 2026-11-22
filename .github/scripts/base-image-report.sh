@@ -5,7 +5,10 @@
 set -euo pipefail
 source "$(dirname "$0")/support-lib.sh"
 notice_main=${NOTICE_DAYS_MAIN:-90}
-notice_community=${NOTICE_DAYS_COMMUNITY:-30}
+# Community: only 2 days ahead. Its end is mostly an estimate (next Alpine
+# release), and there is nothing to do before a new base image is out, which
+# opens the issue anyway (maintainer's choice, 2026-11-22; was 30 days).
+notice_community=${NOTICE_DAYS_COMMUNITY:-2}
 
 # The current Supervisor builder only reads the Dockerfile (build.yaml is kept
 # in sync for older Supervisors)
