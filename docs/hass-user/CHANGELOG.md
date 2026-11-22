@@ -2,8 +2,9 @@
 
 ## Latest update
 
-### Modified (1 files)
-- energy/electricity-grid.md differ
+### Modified (2 files)
+- glossary.md differ
+- tools/dev-tools.md differ
 
 ### Removed (1 files)
 - CHANGELOG.md

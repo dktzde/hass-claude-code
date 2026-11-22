@@ -7,6 +7,8 @@ A Home Assistant add-on that runs [Claude Code](https://docs.anthropic.com/en/do
 The weekly test build only covers `amd64`. **Raspberry Pi and other `aarch64` devices are not tested.**
 If something breaks after an update, please [open an issue](https://github.com/dktzde/hass-claude-code/issues).
 
+![Claude Code in the Home Assistant sidebar: a session working on a GitHub repository, with the mobile_tabs bar at the bottom (tabs 1 to 4, Shift+Tab, + and Esc)](images/screenshot.jpg)
+
 ## Thanks
 
 This add-on would not exist without two other projects:
@@ -33,7 +35,7 @@ Thank you both!
 - **Copy:** hold <kbd>Shift</kbd> and select text with the mouse. The selection goes straight to the clipboard. Text that Claude Code copies itself (for example with `/copy`) and copies in tmux copy mode land in the browser clipboard too.
 - **Paste:** <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>V</kbd> on Linux.
 - **Log in from a phone:** a finger cannot select the login URL in the terminal. Turn on `mobile_login` (see [Configuration](#configuration)) and restart the add-on. While Claude Code waits for the login, the add-on then sends the link as a notification in Home Assistant (bell icon in the sidebar or the app). Tap it, log in, then copy the code from the page and paste it into the terminal. It disappears once you are logged in. If you would rather select text in the terminal, turn on `disable_mouse` instead.
-- **Second Claude session on a phone:** turn on `mobile_tabs` (see [Configuration](#configuration)) and restart the add-on. A bar at the bottom of the terminal then shows one tab per Claude Code window and a `+` button. Tap `+` to start another Claude Code in a new window, tap a number to switch. To close a window, leave Claude Code with `/exit`. Without `mobile_scroll`, a swipe does not scroll Claude Code on a phone, so tap ↑ and ↓ to scroll a page up or down (PageUp/PageDown inside Claude Code, the tmux history otherwise). The number between them (for example `-3`) counts the pages you scrolled up; it is an estimate and goes back to 0 on Enter. Tap ⇧⇥ to send <kbd>Shift</kbd>+<kbd>Tab</kbd>, which switches the Claude Code mode (default, accept edits, plan, auto). Tap Esc on the far right to send <kbd>Esc</kbd> (for example to stop Claude Code or close a menu; in the tmux history it leaves the history). Selecting text works through tmux.
+- **Second Claude session on a phone:** turn on `mobile_tabs` (see [Configuration](#configuration)) and restart the add-on. A bar at the bottom of the terminal then shows one tab per Claude Code window and a `+` button. Tap `+` to start another Claude Code in a new window, tap a number to switch. To close a window, leave Claude Code with `/exit`. To scroll, use the mouse wheel, or on a phone turn on `mobile_scroll` and swipe. Tap ⇧⇥ to send <kbd>Shift</kbd>+<kbd>Tab</kbd>, which switches the Claude Code mode (default, accept edits, plan, auto). Tap Esc on the far right to send <kbd>Esc</kbd> (for example to stop Claude Code or close a menu; in the tmux history it leaves the history). Selecting text works through tmux. Each tab shows its number, a letter for the model (`o` Opus, `s` Sonnet, `h` Haiku, `f` Fable, `?` other) and a letter for the effort (`l` low, `m` medium, `h` high, `x` xhigh, `X` max), for example `1:om` (Opus, effort medium). Model and effort come from Claude Code's status line: the add-on sets a status line command of its own that prints nothing, but only if you have no `statusLine` in your settings; with your own, or before the first reply, the tab shows its number only. With `mobile_tab_titles` (on by default), a second line under the tabs shows what each tab works on: the session title Claude Code sets, or `new` before the first message. Tap a title for a popup with the full title, model and effort.
 - **Second Claude session with a keyboard:** press <kbd>Ctrl</kbd>+<kbd>b</kbd>, then <kbd>c</kbd>. tmux opens a new window with a shell. Start Claude Code in it with:
 
   ```bash
@@ -43,6 +45,7 @@ Thank you both!
   The new window is a login shell whose `PATH` lacks `/root/.local/bin`, so a plain `claude` ends in "claude: not found". Switch between the windows with <kbd>Ctrl</kbd>+<kbd>b</kbd>, then <kbd>n</kbd> (next) or <kbd>p</kbd> (previous). A second browser tab does not start a second session, it shows the same one.
 - **Keep `CLAUDE.md` short:** Claude Code loads `/homeassistant/CLAUDE.md` and its memory index (`MEMORY.md`) into every session, so every line costs tokens each time. Keep only the rules every session needs there, plus a table of contents. Put details into separate topic files that Claude reads when the topic comes up.
 - **Chat log:** the Stop hook in [`examples/chat-log-hook`](examples/chat-log-hook/) writes your prompts and Claude's answers into one Markdown file per day, with a separate file for the second session, so you can read an answer again after it has scrolled out of the terminal. Its README explains what it does and how to install it.
+- **Usage tracker:** the scripts in [`examples/usage-tracker`](examples/usage-tracker/) write your daily token use with the cost at Claude API list prices and the weekly limit of `/usage` (with a projection to the reset) into CSV files, with an optional sensor for Home Assistant.
 
 ## Installation
 
@@ -64,7 +67,8 @@ Thank you both!
 | `anthropic_model` | str | `opus` | Exported as `ANTHROPIC_MODEL`: any model name, for example `sonnet`, `opus`, `haiku`, a full name such as `claude-opus-5-5`, or a model name of another provider. Empty: the default model of Claude Code |
 | `protect_internal_files` | bool | `true` | Claude Code cannot change Home Assistant's internal files under `/homeassistant/`: `.storage/`, `.cloud/`, `deps/`, `tts/` and the recorder database `home-assistant_v2.db`. See [File access](#file-access) |
 | `mobile_login` | bool | `false` | While Claude Code waits for the login, send the login link as a notification in Home Assistant, so you can tap it on a phone instead of copying it |
-| `mobile_tabs` | bool | `false` | Tappable tabs and a `+` button at the bottom of the terminal, to start and switch between several Claude Code sessions from a phone, plus ↑/↓ scroll buttons with a page counter, a Shift+Tab button and an Esc button. Turns on the mouse in tmux |
+| `mobile_tabs` | bool | `false` | Tappable tabs and a `+` button at the bottom of the terminal, to start and switch between several Claude Code sessions from a phone, plus a Shift+Tab button and an Esc button. Each tab shows the model and the effort of its session, for example `1:om`. Turns on the mouse in tmux |
+| `mobile_tab_titles` | bool | `true` | Only with `mobile_tabs`: a second line under the tabs with the title of each session (`new` before the first message). Tap a title for a popup with the full title, model and effort. Off: one line only |
 | `mobile_scroll` | bool | `false` | On a touch screen, a vertical swipe on the terminal scrolls like a mouse wheel, also inside Claude Code. Taps keep working; devices without a touch screen are not affected |
 | `disable_mouse` | bool | `false` | Claude Code stops capturing the mouse, so a finger can select and copy text on a phone. Mouse wheel scrolling and clicks inside Claude Code stop working |
 | `additional_packages` | list | `[]` | Extra Alpine packages, installed on every start (e.g. `vim`) |
@@ -75,7 +79,7 @@ The Home Assistant Supervisor builds add-ons with the Docker layer cache. A buil
 
 This add-on therefore pins everything that should update in `addon/Dockerfile`:
 
-- `CLAUDE_CODE_VERSION`: the Claude Code version (currently **2.1.325**)
+- `CLAUDE_CODE_VERSION`: the Claude Code version (currently **2.1.330**)
 - `PACKAGES_STAMP`: a hash of `addon/packages.txt`, the list of installed Alpine package versions
 - `DOCS_STAMP`: the git tree hash of the bundled docs
 
@@ -154,6 +158,7 @@ addon/
 docs/                  # Bundled Home Assistant docs, generated weekly
 examples/
   chat-log-hook/       # Optional Stop hook: daily Markdown log of your chats
+  usage-tracker/       # Optional: daily token costs and weekly limit as CSV + sensor
 ```
 
 ## Local development

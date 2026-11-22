@@ -1,0 +1,27 @@
+# Claude usage tracker: sensor for Home Assistant (see README.md in this folder).
+# Copy to /config/packages/claude_usage.yaml (packages must be enabled:
+#   homeassistant:
+#     packages: !include_dir_named packages
+# ), then restart Home Assistant once; later changes only need
+# Developer tools > YAML > "Command line entities".
+#
+# State = last day in the daily CSV; attributes = costs (day, day_before, week, month, month_by_model)
+# and the latest weekly limit row (weekly). The add-on refreshes the sensor right after the daily run.
+command_line:
+  - sensor:
+      name: "Claude usage"
+      unique_id: claude_usage
+      # 1st argument: exchange rate from USD (1 = USD, e.g. 0.86 for EUR); 2nd: the data folder
+      command: "python3 /config/claude_usage/costs_sensor.py 1 /share/claude_usage"
+      scan_interval: 3600
+      command_timeout: 30
+      value_template: "{{ value_json.last_day if value_json.ok else none }}"
+      json_attributes:
+        - ok
+        - rate
+        - day
+        - day_before
+        - week
+        - month
+        - month_by_model
+        - weekly

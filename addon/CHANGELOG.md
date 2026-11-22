@@ -1,3 +1,90 @@
+## 0.15.0
+
+<sub>2026-11-22</sub>
+
+### Changes
+
+- **Mobile tabs show the model and the effort in the tab itself,** for example `1:om` (tab 1, Opus, effort medium). Sometimes I no longer knew which effort the current session was running with, hence the model and the effort right in the tab. All letters are lower case now: model `o` Opus, `s` Sonnet, `h` Haiku, `f` Fable, `?` other; effort `l` low, `m` medium, `h` high, `x` xhigh, `X` max. Before the first reply, or with a status line of your own, the tab shows its number only
+- **New option `mobile_tab_titles`** (Tab titles line, on by default, only with `mobile_tabs`): turns the second line under the tabs on or off. It now shows the session titles only, with more room for each, and `new` for a session without a title yet instead of `Claude Code`. Turn it off for a single line, as before 0.14.0
+- The `+` button of `mobile_tabs` is one column wider
+- README: a screenshot of the add-on
+
+## 0.14.3
+
+<sub>2026-11-22</sub>
+
+### Fixes
+
+- The Docker build retries `apk` after 20 seconds and again after 2 minutes. The Supervisor builds the add-on on the user's own network; a short outage made the update to 0.14.2 fail with `Network unreachable` while fetching the Alpine package index
+
+## 0.14.2
+
+<sub>2026-11-22</sub>
+
+- **Automated update** by the GitHub Action "Update add-on" ([workflow run](https://github.com/dktzde/hass-claude-code/actions/runs/44977664923))
+- Update system packages: `tzdata-2026f-r0`
+
+## 0.14.1
+
+<sub>2026-11-22</sub>
+
+New base image (dktzde/hass-claude-code#56).
+
+### Changes
+
+- Base image `ghcr.io/hassio-addons/base` 21.0.11 (was 21.0.10): Alpine 3.24.4 and tzdata 2026f. Alpine stays at 3.24, so Python 3.14 and Node.js 24 stay the same. bashio, s6-overlay and tempio are unchanged
+
+## 0.14.0
+
+<sub>2026-11-22</sub>
+
+### Changes
+
+- **Mobile tabs show what each tab works on:** a second line under the tab bar shows one entry per tab: one letter for the model, one for the effort, and the session title that Claude Code sets, for example `Oh:Hass-cla…` (Opus, effort high). Model: `O` Opus, `S` Sonnet, `H` Haiku, `F` Fable, `?` other. Effort: `l` low, `m` medium, `h` high, `x` xhigh, `X` max, `?` unknown. The title gets shorter the more tabs there are, so the line fits on a phone. Tap an entry for a popup with the full title, model and effort; tap the popup or press a key to close it.
+- Model and effort come from Claude Code's status line. The add-on sets its own status line command for this (it prints nothing), but only if you have no `statusLine` of your own in your settings; then the line shows the titles only.
+
+## 0.13.6
+
+<sub>2026-11-21</sub>
+
+- **Automated update** by the GitHub Action "Update add-on" ([workflow run](https://github.com/dktzde/hass-claude-code/actions/runs/44910244313))
+- Update Claude Code to 2.1.330
+- Update npm dependencies of the MCP server: `@hono/node-server@2.1.11`, `express-rate-limit@8.7.5`, `jose@6.2.18`, `object-inspect@1.14.0`
+- Update the bundled Home Assistant docs (2 files changed)
+
+## 0.13.5
+
+<sub>2026-11-20</sub>
+
+### Changes
+
+- **New sidebar icon:** the Home Assistant sidebar now shows `mdi:console-network` (terminal with network) instead of the robot, matching the new terminal logo.
+
+## 0.13.4
+
+<sub>2026-11-20</sub>
+
+### Changes
+
+- **New icon and logo:** a dark terminal with the prompt `>`, a large block cursor and the tab bar below (tab 1 orange, tab 2 grey), like the add-on itself.
+
+## 0.13.3
+
+<sub>2026-11-19</sub>
+
+- **Automated update** by the GitHub Action "Update add-on" ([workflow run](https://github.com/dktzde/hass-claude-code/actions/runs/44560991201))
+- Update Claude Code to 2.1.328
+- Update npm dependencies of the MCP server: `@hono/node-server@2.1.9`, `better-sqlite3@13.2.0`, `hono@4.13.19`, `minimatch@11.0.9`, `router@2.3.0`
+- Update the bundled Home Assistant docs (4 files changed)
+
+## 0.13.2
+
+<sub>2026-11-19</sub>
+
+### Changes
+
+- **Mobile tabs:** the ↑/↓ scroll buttons and the page counter are gone from the bar. Scroll with the mouse wheel, or on a phone with `mobile_scroll` (swipe to scroll). The bar now has the tabs, ⇧⇥, `+` and Esc. Enter is no longer bound by tmux.
+
 ## 0.13.1
 
 <sub>2026-11-14</sub>

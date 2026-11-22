@@ -1,9 +1,13 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="250" height="100" viewBox="0 0 250 100">
+<svg xmlns="http://www.w3.org/2000/svg" width="250" height="100" viewBox="0 0 250 100"><defs><clipPath id="c"><rect x="4" y="4" width="120" height="120" rx="26"/></clipPath></defs>
 <rect x="0" y="0" width="250" height="100" rx="16" fill="#ffffff"/>
-<g transform="translate(6,14) scale(0.5625)"><g>
-<rect x="4" y="4" width="120" height="120" rx="26" fill="#1C2733"/>
-<path d="M30 42 L56 64 L30 86" fill="none" stroke="#7CFC9A" stroke-width="11" stroke-linecap="round" stroke-linejoin="round"/>
-<line x1="66" y1="88" x2="98" y2="88" stroke="#ffffff" stroke-width="11" stroke-linecap="round"/>
+<g transform="translate(6,14) scale(0.5625)"><g clip-path="url(#c)">
+<rect x="4" y="4" width="120" height="120" fill="#262626"/>
+<path d="M24 32 L46 52 L24 72" fill="none" stroke="#B8B8B8" stroke-width="10" stroke-linecap="round" stroke-linejoin="round"/>
+<rect x="58" y="28" width="26" height="48" fill="#EDEDED"/>
+<rect x="4" y="96" width="120" height="28" fill="#1A1A1A"/>
+<rect x="4" y="96" width="54" height="28" fill="#FF8C00"/>
+<text x="31" y="118" text-anchor="middle" font-family="DejaVu Sans Mono" font-weight="bold" font-size="21" fill="#111">1</text>
+<text x="84" y="118" text-anchor="middle" font-family="DejaVu Sans Mono" font-size="21" fill="#B8B8B8">2</text>
 </g></g>
 <text x="88" y="48" font-family="Open Sans" font-weight="bold" font-size="25" fill="#1C2733">Claude Code</text>
 <text x="88" y="72" font-family="Open Sans" font-size="15" fill="#5A6672">for Home Assistant</text>
