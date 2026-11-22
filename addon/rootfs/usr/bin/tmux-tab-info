@@ -8,7 +8,8 @@
 #                          the tab bar shows (/etc/tmux-mobile.conf). Prints nothing, so Claude
 #                          Code shows no status line of its own.
 # tmux-tab-info --show N   Body of the popup that a tap on the second line
-#                          opens: full title, model and effort of window N.
+#                          (/etc/tmux-tab-titles.conf) opens: full title,
+#                          model and effort of window N.
 # ==============================================================================
 
 sep=$'\x1f'
@@ -25,8 +26,16 @@ show() {
         IFS="${sep}" read -r model model_id effort title <<< "${info}"
         # Claude Code puts a status symbol in front of the title (✳ idle,
         # a spinner while it works); drop it.
+        # Until the first message, Claude Code's title is just "Claude Code";
+        # before Claude Code sets a title, tmux uses the host name.
+        if [[ "${title}" == "$(tmux display -p '#{host}')" ]]; then
+            title=""
+        fi
         title=$(sed -E 's/^[^[:alnum:]]+ //' <<< "${title}")
-        printf 'Tab %s\n\n%s\n\n' "${window}" "${title:-(no title)}"
+        if [[ -z "${title}" || "${title}" == "Claude Code" ]]; then
+            title="New session, no title yet."
+        fi
+        printf 'Tab %s\n\n%s\n\n' "${window}" "${title}"
         if [[ -n "${model}" ]]; then
             printf 'Model:  %s (%s)\n' "${model}" "${model_id}"
             printf 'Effort: %s\n' "${effort:-unknown}"

@@ -35,6 +35,7 @@ options:
   protect_internal_files: true
   mobile_login: false
   mobile_tabs: false
+  mobile_tab_titles: true
   mobile_scroll: false
   disable_mouse: false
   additional_packages: []
@@ -45,6 +46,7 @@ schema:
   protect_internal_files: bool
   mobile_login: bool
   mobile_tabs: bool
+  mobile_tab_titles: bool
   mobile_scroll: bool
   disable_mouse: bool
   additional_packages:
