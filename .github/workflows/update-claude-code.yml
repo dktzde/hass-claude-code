@@ -6,9 +6,10 @@ name: Update add-on
 # their major versions and regenerates the bundled Home Assistant docs. Each of
 # these busts its own Docker layer via a pinned value in addon/Dockerfile or the
 # lockfile, since the Supervisor builds with the layer cache. Any change is
-# released as one add-on update. As issues it reports what stays manual: new
-# commits in upstream and the YangXu1990uiuc fork, a new base image, and new
-# major versions of npm dependencies.
+# released as one add-on update, pushed only after the test builds for amd64
+# (update job) and aarch64 (test-arm job) passed. As issues it reports what
+# stays manual: new commits in upstream and the YangXu1990uiuc fork, a new
+# base image, and new major versions of npm dependencies.
 
 on:
   schedule:
@@ -31,6 +32,10 @@ jobs:
     runs-on: ubuntu-latest
     env:
       IMAGE: hass-claude-code-test:local
+    outputs:
+      release: ${{ steps.commit.outputs.release }}
+      version: ${{ steps.commit.outputs.version }}
+      message: ${{ steps.commit.outputs.message }}
     steps:
       - uses: actions/checkout@v7
 
@@ -163,7 +168,8 @@ jobs:
           echo "System packages: $list" >> "$GITHUB_STEP_SUMMARY"
           { echo "update=true"; echo "list=$list"; } >> "$GITHUB_OUTPUT"
 
-      - name: Bump version, changelog, commit and push
+      - name: Bump version, changelog and commit
+        id: commit
         if: >-
           steps.claude.outputs.update == 'true' || steps.docs.outputs.update == 'true' ||
           steps.packages.outputs.update == 'true' || steps.npm.outputs.update == 'true'
@@ -204,23 +210,91 @@ jobs:
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add addon/Dockerfile addon/config.yaml addon/CHANGELOG.md addon/packages.txt addon/mcp-server/pnpm-lock.yaml README.md docs
           git commit -m "chore(addon): update $message (automated)"
-          # A manual run on another branch is a test run: never push it to main
+          # The release job pushes this commit once the aarch64 build passed too
+          git format-patch -1 --binary --stdout > "$RUNNER_TEMP/release.patch"
+          echo "Prepared add-on version $addon: $message." >> "$GITHUB_STEP_SUMMARY"
+          { echo "release=true"; echo "version=$addon"; echo "message=$message"; } >> "$GITHUB_OUTPUT"
+
+      - name: Keep the release commit for the next jobs
+        if: steps.commit.outputs.release == 'true'
+        uses: actions/upload-artifact@v7
+        with:
+          name: release-commit
+          path: ${{ runner.temp }}/release.patch
+          retention-days: 7
+          if-no-files-found: error
+
+  test-arm:
+    # The same test build and checks as in the update job, on an arm64 runner
+    # (no emulation). It builds the release commit if there is one, otherwise
+    # the current state, so a broken aarch64 build also shows up in a week
+    # without updates. The maintainer has no aarch64 hardware; this is its
+    # only test.
+    needs: update
+    runs-on: ubuntu-24.04-arm
+    env:
+      IMAGE: hass-claude-code-test:local
+      RELEASE: ${{ needs.update.outputs.release }}
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Download the release commit
+        if: env.RELEASE == 'true'
+        uses: actions/download-artifact@v8
+        with:
+          name: release-commit
+          path: ${{ runner.temp }}
+
+      - name: Apply the release commit
+        if: env.RELEASE == 'true'
+        run: git apply "$RUNNER_TEMP/release.patch"
+
+      - name: Test-build the add-on (aarch64)
+        run: docker buildx build addon --pull --platform linux/arm64 --load -t "$IMAGE"
+
+      - name: Check the built image
+        run: bash .github/scripts/check-image.sh "$IMAGE"
+
+  release:
+    # Pushes the release commit of the update job to main, only after the
+    # amd64 and the aarch64 test build passed. A manual run on another branch
+    # is a test run: it never pushes.
+    needs: [update, test-arm]
+    if: needs.update.outputs.release == 'true'
+    runs-on: ubuntu-latest
+    env:
+      VERSION: ${{ needs.update.outputs.version }}
+      MESSAGE: ${{ needs.update.outputs.message }}
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Download the release commit
+        uses: actions/download-artifact@v8
+        with:
+          name: release-commit
+          path: ${{ runner.temp }}
+
+      - name: Push the release commit
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git am "$RUNNER_TEMP/release.patch"
           if [ "$GITHUB_REF" != refs/heads/main ]; then
-            echo "Test run on $GITHUB_REF: would release add-on version $addon ($message), not pushed." >> "$GITHUB_STEP_SUMMARY"
+            echo "Test run on $GITHUB_REF: would release add-on version $VERSION ($MESSAGE), not pushed." >> "$GITHUB_STEP_SUMMARY"
             exit 0
           fi
           git push origin HEAD:main
-          echo "Released add-on version $addon: $message." >> "$GITHUB_STEP_SUMMARY"
+          echo "Released add-on version $VERSION: $MESSAGE." >> "$GITHUB_STEP_SUMMARY"
 
   report:
     # Reports what stays a manual decision as issues: one open issue per topic,
     # refreshed while it applies and closed once it no longer does. Runs after
-    # the update job and checks out the branch head, not the commit the run
-    # started from, so it sees what the update job just released: right after
-    # a base image switch, addon/packages.txt still lists the old Alpine until
-    # the update job refreshes it. On a branch other than main nothing is
-    # pushed and no issue is changed (see sync-issue.sh).
-    needs: update
+    # the release job and checks out the branch head, not the commit the run
+    # started from, so it sees what was just released: right after a base
+    # image switch, addon/packages.txt still lists the old Alpine until the
+    # update job refreshes it. On a branch other than main nothing is pushed
+    # and no issue is changed (see sync-issue.sh).
+    needs: [update, release]
     if: ${{ !cancelled() }}
     runs-on: ubuntu-latest
     env:
@@ -284,7 +358,7 @@ jobs:
     # One open issue while runs fail: opened on the first failure, commented on
     # each further failure (so it notifies again), closed by the next good run.
     # Only for main: a test run on a branch shows its result in the run itself.
-    needs: [update, report]
+    needs: [update, test-arm, release, report]
     if: ${{ !cancelled() && github.ref == 'refs/heads/main' }}
     runs-on: ubuntu-latest
     env:
@@ -294,6 +368,8 @@ jobs:
       - name: Open, update or close the failure issue
         env:
           UPDATE: ${{ needs.update.result }}
+          TEST_ARM: ${{ needs.test-arm.result }}
+          RELEASE: ${{ needs.release.result }}
           REPORT: ${{ needs.report.result }}
           RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
         run: |
@@ -302,19 +378,25 @@ jobs:
           number=$(gh issue list --state open --limit 100 --json number,title \
             --jq ".[] | select(.title == \"$title\" or .title == \"Update add-on fehlgeschlagen\") | .number" | head -1)
           if [ -n "$number" ]; then gh issue edit "$number" --title "$title"; fi
-          if [ "$UPDATE" != failure ] && [ "$REPORT" != failure ]; then
+          failed=""
+          add() { failed="${failed:+$failed$'\n'}$1"; }
+          if [ "$UPDATE" = failure ]; then
+            add "- **update** (Claude Code, packages, docs, amd64 test build): nothing was released, Home Assistant offers no update."
+          fi
+          if [ "$TEST_ARM" = failure ]; then
+            add "- **test-arm** (aarch64 test build): the add-on does not build or does not pass the checks on aarch64; nothing was released."
+          fi
+          if [ "$RELEASE" = failure ]; then
+            add "- **release** (push to main): nothing was released, Home Assistant offers no update."
+          fi
+          if [ "$REPORT" = failure ]; then
+            add "- **report** (issues about forks, base image, npm): at least one issue was not updated."
+          fi
+          if [ -z "$failed" ]; then
             if [ -n "$number" ]; then
               gh issue close "$number" --comment "The run on $(date -u +%F) succeeded again: $RUN_URL"
             fi
             exit 0
-          fi
-          failed=""
-          if [ "$UPDATE" = failure ]; then
-            failed="- **update** (Claude Code, packages, docs, test build): nothing was released, Home Assistant offers no update."
-          fi
-          if [ "$REPORT" = failure ]; then
-            failed="${failed:+$failed
-          }- **report** (issues about forks, base image, npm): at least one issue was not updated."
           fi
           body=$(printf 'The run on %s failed: [view log](%s)\n\nFailed:\n%s\n\nThe add-on on your device is not affected. This issue closes itself after the next successful run.' \
             "$(date -u +%F)" "$RUN_URL" "$failed")
