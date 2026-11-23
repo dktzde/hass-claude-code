@@ -2,19 +2,19 @@
 
 # Claude Code for Home Assistant
 
-A Home Assistant add-on that runs [Claude Code](https://docs.anthropic.com/en/docs/claude-code) inside your Home Assistant instance. You get a web terminal in the sidebar, full access to your configuration and a built-in MCP server, so Claude can look up entities, call services and search the Home Assistant docs.
+A Home Assistant app (called add-on before 2026) that runs [Claude Code](https://docs.anthropic.com/en/docs/claude-code) inside your Home Assistant instance. You get a web terminal in the sidebar, full access to your configuration and a built-in MCP server, so Claude can look up entities, call services and search the Home Assistant docs.
 
-Every change to the add-on (pull request) and every weekly update is test-built for `amd64` and `aarch64`. **I have no `aarch64` hardware (such as a Raspberry Pi) to test on myself**, so on `aarch64` only these automatic test builds check the add-on, not a real device.
+Every change to the app (pull request) and every weekly update is test-built for `amd64` and `aarch64`. **I have no `aarch64` hardware (such as a Raspberry Pi) to test on myself**, so on `aarch64` only these automatic test builds check the app, not a real device.
 If something breaks after an update, please [open an issue](https://github.com/dktzde/hass-claude-code/issues).
 
 ![Claude Code in the Home Assistant sidebar: a session working on a GitHub repository, with the mobile_tabs bar at the bottom (tabs 1 to 4, Shift+Tab, + and Esc)](images/screenshot.jpg)
 
 ## Thanks
 
-This add-on would not exist without two other projects:
+This app would not exist without two other projects:
 
-- **[dkmaker/hass-claude-code](https://github.com/dkmaker/hass-claude-code)** created the add-on: the web terminal, the MCP server and the documentation search. This fork builds on it.
-- **[YangXu1990uiuc/hass-claude-code](https://github.com/YangXu1990uiuc/hass-claude-code)** fixed the Docker build for pnpm 11 and made the Claude Code login survive add-on restarts. Both fixes are included here.
+- **[dkmaker/hass-claude-code](https://github.com/dkmaker/hass-claude-code)** created the app: the web terminal, the MCP server and the documentation search. This fork builds on it.
+- **[YangXu1990uiuc/hass-claude-code](https://github.com/YangXu1990uiuc/hass-claude-code)** fixed the Docker build for pnpm 11 and made the Claude Code login survive app restarts. Both fixes are included here.
 
 Thank you both!
 
@@ -22,11 +22,11 @@ Thank you both!
 
 - **Web terminal** in the Home Assistant sidebar via Ingress, no port forwarding needed
 - **Home Assistant access** through an MCP server: search entities, devices and areas, read states, call services
-- **Documentation search** across the Home Assistant user and developer docs, bundled with the add-on. Keyword search that also copes with identifiers like `light.turn_on` and corrects typos
+- **Documentation search** across the Home Assistant user and developer docs, bundled with the app. Keyword search that also copes with identifiers like `light.turn_on` and corrects typos
 - **Python 3 with PyYAML** included, for the scripts Claude likes to run, for example to read YAML configuration
-- **MQTT clients** `mosquitto_pub` and `mosquitto_sub`, to inspect and test MQTT devices. With the Mosquitto broker add-on installed, the add-on gets the broker credentials from Home Assistant and passes them to Claude as `MQTT_HOST`, `MQTT_PORT`, `MQTT_USERNAME` and `MQTT_PASSWORD`
+- **MQTT clients** `mosquitto_pub` and `mosquitto_sub`, to inspect and test MQTT devices. With the Mosquitto broker app installed, the app gets the broker credentials from Home Assistant and passes them to Claude as `MQTT_HOST`, `MQTT_PORT`, `MQTT_USERNAME` and `MQTT_PASSWORD`
 - **GitHub CLI** `gh`, for example to keep your configuration in a GitHub repository
-- **Knows its environment**: on every start the add-on writes `/etc/claude-code/CLAUDE.md`, which Claude Code loads automatically. It lists the paths, MCP tools, APIs and command line tools. Your own notes for Claude go into `/homeassistant/CLAUDE.md`
+- **Knows its environment**: on every start the app writes `/etc/claude-code/CLAUDE.md`, which Claude Code loads automatically. It lists the paths, MCP tools, APIs and command line tools. Your own notes for Claude go into `/homeassistant/CLAUDE.md`
 - **Persistent sessions**: tmux keeps Claude running when you close the browser tab, and the page reconnects on its own after a lost connection. The Claude Code login, history and memory, the GitHub CLI login and the git config survive restarts
 - **Weekly updates** of Claude Code, system packages and docs (see [Updates](#updates))
 
@@ -34,8 +34,8 @@ Thank you both!
 
 - **Copy:** hold <kbd>Shift</kbd> and select text with the mouse. The selection goes straight to the clipboard. Text that Claude Code copies itself (for example with `/copy`) and copies in tmux copy mode land in the browser clipboard too.
 - **Paste:** <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>V</kbd> on Linux.
-- **Log in from a phone:** a finger cannot select the login URL in the terminal. Turn on `mobile_login` (see [Configuration](#configuration)) and restart the add-on. While Claude Code waits for the login, the add-on then sends the link as a notification in Home Assistant (bell icon in the sidebar or the app). Tap it, log in, then copy the code from the page and paste it into the terminal. It disappears once you are logged in. If you would rather select text in the terminal, turn on `disable_mouse` instead.
-- **Second Claude session on a phone:** turn on `mobile_tabs` (see [Configuration](#configuration)) and restart the add-on. A bar at the bottom of the terminal then shows one tab per Claude Code window and a `+` button. Tap `+` to start another Claude Code in a new window, tap a number to switch; tap the active tab again for a popup with its full title, model and effort. To close a window, leave Claude Code with `/exit`. To scroll, use the mouse wheel, or on a phone swipe (`mobile_scroll`, on by default). Tap ⇧⇥ to send <kbd>Shift</kbd>+<kbd>Tab</kbd>, which switches the Claude Code mode (default, accept edits, plan, auto). Tap Esc on the far right to send <kbd>Esc</kbd> (for example to stop Claude Code or close a menu; in the tmux history it leaves the history). Selecting text works through tmux. Each tab shows its number, a letter for the model (`o` Opus, `s` Sonnet, `h` Haiku, `f` Fable, `?` other) and a letter for the effort (`l` low, `m` medium, `h` high, `x` xhigh, `X` max), for example `1:om` (Opus, effort medium). Model and effort come from Claude Code's status line: the add-on sets a status line command of its own that prints nothing, but only if you have no `statusLine` in your settings; with your own, or before the first reply, the tab shows its number only. With `mobile_tab_titles` (off by default), a second line under the tabs shows what each tab works on: the session title Claude Code sets, or `new` before the first message. Tap a title for a popup with the full title, model and effort.
+- **Log in from a phone:** a finger cannot select the login URL in the terminal. Turn on `mobile_login` (see [Configuration](#configuration)) and restart the app. While Claude Code waits for the login, the app then sends the link as a notification in Home Assistant (bell icon in the sidebar or the app). Tap it, log in, then copy the code from the page and paste it into the terminal. It disappears once you are logged in. If you would rather select text in the terminal, turn on `disable_mouse` instead.
+- **Second Claude session on a phone:** turn on `mobile_tabs` (see [Configuration](#configuration)) and restart the app. A bar at the bottom of the terminal then shows one tab per Claude Code window and a `+` button. Tap `+` to start another Claude Code in a new window, tap a number to switch; tap the active tab again for a popup with its full title, model and effort. To close a window, leave Claude Code with `/exit`. To scroll, use the mouse wheel, or on a phone swipe (`mobile_scroll`, on by default). Tap ⇧⇥ to send <kbd>Shift</kbd>+<kbd>Tab</kbd>, which switches the Claude Code mode (default, accept edits, plan, auto). Tap Esc on the far right to send <kbd>Esc</kbd> (for example to stop Claude Code or close a menu; in the tmux history it leaves the history). Selecting text works through tmux. Each tab shows its number, a letter for the model (`o` Opus, `s` Sonnet, `h` Haiku, `f` Fable, `?` other) and a letter for the effort (`l` low, `m` medium, `h` high, `x` xhigh, `X` max), for example `1:om` (Opus, effort medium). Model and effort come from Claude Code's status line: the app sets a status line command of its own that prints nothing, but only if you have no `statusLine` in your settings; with your own, or before the first reply, the tab shows its number only. With `mobile_tab_titles` (off by default), a second line under the tabs shows what each tab works on: the session title Claude Code sets, or `new` before the first message. Tap a title for a popup with the full title, model and effort.
 - **Second Claude session with a keyboard:** press <kbd>Ctrl</kbd>+<kbd>b</kbd>, then <kbd>c</kbd>. tmux opens a new window with a shell. Start Claude Code in it with:
 
   ```bash
@@ -51,10 +51,10 @@ Thank you both!
 
 1. Add the repository:
 
-   [![Open your Home Assistant instance and show the add add-on repository dialog.](https://my.home-assistant.io/badges/supervisor_add_addon_repository.svg)](https://my.home-assistant.io/redirect/supervisor_add_addon_repository/?repository_url=https%3A%2F%2Fgithub.com%2Fdktzde%2Fhass-claude-code)
+   [![Open your Home Assistant instance and show the add repository dialog.](https://my.home-assistant.io/badges/supervisor_add_addon_repository.svg)](https://my.home-assistant.io/redirect/supervisor_add_addon_repository/?repository_url=https%3A%2F%2Fgithub.com%2Fdktzde%2Fhass-claude-code)
 
-   Or manually: **Settings** > **Add-ons** > **Add-on Store**, three-dot menu > **Repositories**, add `https://github.com/dktzde/hass-claude-code`.
-2. Find **Claude Code** in the add-on store and select **Install**. Home Assistant builds the image on your device, which takes a few minutes the first time.
+   Or manually: **Settings** > **Apps** > **Install app**, three-dot menu > **Repositories**, add `https://github.com/dktzde/hass-claude-code`.
+2. Find **Claude Code** in the app store and select **Install**. Home Assistant builds the image on your device, which takes a few minutes the first time.
 3. Select **Start** and open **Claude Code** in the sidebar.
 4. Log in when Claude Code asks for it on first start, with your Claude subscription or an Anthropic Console account. The login is kept across restarts and updates. To use an API key or another provider with an Anthropic-compatible API instead, set `anthropic_auth_token` (and `anthropic_base_url`) in the configuration; Claude Code then needs no login.
 
@@ -75,9 +75,9 @@ Thank you both!
 
 ## Updates
 
-The Home Assistant Supervisor builds add-ons with the Docker layer cache. A build step only runs again if something in it changes, so a plain "install the latest version" stays at the version of the first install forever, even after a rebuild.
+The Home Assistant Supervisor builds apps with the Docker layer cache. A build step only runs again if something in it changes, so a plain "install the latest version" stays at the version of the first install forever, even after a rebuild.
 
-This add-on therefore pins everything that should update in `addon/Dockerfile`:
+This app therefore pins everything that should update in `addon/Dockerfile`:
 
 - `CLAUDE_CODE_VERSION`: the Claude Code version (currently **2.1.330**)
 - `PACKAGES_STAMP`: a hash of `addon/packages.txt`, the list of installed Alpine package versions
@@ -90,12 +90,12 @@ Every Saturday at 05:47 UTC (07:47 CEST / 06:47 CET), the GitHub Action [`update
 1. Checks for a new Claude Code release.
 2. Regenerates the docs from the upstream Home Assistant repositories.
 3. Updates the npm dependencies within their major versions.
-4. Test-builds the add-on for `amd64` and `aarch64` (each on a GitHub runner of that architecture), reads the installed package versions and checks that the MCP server answers.
-5. If anything changed and both test builds passed, updates the pins, bumps the add-on version, writes the changelog and pushes.
+4. Test-builds the app for `amd64` and `aarch64` (each on a GitHub runner of that architecture), reads the installed package versions and checks that the MCP server answers.
+5. If anything changed and both test builds passed, updates the pins, bumps the app version, writes the changelog and pushes.
 
-Home Assistant then offers a normal add-on update. The changelog marks these updates as **Automated update** and lists what changed. If nothing changed, nothing is released.
+Home Assistant then offers a normal app update. The changelog marks these updates as **Automated update** and lists what changed. If nothing changed, nothing is released.
 
-Every add-on version, weekly or by hand, also gets a [GitHub release](https://github.com/dktzde/hass-claude-code/releases) with its changelog entry. Home Assistant does not need it; watch the repository for releases (Watch → Custom → Releases) to get a message for each new version.
+Every app version, weekly or by hand, also gets a [GitHub release](https://github.com/dktzde/hass-claude-code/releases) with its changelog entry. Home Assistant does not need it; watch the repository for releases (Watch → Custom → Releases) to get a message for each new version.
 
 Some updates stay a manual decision because they can need code changes. The same Action opens an issue for each of them:
 
@@ -105,7 +105,7 @@ Some updates stay a manual decision because they can need code changes. The same
 
 [`MAINTENANCE.md`](MAINTENANCE.md) has the checklists for these two updates and the pitfalls of earlier ones. A run started by hand on a branch other than `main` is a test run: it builds and checks the image, but never publishes anything and never changes issues.
 
-If a run fails, the Action opens the issue "Update add-on failed" with a link to the log, comments on it for each further failure and closes it after the next successful run. A failed run never publishes anything, so the add-on on your device is not affected.
+If a run fails, the Action opens the issue "Update add-on failed" with a link to the log, comments on it for each further failure and closes it after the next successful run. A failed run never publishes anything, so the app on your device is not affected.
 
 To update by hand, run the `/update-claude` skill in this repository, or bump `CLAUDE_CODE_VERSION` in `addon/Dockerfile` and `version` in `addon/config.yaml`.
 
@@ -132,27 +132,27 @@ The built-in MCP server `home-assistant` gives Claude these tools:
 | Path | Content | Access |
 |------|---------|--------|
 | `/homeassistant/` | Home Assistant configuration, including `.storage/` | Read/write |
-| `/config/` | Add-on configuration | Read/write |
-| `/share/` | Storage shared between add-ons | Read/write |
+| `/config/` | App configuration | Read/write |
+| `/share/` | Storage shared between apps | Read/write |
 | `/ssl/` | Certificates | Read-only |
 | `/media/` | Media files | Read-only |
 
-Home Assistant manages `.storage/` (entity, device and area registries, UI automations, dashboards, helpers), `.cloud/`, `deps/`, `tts/` and the recorder database `home-assistant_v2.db` itself, and a broken `.storage/` file can keep Home Assistant from starting. With `protect_internal_files` on (the default), the add-on writes deny rules into `/etc/claude-code/managed-settings.json`, so Claude Code's file tools cannot change them. The rules apply in every permission mode, also with bypass permissions, and your own Claude Code settings cannot lift them. They also cover file commands Claude Code recognizes in shell commands (`cat`, `sed`, `tee`, `> file`), but not every program that opens files itself, for example a Python script or `sqlite3`; the generated `CLAUDE.md` tells Claude not to use those for it. Reading stays possible. To repair such a file on purpose, turn the option off and restart the add-on.
+Home Assistant manages `.storage/` (entity, device and area registries, UI automations, dashboards, helpers), `.cloud/`, `deps/`, `tts/` and the recorder database `home-assistant_v2.db` itself, and a broken `.storage/` file can keep Home Assistant from starting. With `protect_internal_files` on (the default), the app writes deny rules into `/etc/claude-code/managed-settings.json`, so Claude Code's file tools cannot change them. The rules apply in every permission mode, also with bypass permissions, and your own Claude Code settings cannot lift them. They also cover file commands Claude Code recognizes in shell commands (`cat`, `sed`, `tee`, `> file`), but not every program that opens files itself, for example a Python script or `sqlite3`; the generated `CLAUDE.md` tells Claude not to use those for it. Reading stays possible. To repair such a file on purpose, turn the option off and restart the app.
 
-On every start, the add-on writes `/etc/claude-code/CLAUDE.md` with an overview of the paths, tools and APIs, which Claude Code loads automatically. `/homeassistant/CLAUDE.md` is for your own notes: the add-on creates it if it is missing and never changes an existing one.
+On every start, the app writes `/etc/claude-code/CLAUDE.md` with an overview of the paths, tools and APIs, which Claude Code loads automatically. `/homeassistant/CLAUDE.md` is for your own notes: the app creates it if it is missing and never changes an existing one.
 
 ## How it is built
 
 The image is built in two stages:
 
 1. **Builder:** installs the MCP server dependencies, clones the docs from this repository and builds a keyword search index.
-2. **Add-on image:** based on the Home Assistant community add-on base image. Installs Claude Code, Python 3 with PyYAML, the MQTT clients, Node.js, ttyd, tmux and a few tools, and copies in the MCP server, the index and the docs.
+2. **App image:** based on the base image of the Home Assistant Community Apps. Installs Claude Code, Python 3 with PyYAML, the MQTT clients, Node.js, ttyd, tmux and a few tools, and copies in the MCP server, the index and the docs.
 
 s6-overlay starts the services: environment setup, optional packages, and finally ttyd, which runs Claude Code inside tmux. The image saves ttyd's own web page at build time, and the ttyd service adds the scripts from `addon/rootfs/usr/share/ttyd-addon/` to it (`reconnect.js`: reconnect on its own, also after the Ingress session expired; `clipboard.js`: copy into the browser clipboard; `touch-scroll.js`: swipe to scroll, with `mobile_scroll`). Claude Code starts the MCP server itself as a child process over stdio, so it needs no network port.
 
 ```
 addon/
-  config.yaml          # Add-on manifest
+  config.yaml          # App manifest
   Dockerfile           # Two-stage build with version and cache pins
   packages.txt         # Installed package versions, written by the weekly Action
   rootfs/              # s6 services and the Claude entrypoint
@@ -172,8 +172,8 @@ docker run -it -e SUPERVISOR_TOKEN=fake -e ANTHROPIC_API_KEY=your-key claude-cod
 
 ## Supported architectures
 
-- `amd64`: test-built for every pull request that changes the add-on and for every weekly update, and tested on my own device
-- `aarch64` (for example Raspberry Pi 4 and 5): test-built for every pull request that changes the add-on and for every weekly update on an `arm64` runner of GitHub Actions, with the same checks as `amd64` ([`test-build.yml`](.github/workflows/test-build.yml), [`update-claude-code.yml`](.github/workflows/update-claude-code.yml)). I have no `aarch64` hardware to test on myself, so it is **not tested on a real device**. If something breaks there, please [open an issue](https://github.com/dktzde/hass-claude-code/issues)
+- `amd64`: test-built for every pull request that changes the app and for every weekly update, and tested on my own device
+- `aarch64` (for example Raspberry Pi 4 and 5): test-built for every pull request that changes the app and for every weekly update on an `arm64` runner of GitHub Actions, with the same checks as `amd64` ([`test-build.yml`](.github/workflows/test-build.yml), [`update-claude-code.yml`](.github/workflows/update-claude-code.yml)). I have no `aarch64` hardware to test on myself, so it is **not tested on a real device**. If something breaks there, please [open an issue](https://github.com/dktzde/hass-claude-code/issues)
 
 ## License
 
@@ -181,4 +181,4 @@ The original code by [dkmaker](https://github.com/dkmaker/hass-claude-code) has 
 
 ---
 
-*Fittingly, this add-on was itself developed with the help of Claude Code.*
+*Fittingly, this app was itself developed with the help of Claude Code.*
