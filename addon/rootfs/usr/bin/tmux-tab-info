@@ -64,12 +64,16 @@ IFS="${sep}" read -r model_id model_name effort < <(
 ) || exit 0
 
 # One lower case letter for the model and one for the effort (X for max, to
-# tell it from xhigh), for example "om" in the tab "1:om".
+# tell it from xhigh), for example "om" in the tab "1:om". Other models
+# behind ANTHROPIC_BASE_URL often come as a "pro" and a "flash" variant; the
+# Claude names come first, so they always win.
 case "${model_id,,}" in
     *opus*) model_letter=o ;;
     *sonnet*) model_letter=s ;;
     *haiku*) model_letter=h ;;
     *fable*) model_letter=f ;;
+    *pro*) model_letter=p ;;
+    *flash*) model_letter=f ;;
     *) model_letter=? ;;
 esac
 case "${effort,,}" in
