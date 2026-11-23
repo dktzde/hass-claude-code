@@ -95,6 +95,8 @@ Every Saturday at 05:47 UTC (07:47 CEST / 06:47 CET), the GitHub Action [`update
 
 Home Assistant then offers a normal add-on update. The changelog marks these updates as **Automated update** and lists what changed. If nothing changed, nothing is released.
 
+Every add-on version, weekly or by hand, also gets a [GitHub release](https://github.com/dktzde/hass-claude-code/releases) with its changelog entry. Home Assistant does not need it; watch the repository for releases (Watch → Custom → Releases) to get a message for each new version.
+
 Some updates stay a manual decision because they can need code changes. The same Action opens an issue for each of them:
 
 - New commits in the two projects above, so useful fixes can be taken over by hand
