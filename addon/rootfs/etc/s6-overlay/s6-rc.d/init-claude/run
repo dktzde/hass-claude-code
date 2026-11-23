@@ -42,20 +42,31 @@ fi
 
 # --- Drop stored values of removed options ---
 # The configuration form only shows options of the current schema, but Home
-# Assistant keeps the saved values of removed ones (api_key until 0.1.x,
-# enable_embeddings until 0.2.x, yolo_mode until 0.7.3, model until 0.11.x;
-# visible in the YAML editor) until the configuration is saved again. Remove
-# them once through the Supervisor API. A failure only logs a warning, it
-# never stops the add-on.
+# Assistant keeps the saved values of removed ones (enable_embeddings until
+# 0.2.x, yolo_mode until 0.7.3, model until 0.11.x; visible in the YAML
+# editor) until the configuration is saved again. Remove them once through
+# the Supervisor API. A failure only logs a warning, it never stops the add-on.
+#
+# api_key (until 0.1.x) holds a secret the user may have nowhere else, so it is
+# never removed here: the log only says that it is unused. The Supervisor drops
+# options it does not know whenever options are saved, so while api_key is
+# stored, nothing is written back (a stored model then moves over for this
+# start only). Saving the configuration once removes api_key.
 #
 # The selection model (default|sonnet|opus|haiku) became the free text option
 # anthropic_model in 0.12.0. A stored sonnet, opus or haiku moves over;
 # default leaves the new default (opus).
-declare stored_options
+declare stored_options=''
+declare keep_api_key=false
 declare migrated_model=''
-declare removed_options='["api_key","enable_embeddings","yolo_mode","model"]'
+declare removed_options='["enable_embeddings","yolo_mode","model"]'
 if stored_options=$(curl -fsS -H "Authorization: Bearer ${SUPERVISOR_TOKEN}" \
         http://supervisor/addons/self/info | jq -c '.data.options') &&
+   jq -e 'has("api_key")' <<< "${stored_options}" > /dev/null; then
+    keep_api_key=true
+    bashio::log.warning 'The old option api_key (until 0.1.x) is stored but no longer used. Put the key into anthropic_auth_token, or log in with /login in Claude Code. Saving the add-on configuration once removes api_key.'
+fi
+if [[ -n "${stored_options:-}" ]] &&
    jq -e --argjson removed "${removed_options}" \
         'any(keys[]; IN($removed[]))' <<< "${stored_options}" > /dev/null; then
     migrated_model=$(jq -r '.model // empty | select(IN("sonnet", "opus", "haiku"))' <<< "${stored_options}")
@@ -64,13 +75,15 @@ if stored_options=$(curl -fsS -H "Authorization: Bearer ${SUPERVISOR_TOKEN}" \
         model="${migrated_model}"
         bashio::log.info "Moved the model '${migrated_model}' to the option anthropic_model."
     fi
-    if jq -c --argjson removed "${removed_options}" --arg model "${migrated_model}" \
+    if [[ "${keep_api_key}" == true ]]; then
+        bashio::log.info 'Kept the stored old options while api_key is stored.'
+    elif jq -c --argjson removed "${removed_options}" --arg model "${migrated_model}" \
             '{options: (with_entries(select(.key | IN($removed[]) | not))
                         + (if $model != "" then {anthropic_model: $model} else {} end))}' <<< "${stored_options}" |
        curl -fsS -X POST -H "Authorization: Bearer ${SUPERVISOR_TOKEN}" \
             -H 'Content-Type: application/json' --data @- \
             http://supervisor/addons/self/options > /dev/null; then
-        bashio::log.info 'Removed the stored values of removed options (api_key, enable_embeddings, yolo_mode, model).'
+        bashio::log.info 'Removed the stored values of removed options (enable_embeddings, yolo_mode, model).'
     else
         bashio::log.warning 'Could not remove old options; saving the add-on configuration once removes them too.'
     fi
