@@ -28,8 +28,9 @@ elif [[ "${exit_code_service}" -ne 0 ]]; then
   fi
   # While s6 is still starting the services, halt does not stop the container
   # (s6-overlay 3.2 restarts the service forever instead). Exit code 125 marks
-  # the service as permanently failed, so the start fails and the container
-  # stops. /run/s6_has_started is written by the oneshot s6-has-started.
+  # the service as permanently failed, so s6 does not restart it; the oneshot
+  # s6-has-started, which writes /run/s6_has_started, then finds ttyd down and
+  # fails the start, which stops the container.
   if ! bashio::fs.file_exists /run/s6_has_started; then
     exit 125
   fi
