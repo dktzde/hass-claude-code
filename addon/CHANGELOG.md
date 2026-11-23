@@ -4,6 +4,7 @@
 
 - **Option `mobile_tab_titles` is off by default now:** a fresh install shows one line of tabs. Existing installs keep the value they have saved
 - **Option `mobile_scroll` is on by default now:** swipe to scroll works on a phone right away. Existing installs keep the value they have saved
+- **A tap on the active tab opens its popup** with the full title, model and effort, also without the tab titles line. A tap on another tab still switches to it
 - Option `anthropic_auth_token`: the description now says "Empty: log in with `/login`"
 - **A stored `api_key` from 0.1.x is no longer removed on start,** as it may be the only copy of the key. The log warns instead that it is unused and says where the key belongs now (`anthropic_auth_token`) or to log in with `/login`. Saving the configuration once removes it
 
