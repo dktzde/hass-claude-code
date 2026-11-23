@@ -9,7 +9,7 @@ configuration:
     name: ANTHROPIC_AUTH_TOKEN
     description: >-
       API-Key des Anbieters, gesendet als Bearer-Token. Leer: Login mit
-      Claude-Abo oder Anthropic-Console. Wirkt nach einem Neustart.
+      /login. Wirkt nach einem Neustart.
   anthropic_model:
     name: ANTHROPIC_MODEL
     description: >-

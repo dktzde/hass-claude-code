@@ -1,3 +1,11 @@
+## Unreleased
+
+### Changes
+
+- **Option `mobile_tab_titles` is off by default now:** a fresh install shows one line of tabs. Existing installs keep the value they have saved
+- **Option `mobile_scroll` is on by default now:** swipe to scroll works on a phone right away. Existing installs keep the value they have saved
+- Option `anthropic_auth_token`: the description now says "Empty: log in with `/login`"
+
 ## 0.15.0
 
 <sub>2026-11-22</sub>

@@ -8,9 +8,8 @@ configuration:
   anthropic_auth_token:
     name: ANTHROPIC_AUTH_TOKEN
     description: >-
-      API key of the provider, sent as a bearer token. Empty: log in with a
-      Claude subscription or an Anthropic Console account. Takes effect after
-      a restart.
+      API key of the provider, sent as a bearer token. Empty: log in with
+      /login. Takes effect after a restart.
   anthropic_model:
     name: ANTHROPIC_MODEL
     description: >-

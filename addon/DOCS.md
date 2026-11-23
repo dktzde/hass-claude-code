@@ -13,7 +13,7 @@ The [README](https://github.com/dktzde/hass-claude-code#readme) has all the deta
 ## Options
 
 - **ANTHROPIC_BASE_URL** (empty by default): another address for the API requests, for example an API gateway or another provider with an Anthropic-compatible API. Empty: the Anthropic API.
-- **ANTHROPIC_AUTH_TOKEN** (empty by default): API key of that provider, sent as a bearer token. Empty: log in with your Claude subscription or Anthropic Console account. Home Assistant stores it in the add-on configuration; the add-on never writes it to the log.
+- **ANTHROPIC_AUTH_TOKEN** (empty by default): API key of that provider, sent as a bearer token. Empty: log in with `/login`. Home Assistant stores it in the add-on configuration; the add-on never writes it to the log.
 - **ANTHROPIC_MODEL** (`opus` by default): any model name, for example `sonnet`, `opus` or `haiku` (each the newest model of its kind), a full name such as `claude-opus-5-5` (stays on that version), or a model name of another provider. Empty: the default model of Claude Code. `/model` in Claude Code still switches the model for the running session.
 - **Protect internal files** (on by default): Claude Code cannot change Home Assistant's internal files under `/homeassistant/`. These are `.storage/` (registries, UI automations, dashboards, helpers), `.cloud/`, `deps/`, `tts/` and the recorder database `home-assistant_v2.db`. A broken `.storage/` file can keep Home Assistant from starting. Reading them still works. Turn the option off only to repair such a file on purpose. Scripts that open files themselves, for example Python or `sqlite3`, are not blocked; Claude is told not to use them for it.
 - **Mobile login**: send the login link as a notification while Claude Code waits for the login.
