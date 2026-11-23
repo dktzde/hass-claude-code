@@ -1,0 +1,8 @@
+#!/command/with-contenv bashio
+# shellcheck shell=bash
+# ==============================================================================
+# Claude Code Add-on: mark that all services have started
+# The ttyd finish script stops the container differently before and after
+# this point (see ttyd/finish).
+# ==============================================================================
+touch /run/s6_has_started
