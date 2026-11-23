@@ -1,8 +1,10 @@
-# Maintenance: base image and npm major updates
+# Maintenance
 
 Checklists and pitfalls for the updates the weekly Action only reports as issues: a new base image (often a new Alpine version) and new major versions of the MCP server's npm dependencies. The routine updates (Claude Code, Alpine packages, npm within the majors, docs) run on their own, see "Updates" in the [README](README.md).
 
-Each section ends with what went wrong or nearly went wrong last time, so the next update does not trip over it again. Add to it after every such update.
+The last two sections keep the decisions and conventions of this repository and its known issues (moved here from the former `STATUS.md`).
+
+Each update section ends with what went wrong or nearly went wrong last time, so the next update does not trip over it again. Add to it after every such update.
 
 ## How a manual update is released
 
@@ -113,3 +115,39 @@ printf '%s\n' \
 Do the same on a copy of the old state and `diff` the two `tools/list` results; also diff `dist/*.js` when the compiler changes. `.github/scripts/mcp-smoke-test.sh` runs `docker run … node /opt/mcp-server/dist/index.js`; for a local run, put a small `docker` script first in `PATH` that runs `node dist/index.js` in the server directory instead.
 
 The smoke test in the workflow checks the docs search (with a dot and a typo), that `tools/list` describes `call_service.data` as an object, and that `call_service` with valid input fails only at the HTTP request (the container has no network and no Home Assistant), while invalid input fails with a validation error.
+
+## Decisions and conventions
+
+- **Permission rule paths:** in Claude Code `Read(...)`/`Edit(...)` rules, `//path` is absolute, a single leading `/path` is relative to the settings source (for `~/.claude/settings.json` it means `~/.claude/path`). Always write `//homeassistant/...`. Only `Edit(...)` and `Read(...)` path rules match; `Write(path)` and `NotebookEdit(path)` never do. Deny rules also cover file commands Claude Code recognizes in Bash (`cat`, `sed`, `tee`, redirections), not every program that opens files itself.
+- **Ideas from LuckyTriple7/HA-AddOns (compared 2026-11-04):** (1) deny rules for Home Assistant's internal files: done in 0.9.0. (2) copy into the browser clipboard: 0.10.0, dktzde/hass-claude-code#48, with a browser script instead of `set-clipboard on`/`allow-passthrough on` (tested: they do not help with ttyd 1.7.7). `escape-time` (10 ms is the default since tmux 3.5) and `assume-paste-time 0` were left out. (3) swipe to scroll on a phone: 0.11.0, dktzde/hass-claude-code#49, own script (option `mobile_scroll`, default off) on the same page mechanism as 0.10.0. Not solvable in tmux (tmux never sees touch events). xterm.js has the fix on its main branch (milestone 7.0, touch scroll sent as wheel reports when the app wants mouse events; 6.0.0 even has a touch regression), ttyd's main branch is on xterm.js 5.5 and has the clipboard addon, and ttyd has not released since 1.7.7 (March 2024). Upstream route later: once xterm.js 7 is out, a PR to ttyd for the update, then a ttyd release and the Alpine package; then drop our scripts. (4) `addon/DOCS.md` for the Documentation tab: dktzde/hass-claude-code#47. (5) a notification when a newer Claude Code exists: **rejected by the maintainer** (2026-11-04). Not wanted either: `full_access`/`docker_api`, a direct port without Ingress, self-update at runtime, unpinned `latest` downloads.
+- **Layer cache:** the Supervisor builds with the Docker layer cache. Everything that must update is pinned in `addon/Dockerfile`:
+  - `CLAUDE_CODE_VERSION`
+  - `PACKAGES_STAMP`, a hash of `addon/packages.txt`
+  - `DOCS_STAMP`, the git tree hash of `docs/`
+  - plus the npm lockfile
+
+  Never edit the stamps or `addon/packages.txt` by hand; the workflow maintains them.
+- **Login** only through Claude Code (the `api_key` option was removed in 0.2.0). The login lives in `/data`.
+- **CLAUDE.md in the add-on:** `init-claude` writes `/etc/claude-code/CLAUDE.md` on every start; Claude Code loads it as managed memory. `/homeassistant/CLAUDE.md` belongs to the user: it is created only when missing and **never overwritten**.
+- **MQTT:** `services: mqtt:want`. With the Mosquitto broker add-on, `init-claude` exports `MQTT_HOST`, `MQTT_PORT`, `MQTT_USERNAME` and `MQTT_PASSWORD`.
+- **Versioning:** the workflow bumps the patch level (0.2.1, 0.2.2, …). Bigger changes get a new minor version by hand.
+- **Changelog:** automated entries start with "**Automated update** by the GitHub Action …", without "not made by hand". Every version of this fork (0.1.12 and later) has its date as `<sub>YYYY-MM-DD</sub>` under the heading (the workflow writes it in UTC); 0.1.0–0.1.11 are the original add-on by dkmaker, marked with a note above 0.1.11.
+- **Language:** code, README, changelog, commits and the issues created by the workflow in English (issues since 2026-10-09). Replies to the maintainer in German, in plain language.
+- **Workflow:**
+  - One PR per topic.
+  - Before merging, run the Action by hand on the PR branch (Run workflow → choose the branch). That run never pushes and never changes issues; its step summary shows what it would release and which issues it would open or close.
+  - After merging, run it on `main` once, so the release has the current package list.
+- **Dependabot** (since 2026-11-10): only for the actions used in the workflows (`.github/dependabot.yml`, monthly, PRs with prefix `ci:`); such a PR needs no add-on version, nothing in the image changes. Dependabot alerts (security warnings for the npm lockfile) are on, automatic security fix PRs are off. Everything in the add-on stays with the weekly Action, because Dependabot knows neither the Claude Code pin, the Alpine packages nor the docs, and opens no release with version bump and changelog.
+- **Report scripts** (`.github/scripts/`) exit with an error instead of printing nothing when a data source is down, so an outage never closes an issue.
+- **Issue titles** are the key the workflow finds its issues by. When a title changes, add the old one to `retitle_issue` (or the failure job's lookup), so the open issue is renamed instead of a second one opened. The German titles there can go once no open issue carries them.
+
+## Known issues and backlog
+
+- **`aarch64` (Raspberry Pi) is never test-built.** CI builds `amd64` only. A QEMU arm64 build would work but is slow. The README says it is untested.
+- `addon/README.md` does not exist, so the add-on overview in the store shows only the description. `url` in `config.yaml` links to this repository. `addon/DOCS.md` (Documentation tab) exists since dktzde/hass-claude-code#47; keep it in step with the README (options, tips, paths) and keep it short, the README has the details.
+- The option `additional_packages` installs packages on every start (needs internet, start fails if a package is missing).
+- **Docs search** is SQLite FTS5 with fallbacks and typo correction. Alternatives such as MiniSearch, Fuse.js or Typesense were considered; FTS5 plus its own vocabulary needs no new dependency and keeps the index built at image build time.
+- The semantic doc search was **removed** in 0.3.0 at the maintainer's request (Claude does not need it; it never worked because the docs were never indexed with embeddings). Do not bring back Transformers.js, ONNX Runtime or sqlite-vec without a new decision. On 2026-11-10 the old search service of the `hass-dev-docs` skill (`.claude/skills/hass-dev-docs/service/`, Express + sqlite-vec + Transformers.js, not part of the image) was removed as well; the skill and the `hass-docs-search` subagent now search with `rg`. Trigger: Dependabot alert #1 (`glob`, dismissed as not used).
+- Prebuilt images (building in CI and pulling instead of building on the device) were considered and **rejected** for now. Building on the device works, and the stamps solve the layer cache problem.
+- better-sqlite3 13 adds about 15 MB to the image (SQLite sources and prebuilt binaries for all platforms). The builder could delete `deps/`, `src/` and the binaries of other platforms after `pnpm prune --prod`; not done, to keep the build simple.
+- Claude Code cloud sessions cannot build the image (image layers from `ghcr.io`, Docker Hub and the Alpine CDN are blocked or rate-limited there). Build with the test run of the Action; `MAINTENANCE.md` shows how to test the MCP server locally with Node.js.
