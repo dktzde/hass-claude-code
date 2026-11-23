@@ -135,7 +135,8 @@ The smoke test in the workflow checks the docs search (with a dot and a typo), t
 - **Language:** code, README, changelog, commits and the issues created by the workflow in English (issues since 2026-10-09). Replies to the maintainer in German, in plain language.
 - **Workflow:**
   - One PR per topic.
-  - Before merging, run the Action by hand on the PR branch (Run workflow → choose the branch). That run never pushes and never changes issues; its step summary shows what it would release and which issues it would open or close.
+  - Pull requests that change `addon/` or `.github/` are test-built for `amd64` and `aarch64` by the workflow "Test build" on their own.
+  - Before merging a change to the update workflow, the base image or the npm majors, also run the Action by hand on the PR branch (Run workflow → choose the branch). That run never pushes and never changes issues; its step summary shows what it would release and which issues it would open or close.
   - After merging, run it on `main` once, so the release has the current package list.
 - **Dependabot** (since 2026-11-10): only for the actions used in the workflows (`.github/dependabot.yml`, monthly, PRs with prefix `ci:`); such a PR needs no add-on version, nothing in the image changes. Dependabot alerts (security warnings for the npm lockfile) are on, automatic security fix PRs are off. Everything in the add-on stays with the weekly Action, because Dependabot knows neither the Claude Code pin, the Alpine packages nor the docs, and opens no release with version bump and changelog.
 - **Report scripts** (`.github/scripts/`) exit with an error instead of printing nothing when a data source is down, so an outage never closes an issue.
@@ -143,7 +144,7 @@ The smoke test in the workflow checks the docs search (with a dot and a typo), t
 
 ## Known issues and backlog
 
-- **`aarch64` (Raspberry Pi) is never test-built.** CI builds `amd64` only. A QEMU arm64 build would work but is slow. The README says it is untested.
+- **`aarch64` (Raspberry Pi) is tested by CI only** (since 2026-11-23). The maintainer has no `aarch64` hardware. The workflow "Test build" builds and checks pull requests for both architectures, and the weekly job `test-arm` builds the release commit on a native `ubuntu-24.04-arm` runner (free for public repositories; no QEMU, which was too slow). A failing `test-arm` holds back the weekly release for both architectures, so both always get the same version. Nothing runs the add-on itself on `aarch64` (s6, ttyd, tmux); the checks only start Claude Code, Python, the tools and the MCP server in the image.
 - `addon/README.md` does not exist, so the add-on overview in the store shows only the description. `url` in `config.yaml` links to this repository. `addon/DOCS.md` (Documentation tab) exists since dktzde/hass-claude-code#47; keep it in step with the README (options, tips, paths) and keep it short, the README has the details.
 - The option `additional_packages` installs packages on every start (needs internet, start fails if a package is missing).
 - **Docs search** is SQLite FTS5 with fallbacks and typo correction. Alternatives such as MiniSearch, Fuse.js or Typesense were considered; FTS5 plus its own vocabulary needs no new dependency and keeps the index built at image build time.

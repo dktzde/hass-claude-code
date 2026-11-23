@@ -4,7 +4,7 @@
 
 A Home Assistant add-on that runs [Claude Code](https://docs.anthropic.com/en/docs/claude-code) inside your Home Assistant instance. You get a web terminal in the sidebar, full access to your configuration and a built-in MCP server, so Claude can look up entities, call services and search the Home Assistant docs.
 
-The weekly test build only covers `amd64`. **Raspberry Pi and other `aarch64` devices are not tested.**
+Every change to the add-on (pull request) and every weekly update is test-built for `amd64` and `aarch64`. **I have no `aarch64` hardware (such as a Raspberry Pi) to test on myself**, so on `aarch64` only these automatic test builds check the add-on, not a real device.
 If something breaks after an update, please [open an issue](https://github.com/dktzde/hass-claude-code/issues).
 
 ![Claude Code in the Home Assistant sidebar: a session working on a GitHub repository, with the mobile_tabs bar at the bottom (tabs 1 to 4, Shift+Tab, + and Esc)](images/screenshot.jpg)
@@ -90,8 +90,8 @@ Every Saturday at 05:47 UTC (07:47 CEST / 06:47 CET), the GitHub Action [`update
 1. Checks for a new Claude Code release.
 2. Regenerates the docs from the upstream Home Assistant repositories.
 3. Updates the npm dependencies within their major versions.
-4. Test-builds the add-on, reads the installed package versions and checks that the MCP server answers.
-5. If anything changed, updates the pins, bumps the add-on version, writes the changelog and pushes.
+4. Test-builds the add-on for `amd64` and `aarch64` (each on a GitHub runner of that architecture), reads the installed package versions and checks that the MCP server answers.
+5. If anything changed and both test builds passed, updates the pins, bumps the add-on version, writes the changelog and pushes.
 
 Home Assistant then offers a normal add-on update. The changelog marks these updates as **Automated update** and lists what changed. If nothing changed, nothing is released.
 
@@ -170,8 +170,8 @@ docker run -it -e SUPERVISOR_TOKEN=fake -e ANTHROPIC_API_KEY=your-key claude-cod
 
 ## Supported architectures
 
-- `amd64`: test-built every week by a GitHub Action
-- `aarch64` (for example Raspberry Pi 4 and 5): offered, but **not tested**. The Action does not build it, so a problem would only show up when a device builds the add-on
+- `amd64`: test-built for every pull request that changes the add-on and for every weekly update, and tested on my own device
+- `aarch64` (for example Raspberry Pi 4 and 5): test-built for every pull request that changes the add-on and for every weekly update on an `arm64` runner of GitHub Actions, with the same checks as `amd64` ([`test-build.yml`](.github/workflows/test-build.yml), [`update-claude-code.yml`](.github/workflows/update-claude-code.yml)). I have no `aarch64` hardware to test on myself, so it is **not tested on a real device**. If something breaks there, please [open an issue](https://github.com/dktzde/hass-claude-code/issues)
 
 ## License
 
