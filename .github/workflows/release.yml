@@ -19,8 +19,11 @@ on:
 permissions:
   contents: write
 
+# One run at a time; queue: max keeps every pending run (the default keeps
+# only the newest), so each version that reaches main gets its release.
 concurrency:
   group: release
+  queue: max
 
 jobs:
   release:
