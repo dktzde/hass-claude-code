@@ -10,8 +10,7 @@ notice_main=${NOTICE_DAYS_MAIN:-90}
 # opens the issue anyway (maintainer's choice, 2026-11-22; was 30 days).
 notice_community=${NOTICE_DAYS_COMMUNITY:-2}
 
-# The current Supervisor builder only reads the Dockerfile (build.yaml is kept
-# in sync for older Supervisors)
+# The Supervisor takes the base image from the Dockerfile (no build.yaml)
 current=$(grep -oP '^ARG BUILD_FROM=ghcr.io/hassio-addons/base:\K\S+' addon/Dockerfile)
 builder=$(grep -oP '^FROM alpine:\K\S+(?= AS mcp-builder)' addon/Dockerfile)
 alpine=$(grep -oP '^alpine-release-\K[0-9]+\.[0-9]+' addon/packages.txt 2>/dev/null || echo "$builder")
@@ -127,7 +126,7 @@ ${waiting:+$waiting
 
 }The switch is deliberately not automatic. A new Alpine version often brings new versions of Python and Node.js, and the builder stage must use the same Alpine version, so the npm packages are installed for the Node.js and libc that run them in the add-on.
 
-- Set \`ARG BUILD_FROM\` in \`addon/Dockerfile\` to the new version, and \`addon/build.yaml\` (both architectures) to match
+- Set \`ARG BUILD_FROM\` in \`addon/Dockerfile\` to the new version
 - For a new Alpine version: change \`FROM alpine:…\` of the builder stage in \`addon/Dockerfile\`
 - Add-on version in \`addon/config.yaml\` and \`addon/CHANGELOG.md\`
 

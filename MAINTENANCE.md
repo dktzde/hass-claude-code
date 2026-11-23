@@ -21,8 +21,7 @@ Plan the commit split before the first push. In Claude Code cloud sessions, rewr
 
 Files:
 
-- `addon/Dockerfile`: `ARG BUILD_FROM=ghcr.io/hassio-addons/base:<version>`. The current Supervisor builder reads only this.
-- `addon/build.yaml`: the same version for both architectures. Older Supervisors still read `build_from` from it.
+- `addon/Dockerfile`: `ARG BUILD_FROM=ghcr.io/hassio-addons/base:<version>`, a multi-arch image, so one line serves both architectures. There is no `addon/build.yaml` any more (removed 2026-11-23): the Supervisor builds without it since 2026.04.0 (home-assistant/supervisor#6694, see "Previously, … build.yaml" in the developer docs under apps/configuration) and warned on every update that it is deprecated. A Supervisor older than that would fall back to its own default base image, but the Supervisor updates itself.
 - `addon/Dockerfile`, builder stage: `FROM alpine:<X.Y> AS mcp-builder`, the same Alpine version as the base image.
 
 Checks:
