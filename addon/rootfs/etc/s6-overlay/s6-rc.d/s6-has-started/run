@@ -1,0 +1,23 @@
+#!/command/with-contenv bashio
+# shellcheck shell=bash
+# ==============================================================================
+# Claude Code Add-on: mark that all services have started
+# The ttyd finish script stops the container differently before and after
+# this point (see ttyd/finish).
+#
+# ttyd has no readiness notification, so s6-rc counts it as started as soon as
+# its process runs. A ttyd that cannot start (for example a busy port) exits
+# within a fraction of a second, and while this marker is missing its finish
+# script marks it as permanently failed (exit 125), which s6-rc no longer
+# notices. So give ttyd a moment, set the marker, and fail the start if ttyd
+# is down: then s6 stops the container. A ttyd that exits after the marker is
+# set takes the container down through halt in its finish script.
+# ==============================================================================
+readonly SETTLE_SECONDS=2
+
+sleep "${SETTLE_SECONDS}"
+touch /run/s6_has_started
+if [[ "$(/command/s6-svstat -o up /run/service/ttyd 2> /dev/null)" != true ]]; then
+    bashio::log.fatal 'ttyd exited while the app was starting; see the lines above.'
+    exit 1
+fi

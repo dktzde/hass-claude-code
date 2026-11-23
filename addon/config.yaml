@@ -1,6 +1,6 @@
 ---
 name: Claude Code
-version: 0.16.1
+version: 0.16.2
 slug: claude_code
 description: Claude Code in your sidebar, with an MCP server for entities, services and the Home Assistant docs
 # Linked as "more information" on the add-on page in Home Assistant
@@ -10,6 +10,12 @@ ingress: true
 ingress_port: 0
 ingress_stream: true
 init: false
+# Seconds the Supervisor waits for the add-on to stop before it kills it
+# (default 10). A normal stop takes about 5 s: s6 stops the services, then
+# gives the other processes (tmux, Claude Code) a few seconds to exit. Under
+# load, right after an image build, one stop took 24 s and ended with exit
+# code 137 (killed).
+timeout: 90
 panel_icon: mdi:console-network
 panel_title: Claude Code
 arch:
