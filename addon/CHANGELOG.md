@@ -1,3 +1,19 @@
+## 0.16.2
+
+<sub>2026-11-23</sub>
+
+### Fixes
+
+- **The Supervisor waits up to 90 seconds for the app to stop** before it kills it (default 10). A normal stop still takes about 5 seconds. Under load, right after the image build of an update, one stop took 24 seconds and the app was killed (exit code 137)
+- **A normal stop leaves no error code** when s6 stops ttyd with SIGTERM, so Home Assistant does not show the app as failed after a manual stop
+- **If ttyd fails while the app starts, the start fails** with the error in the log, instead of s6 restarting ttyd over and over
+- **Option `additional_packages`: fetching the package indexes is retried after 20 seconds and after 2 minutes** before the start fails, for example when the network is not up yet right after a host start
+- These follow the [Tailscale app](https://github.com/hassio-addons/app-tailscale) of the Home Assistant Community Apps
+
+### Documentation
+
+- README and the Documentation tab say app instead of add-on, as Home Assistant does since 2026
+
 ## 0.16.1
 
 <sub>2026-11-23</sub>

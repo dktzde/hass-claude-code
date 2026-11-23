@@ -1,6 +1,6 @@
 ---
 name: Claude Code
-version: 0.16.1
+version: 0.16.2
 slug: claude_code
 description: Claude Code in your sidebar, with an MCP server for entities, services and the Home Assistant docs
 # Linked as "more information" on the add-on page in Home Assistant
