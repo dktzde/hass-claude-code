@@ -1,0 +1,49 @@
+name: Test build
+
+# Builds the add-on for each architecture in addon/config.yaml on a runner of
+# that architecture (no emulation) and runs the same checks on the image as
+# the weekly "Update add-on" (.github/scripts/check-image.sh). Runs for pull
+# requests that change the add-on or the CI, and by hand. Pushes nothing and
+# changes no issues.
+#
+# The maintainer has no aarch64 hardware: this build is the only aarch64 test.
+
+on:
+  pull_request:
+    paths:
+      - "addon/**"
+      - ".github/**"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: test-build-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Build (${{ matrix.arch }})
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - arch: amd64
+            platform: linux/amd64
+            runner: ubuntu-24.04
+          - arch: aarch64
+            platform: linux/arm64
+            runner: ubuntu-24.04-arm
+    runs-on: ${{ matrix.runner }}
+    env:
+      IMAGE: hass-claude-code-test:${{ matrix.arch }}
+      PLATFORM: ${{ matrix.platform }}
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Test-build the add-on (${{ matrix.arch }})
+        run: docker buildx build addon --pull --platform "$PLATFORM" --load -t "$IMAGE"
+
+      - name: Check the built image
+        run: bash .github/scripts/check-image.sh "$IMAGE"
