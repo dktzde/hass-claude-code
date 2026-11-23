@@ -1,4 +1,6 @@
-## Unreleased
+## 0.16.0
+
+<sub>2026-11-23</sub>
 
 ### Changes
 
