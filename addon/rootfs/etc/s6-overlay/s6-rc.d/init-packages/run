@@ -7,8 +7,16 @@
 if bashio::config.has_value 'additional_packages'; then
     bashio::log.info 'Installing additional packages...'
 
-    apk update \
-        || bashio::exit.nok 'Failed updating Alpine package indexes'
+    # Right after a host start or during a short outage the network may not
+    # be up yet (the Tailscale add-on waits for it, too). Fetching the package
+    # indexes is the first thing that needs it: retry after 20 s and 2 min,
+    # like the Docker build does.
+    for wait in 20 120 0; do
+        apk update && break
+        [[ "${wait}" -eq 0 ]] && bashio::exit.nok 'Failed updating Alpine package indexes'
+        bashio::log.warning "Updating the Alpine package indexes failed, retrying in ${wait} s..."
+        sleep "${wait}"
+    done
 
     for package in $(bashio::config 'additional_packages'); do
         apk add --no-cache "$package" \
