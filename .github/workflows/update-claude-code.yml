@@ -283,8 +283,30 @@ jobs:
             echo "Test run on $GITHUB_REF: would release add-on version $VERSION ($MESSAGE), not pushed." >> "$GITHUB_STEP_SUMMARY"
             exit 0
           fi
+          # A re-run of this job after a successful push (for example because
+          # publishing the release failed) would push a second, different
+          # commit. If main already ends with this change, use that commit.
+          git fetch -q origin main
+          pushed=$(git show --binary origin/main | git patch-id --stable | cut -d' ' -f1)
+          prepared=$(git patch-id --stable < "$RUNNER_TEMP/release.patch" | cut -d' ' -f1)
+          if [ "$pushed" = "$prepared" ]; then
+            git reset -q --hard origin/main
+            echo "Add-on version $VERSION was pushed already, publishing its release." >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
           git push origin HEAD:main
           echo "Released add-on version $VERSION: $MESSAGE." >> "$GITHUB_STEP_SUMMARY"
+
+      # A push with GITHUB_TOKEN starts no other workflow, so release.yml does
+      # not run for this commit: publish its GitHub release here. A test run
+      # on another branch only prints what it would publish.
+      - name: Publish the GitHub release
+        env:
+          GH_REPO: ${{ github.repository }}
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if [ "$GITHUB_REF" != refs/heads/main ]; then export DRY_RUN=1; fi
+          bash .github/scripts/release.sh "$(git rev-parse HEAD)"
 
   report:
     # Reports what stays a manual decision as issues: one open issue per topic,

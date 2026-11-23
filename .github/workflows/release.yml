@@ -1,0 +1,39 @@
+name: Release
+
+# Publishes a GitHub release for each add-on version that reaches main by a
+# merge or a push of the maintainer (.github/scripts/release.sh). Releases of
+# the weekly "Update add-on" are published by its release job, because a push
+# with GITHUB_TOKEN starts no other workflow. Existing releases are left alone,
+# so a run without a new version does nothing.
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - addon/config.yaml
+      - addon/CHANGELOG.md
+      - .github/workflows/release.yml
+      - .github/scripts/release.sh
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+# One run at a time; queue: max keeps every pending run (the default keeps
+# only the newest), so each version that reaches main gets its release.
+concurrency:
+  group: release
+  queue: max
+
+jobs:
+  release:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    env:
+      GH_REPO: ${{ github.repository }}
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Publish the release of the current version
+        run: bash .github/scripts/release.sh "$GITHUB_SHA"
