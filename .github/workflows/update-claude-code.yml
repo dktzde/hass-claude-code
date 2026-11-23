@@ -125,18 +125,7 @@ jobs:
         run: docker buildx build addon --pull --platform linux/amd64 --load -t "$IMAGE"
 
       - name: Check the built image
-        run: |
-          pinned=$(grep -oP '^ARG CLAUDE_CODE_VERSION=\K.*' addon/Dockerfile)
-          installed=$(docker run --rm --entrypoint /root/.local/bin/claude "$IMAGE" --version | awk '{print $1}')
-          echo "Claude Code installed: $installed, pinned: $pinned"
-          [ "$installed" = "$pinned" ]
-          docker run --rm --entrypoint python3 "$IMAGE" -c 'import json, sqlite3, ssl, sys, yaml; print(sys.version, "PyYAML", yaml.__version__)'
-          docker run --rm --entrypoint sh "$IMAGE" -c 'command -v mosquitto_pub && command -v mosquitto_sub && gh --version'
-          # The browser scripts need ttyd's saved page with window.term, </head>
-          # and </body>; reconnect.js needs ttyd's WebSocket protocol "tty" and
-          # its /token endpoint (see MAINTENANCE.md)
-          docker run --rm --entrypoint sh "$IMAGE" -c 'cd /usr/share/ttyd-addon && grep -q "window.term=" ttyd-index.html && grep -q "</head>" ttyd-index.html && grep -q "</body>" ttyd-index.html && grep -qF "[\"tty\"]" ttyd-index.html && grep -qF "\"/token\"" ttyd-index.html && test -s reconnect.js && ls'
-          bash .github/scripts/mcp-smoke-test.sh "$IMAGE"
+        run: bash .github/scripts/check-image.sh "$IMAGE"
 
       # The test build clones docs from main, which does not have the new docs
       # yet, so index them separately with the image's own indexer.
