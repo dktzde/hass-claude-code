@@ -2,7 +2,8 @@ name: Test build
 
 # Builds the add-on for each architecture in addon/config.yaml on a runner of
 # that architecture (no emulation) and runs the same checks on the image as
-# the weekly "Update add-on" (.github/scripts/check-image.sh). Runs for pull
+# the weekly "Update add-on" (.github/scripts/check-image.sh, and
+# apparmor-test.sh for the AppArmor profile in enforce mode). Runs for pull
 # requests that change the add-on or the CI, and by hand. Pushes nothing and
 # changes no issues.
 #
@@ -47,3 +48,6 @@ jobs:
 
       - name: Check the built image
         run: bash .github/scripts/check-image.sh "$IMAGE"
+
+      - name: Test the AppArmor profile
+        run: bash .github/scripts/apparmor-test.sh "$IMAGE"
