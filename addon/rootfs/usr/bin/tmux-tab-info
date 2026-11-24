@@ -68,6 +68,7 @@ interrupted() {
 #   PreToolUse (AskUserQuestion, ExitPlanMode), PermissionRequest,
 #   Notification (permission prompt, question, elicitation)  ask
 #   Stop, StopFailure, Notification (idle prompt)            idle
+#     (the idle prompt leaves a new session new)
 # An interrupt with Esc runs no hook: see interrupted.
 hook() {
     local state="$1" input value transcript
@@ -83,7 +84,11 @@ hook() {
                 tmux set -p -t "${TMUX_PANE}" @hcc_transcript "${transcript}" > /dev/null 2>&1 || true
             fi
             case "${state}:${value}" in
-                notification:idle_prompt) state=idle ;;
+                notification:idle_prompt)
+                    # Claude Code also sends it about 60 s after a start or
+                    # /clear without any message: a new session stays new.
+                    [[ "$(tmux display -p -t "${TMUX_PANE}" '#{@hcc_state}' 2>/dev/null)" != new ]] || return 0
+                    state=idle ;;
                 notification:permission_prompt | notification:worker_permission_prompt | \
                     notification:agent_needs_input | notification:elicitation_dialog | \
                     notification:elicitation_url_dialog) state=ask ;;
