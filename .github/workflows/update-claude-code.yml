@@ -132,6 +132,9 @@ jobs:
       - name: Check the built image
         run: bash .github/scripts/check-image.sh "$IMAGE"
 
+      - name: Test the AppArmor profile
+        run: bash .github/scripts/apparmor-test.sh "$IMAGE"
+
       # The test build clones docs from main, which does not have the new docs
       # yet, so index them separately with the image's own indexer.
       - name: Index the regenerated docs
@@ -254,6 +257,9 @@ jobs:
 
       - name: Check the built image
         run: bash .github/scripts/check-image.sh "$IMAGE"
+
+      - name: Test the AppArmor profile
+        run: bash .github/scripts/apparmor-test.sh "$IMAGE"
 
   release:
     # Pushes the release commit of the update job to main, only after the
