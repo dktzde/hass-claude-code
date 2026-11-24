@@ -25,6 +25,7 @@ echo ""
 # user has no status line of their own: settings passed with --settings win
 # over the user's and project settings.
 declare -a claude_args=()
+settings='{}'
 if [[ -n "${TMUX:-}" ]] &&
    [[ "$(tmux show -gqv @hcc_tab_info 2> /dev/null)" == "on" ]]; then
     own_status_line=false
@@ -36,9 +37,33 @@ if [[ -n "${TMUX:-}" ]] &&
         fi
     done
     if [[ "${own_status_line}" == false ]]; then
-        claude_args+=(--settings
-            '{"statusLine":{"type":"command","command":"/usr/bin/tmux-tab-info"}}')
+        settings='{"statusLine":{"type":"command","command":"/usr/bin/tmux-tab-info"}}'
     fi
+fi
+
+# Option mobile_tab_status: each tab shows whether its session works, waits
+# for the next message or waits for an answer. Hooks tell tmux-tab-info the
+# state. Hooks from --settings run in addition to the user's own hooks.
+if [[ -n "${TMUX:-}" ]] &&
+   [[ "$(tmux show -gqv @hcc_tab_status 2> /dev/null)" == "on" ]]; then
+    settings=$(jq -c '
+        def hook(state): [{hooks: [{type: "command", timeout: 5,
+            command: ("/usr/bin/tmux-tab-info --state " + state)}]}];
+        .hooks = {
+            SessionStart: hook("session-start"),
+            UserPromptSubmit: hook("busy"),
+            PostToolUse: hook("busy"),
+            PostToolUseFailure: hook("busy"),
+            PreToolUse: [{matcher: "AskUserQuestion|ExitPlanMode"}
+                + hook("ask")[0]],
+            PermissionRequest: hook("ask"),
+            Notification: hook("notification"),
+            Stop: hook("idle"),
+            StopFailure: hook("idle")
+        }' <<< "${settings}")
+fi
+if [[ "${settings}" != '{}' ]]; then
+    claude_args+=(--settings "${settings}")
 fi
 
 # Launch Claude Code

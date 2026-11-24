@@ -1,6 +1,6 @@
 ---
 name: Claude Code
-version: 0.17.0
+version: 0.18.0
 slug: claude_code
 description: Claude Code in your sidebar, with an MCP server for entities, services and the Home Assistant docs
 # Linked as "more information" on the add-on page in Home Assistant
@@ -42,6 +42,7 @@ options:
   mobile_login: false
   mobile_tabs: false
   mobile_tab_titles: false
+  mobile_tab_status: false
   mobile_scroll: true
   disable_mouse: false
   additional_packages: []
@@ -53,6 +54,7 @@ schema:
   mobile_login: bool
   mobile_tabs: bool
   mobile_tab_titles: bool
+  mobile_tab_status: bool
   mobile_scroll: bool
   disable_mouse: bool
   additional_packages:

@@ -1,3 +1,15 @@
+## 0.18.0
+
+<sub>2026-11-24</sub>
+
+### Changes
+
+- **Mobile tabs: status of each session (new option `mobile_tab_status`, off by default).** The `:` in a tab shows what the session does: `*` works, `_` done and waits for your next message, `!` waits for your answer (permission prompt, question or plan), a space for a new session. Claude Code hooks set it; they run next to your own hooks. The popup of the active tab names the status in words. `mobile_tab_titles` and `mobile_tab_status` can be turned on independently
+
+### Fixes
+
+- Documentation tab: the tab titles line is off by default (since 0.16.0)
+
 ## 0.17.0
 
 <sub>2026-11-24</sub>

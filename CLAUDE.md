@@ -14,7 +14,7 @@ These rules apply to every session, also to Claude Code on the web.
 - **Merge** only when the maintainer explicitly asks, always with a merge commit (no squash), so every commit can be reverted on its own.
 - **Versions:** bump only for user-facing changes and only on our `main`; documentation-only changes get no new version. Change the version everywhere at the same time.
 - **Changelog:** every version gets its date as `<sub>YYYY-MM-DD</sub>` under its heading. Versions by earlier authors are separated by a `---` line and a bold sentence naming them.
-- **Language:** everything in the repository is English (code, comments, docs, commits, PR and issue texts). Commit messages in the imperative, e.g. `feat(scope): …`, `fix: …`, `docs: …`, `chore: …`, `ci: …`; in PRs to the upstream follow its style.
+- **Language:** everything in the repository is English (code, comments, docs, commits, PR and issue texts), except the translation files in `addon/translations/`, which are in their own language (`de.yaml` German). Commit messages in the imperative, e.g. `feat(scope): …`, `fix: …`, `docs: …`, `chore: …`, `ci: …`; in PRs to the upstream follow its style.
 - **No secrets or private data** (tokens, passwords, IP addresses, radio addresses, serial numbers, entity IDs) in the repository; use placeholders.
 - **README:** a credit line for Claude Code only after asking the maintainer.
 - **No other model providers:** name only Anthropic and Claude models. Never name another provider or its model names anywhere: files, comments, examples, tests, commit messages, PR texts, release notes, review replies. Write "another Anthropic-compatible API" instead, and use neutral placeholders such as `example-model-pro` in examples and tests.
