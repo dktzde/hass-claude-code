@@ -9,8 +9,9 @@
 # Without the Supervisor the init scripts cannot read the options, so s6
 # stops the container right after its first services. That still runs
 # s6-overlay and bashio; a separate container checks that "docker stop"
-# reaches the process inside. A read of /proc/sysrq-trigger, which the profile
-# denies, checks that denials show up in the journal at all.
+# reaches the process inside. chroot, whose capability the profile does not
+# list, checks that denials show up in the journal at all (the explicit deny
+# rules taken from docker-default are not logged).
 # Needs sudo (to load the profile) and an AppArmor-enabled kernel, as on the
 # GitHub-hosted Ubuntu runners.
 # Usage: apparmor-test.sh <image>
@@ -75,19 +76,20 @@ fi
 echo "::endgroup::"
 
 # Must be denied and logged
-if docker run --rm --security-opt "apparmor=$name" --entrypoint cat "$image" /proc/sysrq-trigger 2> /dev/null; then
-  echo "::error::Reading /proc/sysrq-trigger was not denied"
+if docker run --rm --security-opt "apparmor=$name" --entrypoint chroot "$image" / true 2> /dev/null; then
+  echo "::error::chroot was not denied"
   exit 1
 fi
 sleep 2
 
 # Kernel or audit transport, depending on the runner's journald
 denied=$(sudo journalctl --since "$since" --no-pager | grep 'apparmor="DENIED"' | grep -F "profile=\"$name\"" || true)
-if ! grep -qF 'name="/proc/sysrq-trigger"' <<< "$denied"; then
-  echo "::error::The denied read of /proc/sysrq-trigger is not in the journal, so this test cannot see denials"
+if ! grep -qF 'capname="sys_chroot"' <<< "$denied"; then
+  sudo journalctl --since "$since" --no-pager | grep -i apparmor | tail -20 || true
+  echo "::error::The denied chroot is not in the journal, so this test cannot see denials"
   exit 1
 fi
-denied=$(grep -vF 'name="/proc/sysrq-trigger"' <<< "$denied" || true)
+denied=$(grep -vF 'capname="sys_chroot"' <<< "$denied" || true)
 if [ -n "$denied" ]; then
   echo "$denied"
   echo "::error::The AppArmor profile denied the accesses above"
