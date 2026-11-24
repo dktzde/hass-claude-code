@@ -1,3 +1,11 @@
+## 0.19.1
+
+<sub>2026-11-24</sub>
+
+### Fixes
+
+- Mobile tabs (option `mobile_tab_status`): a new session no longer switches from a space to `_` about a minute after a start or `/clear` without any message. Claude Code sends its "waiting for input" notification then as well
+
 ## 0.19.0
 
 <sub>2026-11-24</sub>
