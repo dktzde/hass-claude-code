@@ -4,7 +4,7 @@
 
 ### Changes
 
-- **Mobile tabs: letters for other models.** With `anthropic_base_url` (for example DeepSeek), a tab shows `p` for a model with "pro" in its name and `f` for one with "flash", instead of `?` for both
+- **Mobile tabs: letters for other models.** With `anthropic_base_url` (another Anthropic-compatible API), a tab shows `p` for a model with "pro" in its name and `f` for one with "flash", instead of `?` for both
 
 ### Maintenance
 
