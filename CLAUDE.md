@@ -17,6 +17,7 @@ These rules apply to every session, also to Claude Code on the web.
 - **Language:** everything in the repository is English (code, comments, docs, commits, PR and issue texts). Commit messages in the imperative, e.g. `feat(scope): …`, `fix: …`, `docs: …`, `chore: …`, `ci: …`; in PRs to the upstream follow its style.
 - **No secrets or private data** (tokens, passwords, IP addresses, radio addresses, serial numbers, entity IDs) in the repository; use placeholders.
 - **README:** a credit line for Claude Code only after asking the maintainer.
+- **No other model providers:** name only Anthropic and Claude models. Never name another provider or its model names anywhere: files, comments, examples, tests, commit messages, PR texts, release notes, review replies. Write "another Anthropic-compatible API" instead, and use neutral placeholders such as `example-model-pro` in examples and tests.
 - **No `STATUS.md`:** the maintainer does not want a status or handover file in this repository. Do not create one.
 
 ## Home Assistant add-on (`addon/`)
