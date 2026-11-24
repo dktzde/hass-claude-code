@@ -56,7 +56,7 @@ reviews:
         s6-overlay services and init scripts (bashio) on Alpine Linux. Check quoting, error handling, that longrun services
         do not exit (s6 restarts them), and that no secrets are written to logs. New services belong in
         user-bundles.d/user/contents.d, not in an s6-rc.d directory named user.
-    - path: "addon/{Dockerfile,build.yaml,config.yaml}"
+    - path: "addon/{Dockerfile,config.yaml}"
       instructions: >-
         The Supervisor builds the image on the user's device with the Docker layer cache, so everything that must update is pinned.
         The version in config.yaml and the io.hass.version label in the Dockerfile must match.
