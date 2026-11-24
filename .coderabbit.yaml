@@ -61,6 +61,11 @@ reviews:
         The Supervisor builds the image on the user's device with the Docker layer cache, so everything that must update is pinned.
         The version in config.yaml and the io.hass.version label in the Dockerfile must match.
         PACKAGES_STAMP and DOCS_STAMP are changed only by the weekly workflow.
+    - path: "addon/apparmor.txt"
+      instructions: >-
+        AppArmor profile that the Supervisor loads instead of docker-default (see MAINTENANCE.md, AppArmor profile).
+        It must keep every restriction of docker-default and have exactly one line starting with "profile ".
+        Claude Code runs as root and needs all files, programs and the network; new capabilities only when a test shows the need.
     - path: ".github/**"
       instructions: >-
         The weekly workflow pushes releases straight to main and the add-on installs from main, so a mistake reaches users at once.

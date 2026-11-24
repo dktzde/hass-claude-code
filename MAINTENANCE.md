@@ -115,6 +115,17 @@ Do the same on a copy of the old state and `diff` the two `tools/list` results; 
 
 The smoke test in the workflow checks the docs search (with a dot and a typo), that `tools/list` describes `call_service.data` as an object, and that `call_service` with valid input fails only at the HTTP request (the container has no network and no Home Assistant), while invalid input fails with a validation error.
 
+## AppArmor profile
+
+`addon/apparmor.txt` is the AppArmor profile of the add-on. The Supervisor loads it instead of Docker's default profile (`docker-default`) and renames it to the add-on's full slug (`<repository hash>_claude_code`); the file must have exactly one line starting with `profile `. A profile of its own adds one point to the add-on's security rating.
+
+Claude Code is a general tool that runs as root, so the profile allows all files, all programs and the network (`file,`, `network,`). It keeps every restriction of `docker-default` (no `mount`, no writes to `/proc` and `/sys`, `ptrace` and signals only within the add-on) and allows only the capabilities it lists instead of all.
+
+- **complain mode** (`flags=(…,complain)`): nothing is blocked; what the profile would block is logged in the host journal as `apparmor="ALLOWED"`. On the device: Supervisor API `GET /host/logs/identifiers/audit` (or `journalctl _TRANSPORT=audit` on the host), filtered for `apparmor="ALLOWED"` and the profile name.
+- **enforce mode** (without `complain`): the same accesses are denied and logged as `apparmor="DENIED"`.
+- `.github/scripts/apparmor-test.sh` loads the profile on the runner **in enforce mode**, also while it ships in complain mode, runs the image under it (s6-overlay start and stop, `claude`, Python, git, tmux, ps, ping, chown, `apk add`) and fails on any denial. It runs in "Test build" and in the weekly "Update add-on" for both architectures.
+- A new tool or a new Claude Code version may need a capability that is not listed: the test shows it as `apparmor="DENIED" operation="capable" capname="…"`. Add the capability only if the add-on really needs it.
+
 ## Decisions and conventions
 
 - **Permission rule paths:** in Claude Code `Read(...)`/`Edit(...)` rules, `//path` is absolute, a single leading `/path` is relative to the settings source (for `~/.claude/settings.json` it means `~/.claude/path`). Always write `//homeassistant/...`. Only `Edit(...)` and `Read(...)` path rules match; `Write(path)` and `NotebookEdit(path)` never do. Deny rules also cover file commands Claude Code recognizes in Bash (`cat`, `sed`, `tee`, redirections), not every program that opens files itself.
