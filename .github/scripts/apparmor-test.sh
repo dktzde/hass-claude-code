@@ -6,9 +6,11 @@
 # the tools Claude Code and the add-on use run. Any access the profile denies
 # fails the test, with the kernel's log lines.
 #
-# Without the Supervisor the init scripts cannot read the options, so the
-# container does not start completely. The start still runs s6-overlay and
-# bashio, and the stop the signals from Docker.
+# Without the Supervisor the init scripts cannot read the options, so s6
+# stops the container right after its first services. That still runs
+# s6-overlay and bashio; a separate container checks that "docker stop"
+# reaches the process inside. A read of /proc/sysrq-trigger, which the profile
+# denies, checks that denials show up in the journal at all.
 # Needs sudo (to load the profile) and an AppArmor-enabled kernel, as on the
 # GitHub-hosted Ubuntu runners.
 # Usage: apparmor-test.sh <image>
@@ -52,16 +54,40 @@ run 'ps aux | head -5 && ping -c 1 -W 2 127.0.0.1'
 run 'mkdir -p /data/t && chown nobody /data/t && chmod 700 /data/t && touch /data/t/x && ls -la /data/t'
 run 'apk add --no-cache tree > /dev/null && tree --version'
 
-echo "::group::s6-overlay start and stop"
+echo "::group::s6-overlay start (stops early without the Supervisor)"
 container=$(docker run -d --security-opt "apparmor=$name" "$image")
 sleep 15
-docker stop -t 30 "$container" > /dev/null
 docker logs "$container" 2>&1 | tail -30
-docker rm "$container" > /dev/null
+docker rm -f "$container" > /dev/null
 echo "::endgroup::"
 
+echo "::group::docker stop"
+container=$(docker run -d --security-opt "apparmor=$name" --entrypoint bash "$image" -c 'trap "echo got SIGTERM; exit 0" TERM; sleep 300 & wait')
+sleep 2
+docker stop -t 20 "$container" > /dev/null
+status=$(docker inspect -f '{{.State.ExitCode}}' "$container")
+docker logs "$container"
+docker rm "$container" > /dev/null
+if [ "$status" != 0 ]; then
+  echo "::error::The container did not stop on SIGTERM (exit code $status)"
+  exit 1
+fi
+echo "::endgroup::"
+
+# Must be denied and logged
+if docker run --rm --security-opt "apparmor=$name" --entrypoint cat "$image" /proc/sysrq-trigger 2> /dev/null; then
+  echo "::error::Reading /proc/sysrq-trigger was not denied"
+  exit 1
+fi
+sleep 2
+
 # Kernel or audit transport, depending on the runner's journald
-denied=$(sudo journalctl --since "$since" --no-pager | grep 'apparmor="DENIED"' | grep -F "profile=\"$name" || true)
+denied=$(sudo journalctl --since "$since" --no-pager | grep 'apparmor="DENIED"' | grep -F "profile=\"$name\"" || true)
+if ! grep -qF 'name="/proc/sysrq-trigger"' <<< "$denied"; then
+  echo "::error::The denied read of /proc/sysrq-trigger is not in the journal, so this test cannot see denials"
+  exit 1
+fi
+denied=$(grep -vF 'name="/proc/sysrq-trigger"' <<< "$denied" || true)
 if [ -n "$denied" ]; then
   echo "$denied"
   echo "::error::The AppArmor profile denied the accesses above"
