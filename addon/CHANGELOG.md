@@ -1,3 +1,27 @@
+## 0.18.0
+
+<sub>2026-11-24</sub>
+
+### Changes
+
+- **Mobile tabs: status of each session (new option `mobile_tab_status`, off by default).** The `:` in a tab shows what the session does: `*` works, `_` done and waits for your next message, `!` waits for your answer (permission prompt, question or plan), a space for a new session. Claude Code hooks set it; they run next to your own hooks. The popup of the active tab names the status in words. `mobile_tab_titles` and `mobile_tab_status` can be turned on independently
+
+### Fixes
+
+- Documentation tab: the tab titles line is off by default (since 0.16.0)
+
+## 0.17.0
+
+<sub>2026-11-24</sub>
+
+### Changes
+
+- **Mobile tabs: letters for other models.** With `anthropic_base_url` (another Anthropic-compatible API), a tab shows `p` for a model with "pro" in its name and `f` for one with "flash", instead of `?` for both
+
+### Maintenance
+
+- `addon/build.yaml` is removed. The Supervisor takes the base image from the Dockerfile since version 2026.04.0 and warned on every update that `build.yaml` is deprecated. The image stays the same
+
 ## 0.16.2
 
 <sub>2026-11-23</sub>

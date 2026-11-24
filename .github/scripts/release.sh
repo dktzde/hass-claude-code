@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
-# Publishes a GitHub release for the add-on version in addon/config.yaml, with
+# Publishes a GitHub release for the app version in addon/config.yaml, with
 # its entry from addon/CHANGELOG.md as the notes, unless that release exists.
-# Home Assistant does not need releases (the Supervisor builds the add-on from
+# Home Assistant does not need releases (the Supervisor builds the app from
 # main); they show the current version on the repository page and notify
 # people who watch the repository for releases.
 #
@@ -30,7 +30,7 @@ if [ -z "$notes" ]; then
   echo "::error::No entry \"## $version\" in addon/CHANGELOG.md"
   exit 1
 fi
-notes=$(printf '%s\n\n---\n\nHome Assistant builds the add-on on your device from this repository and offers this version as an add-on update. There is nothing to download here.\n' "$notes")
+notes=$(printf '%s\n\n---\n\nHome Assistant builds the app on your device from this repository and offers this version as an app update. There is nothing to download here.\n' "$notes")
 
 if [ "${DRY_RUN:-}" = 1 ]; then
   printf 'Would publish release %s on %s with these notes:\n\n%s\n' "$tag" "$target" "$notes"

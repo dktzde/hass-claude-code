@@ -8,22 +8,105 @@
 #                          the tab bar shows (/etc/tmux-mobile.conf). Prints nothing, so Claude
 #                          Code shows no status line of its own.
 # tmux-tab-info --show N   Body of the popup that a tap on the second line
-#                          (/etc/tmux-tab-titles.conf) opens: full title,
-#                          model and effort of window N.
+#                          (/etc/tmux-tab-titles.conf) or on the active tab
+#                          opens: full title, model, effort and (option
+#                          mobile_tab_status) status of window N.
+# tmux-tab-info --state S  Claude Code hook command (option mobile_tab_status,
+#                          see claude-entrypoint.sh). Stores the state of the
+#                          session as options of its own tmux pane, which the
+#                          tab shows (/etc/tmux-tab-status.conf). S is busy,
+#                          idle or ask, or notification or session-start: then
+#                          the hook input on stdin decides.
+# tmux-tab-info --check P  After Esc in pane P (option mobile_tab_status):
+#                          switch a busy or asking session to idle if Claude
+#                          Code was interrupted. An interrupt runs no hook.
 # ==============================================================================
 
 sep=$'\x1f'
 
+# State of a session: name, character in the tab, text in the popup.
+declare -A state_char=([new]=' ' [busy]='*' [idle]='_' [ask]='!')
+declare -A state_text=(
+    [new]='new session, nothing asked yet'
+    [busy]='working'
+    [idle]='done, waiting for your next message'
+    [ask]='waiting for your answer (permission, question or plan)'
+)
+
+set_state() {
+    local state="$1"
+    [[ -n "${state}" && -n "${state_char[${state}]+set}" ]] || return 0
+    tmux set -p -t "${TMUX_PANE}" @hcc_state "${state}" \; \
+        set -p -t "${TMUX_PANE}" @hcc_state_char "${state_char[${state}]}" \
+        > /dev/null 2>&1 || true
+}
+
+# An interrupt (Esc) runs no hook, so a session would stay busy or ask.
+# Claude Code then writes "[Request interrupted by user" as the last message
+# of its transcript. interrupted PANE: switch the pane to idle if so.
+interrupted() {
+    local pane="$1" info state transcript
+    info=$(tmux display -p -t "${pane}" "#{@hcc_state}${sep}#{@hcc_transcript}" 2>/dev/null) || return 0
+    IFS="${sep}" read -r state transcript <<< "${info}"
+    case "${state}" in
+        busy | ask) ;;
+        *) return 0 ;;
+    esac
+    if [[ -f "${transcript}" ]] &&
+       tail -c 65536 "${transcript}" 2>/dev/null |
+       grep -E '^\{.*"type":"(user|assistant)"' | tail -n 1 |
+       grep -q '\[Request interrupted by user'; then
+        TMUX_PANE="${pane}" set_state idle
+    fi
+}
+
+# Hook mode: never fail and never print, Claude Code runs this on every
+# tool call. The state follows the hook events:
+#   SessionStart (startup, clear)          new
+#   SessionStart (resume)                  idle
+#   UserPromptSubmit, PostToolUse(Failure) busy
+#   PreToolUse (AskUserQuestion, ExitPlanMode), PermissionRequest,
+#   Notification (permission prompt, question, elicitation)  ask
+#   Stop, StopFailure, Notification (idle prompt)            idle
+# An interrupt with Esc runs no hook: see interrupted.
+hook() {
+    local state="$1" input value transcript
+    [[ -n "${TMUX_PANE:-}" ]] || { cat > /dev/null; return 0; }
+    case "${state}" in
+        notification | session-start)
+            input=$(cat) || return 0
+            IFS="${sep}" read -r value transcript < <(
+                jq -r '[.notification_type // .source // "", .transcript_path // ""] | join("\u001f")' \
+                    <<< "${input}" 2>/dev/null
+            ) || return 0
+            if [[ -n "${transcript}" ]]; then
+                tmux set -p -t "${TMUX_PANE}" @hcc_transcript "${transcript}" > /dev/null 2>&1 || true
+            fi
+            case "${state}:${value}" in
+                notification:idle_prompt) state=idle ;;
+                notification:permission_prompt | notification:worker_permission_prompt | \
+                    notification:agent_needs_input | notification:elicitation_dialog | \
+                    notification:elicitation_url_dialog) state=ask ;;
+                session-start:startup | session-start:clear) state=new ;;
+                session-start:resume) state=idle ;;
+                *) return 0 ;;
+            esac
+            ;;
+        *) cat > /dev/null ;;
+    esac
+    set_state "${state}"
+}
+
 show() {
-    local window="$1" target info title model model_id effort
+    local window="$1" target info title model model_id effort state status_on char
     target=":${window}"
     # Fields are split at the unit separator (0x1f): a tab would collapse
     # empty fields. The title comes last, so it may contain anything.
     if ! info=$(tmux display -p -t "${target}" \
-        "#{@hcc_model_name}${sep}#{@hcc_model_id}${sep}#{@hcc_effort_name}${sep}#{pane_title}" 2>/dev/null); then
+        "#{@hcc_model_name}${sep}#{@hcc_model_id}${sep}#{@hcc_effort_name}${sep}#{@hcc_state}${sep}#{@hcc_tab_status}${sep}#{pane_title}" 2>/dev/null); then
         echo "Tab ${window} is gone."
     else
-        IFS="${sep}" read -r model model_id effort title <<< "${info}"
+        IFS="${sep}" read -r model model_id effort state status_on title <<< "${info}"
         # Claude Code puts a status symbol in front of the title (✳ idle,
         # a spinner while it works); drop it.
         # Until the first message, Claude Code's title is just "Claude Code";
@@ -42,6 +125,16 @@ show() {
         else
             printf 'Model and effort: not known yet (shown after the first reply).\n'
         fi
+        if [[ "${status_on}" == "on" ]]; then
+            if [[ -n "${state}" && -n "${state_text[${state}]+set}" ]]; then
+                # The character of the tab in front (not the space of "new").
+                char="${state_char[${state}]}"
+                [[ "${char}" == " " ]] && char="" || char+=" "
+                printf 'Status: %s%s\n' "${char}" "${state_text[${state}]}"
+            else
+                printf 'Status: unknown (no hook has run yet)\n'
+            fi
+        fi
     fi
     printf '\nTap or press a key to close.'
     # Turn on mouse reporting, so a tap on the popup closes it as well.
@@ -54,22 +147,46 @@ if [[ "${1:-}" == "--show" ]]; then
     show "${2:?window number missing}"
     exit 0
 fi
+if [[ "${1:-}" == "--state" ]]; then
+    hook "${2:-}"
+    exit 0
+fi
+if [[ "${1:-}" == "--check" ]]; then
+    # Give Claude Code a moment to write the interrupt to its transcript.
+    for delay in 0.5 1 2; do
+        sleep "${delay}"
+        interrupted "${2:-}"
+    done
+    exit 0
+fi
 
 # Status line mode: never fail and never print, Claude Code calls this often.
 [[ -n "${TMUX_PANE:-}" ]] || exit 0
 json=$(cat) || exit 0
-IFS="${sep}" read -r model_id model_name effort < <(
-    jq -r '[.model.id // "", .model.display_name // "", .effort.level // ""] | join("\u001f")' \
+IFS="${sep}" read -r model_id model_name effort transcript < <(
+    jq -r '[.model.id // "", .model.display_name // "", .effort.level // "", .transcript_path // ""] | join("\u001f")' \
         <<< "${json}" 2>/dev/null
 ) || exit 0
 
+# Option mobile_tab_status: Claude Code often updates the status line after
+# an interrupt, so look for one here too (only while busy or ask).
+if [[ -n "${transcript}" ]] &&
+   [[ "$(tmux display -p -t "${TMUX_PANE}" '#{@hcc_state}' 2>/dev/null)" == @(busy|ask) ]]; then
+    tmux set -p -t "${TMUX_PANE}" @hcc_transcript "${transcript}" > /dev/null 2>&1 || true
+    interrupted "${TMUX_PANE}"
+fi
+
 # One lower case letter for the model and one for the effort (X for max, to
-# tell it from xhigh), for example "om" in the tab "1:om".
+# tell it from xhigh), for example "om" in the tab "1:om". Other models
+# behind ANTHROPIC_BASE_URL often come as a "pro" and a "flash" variant; the
+# Claude names come first, so they always win.
 case "${model_id,,}" in
     *opus*) model_letter=o ;;
     *sonnet*) model_letter=s ;;
     *haiku*) model_letter=h ;;
     *fable*) model_letter=f ;;
+    *pro*) model_letter=p ;;
+    *flash*) model_letter=f ;;
     *) model_letter=? ;;
 esac
 case "${effort,,}" in
