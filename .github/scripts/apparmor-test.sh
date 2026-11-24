@@ -25,6 +25,9 @@ if [ "$profiles" != 1 ]; then
   exit 1
 fi
 name=$(sed -n 's/^profile \([^ ]*\).*/\1/p' "$profile_file")
+if grep -q '^profile .*complain' "$profile_file"; then
+  echo "::warning::$profile_file is in complain mode: it blocks nothing on the device. Remove complain before it goes to main."
+fi
 
 enforce=$(mktemp)
 sed 's/,complain)/)/' "$profile_file" > "$enforce"
@@ -75,24 +78,32 @@ if [ "$status" != 0 ]; then
 fi
 echo "::endgroup::"
 
-# Must be denied and logged
+# Denials of the profile in the journal since the given time (kernel or audit
+# transport, depending on the runner's journald)
+denials() {
+  sudo journalctl --since "$1" --no-pager | grep 'apparmor="DENIED"' | grep -F "profile=\"$name\"" || true
+}
+
+sleep 2
+denied=$(denials "$since")
+if [ -n "$denied" ]; then
+  echo "$denied"
+  echo "::error::The AppArmor profile denied the accesses above"
+  exit 1
+fi
+
+# Must be denied and logged: shows that the check above can see denials at
+# all. Checked separately, so that it cannot hide a denial of the tests above.
+probe_since=$(date '+%Y-%m-%d %H:%M:%S')
+sleep 1
 if docker run --rm --security-opt "apparmor=$name" --entrypoint chroot "$image" / true 2> /dev/null; then
   echo "::error::chroot was not denied"
   exit 1
 fi
 sleep 2
-
-# Kernel or audit transport, depending on the runner's journald
-denied=$(sudo journalctl --since "$since" --no-pager | grep 'apparmor="DENIED"' | grep -F "profile=\"$name\"" || true)
-if ! grep -qF 'capname="sys_chroot"' <<< "$denied"; then
+if ! denials "$probe_since" | grep -qF 'capname="sys_chroot"'; then
   sudo journalctl --since "$since" --no-pager | grep -i apparmor | tail -20 || true
   echo "::error::The denied chroot is not in the journal, so this test cannot see denials"
-  exit 1
-fi
-denied=$(grep -vF 'capname="sys_chroot"' <<< "$denied" || true)
-if [ -n "$denied" ]; then
-  echo "$denied"
-  echo "::error::The AppArmor profile denied the accesses above"
   exit 1
 fi
 echo "No access denied by profile $name"
