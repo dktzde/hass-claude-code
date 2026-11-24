@@ -1,3 +1,17 @@
+## 0.19.0
+
+<sub>2026-11-24</sub>
+
+**⚠️ The new AppArmor profile ships in complain mode for a test phase. During this phase the app is less restricted than before**: Docker's default profile, which ran the app until now, blocked some kernel accesses; the new profile only logs them in the host journal (`apparmor="ALLOWED"`) and blocks nothing. A later version switches the profile to enforce mode. If you rely on the stricter isolation, wait with this update until then.
+
+### Changes
+
+- **AppArmor profile, in complain mode.** Home Assistant runs the app with a profile of its own instead of Docker's default profile, which adds one point to the security rating. It allows all files, programs and the network (Claude Code needs them), keeps every restriction of Docker's default profile and allows only the capabilities the app needs. In complain mode the profile does not stop the app: what it would block is only logged in the host journal (`apparmor="ALLOWED"`)
+
+### Maintenance
+
+- Every pull request and every weekly update test the profile in enforce mode on both architectures
+
 ## 0.18.0
 
 <sub>2026-11-24</sub>

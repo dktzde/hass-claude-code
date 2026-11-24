@@ -124,7 +124,7 @@ Claude Code is a general tool that runs as root, so the profile allows all files
 - **complain mode** (`flags=(…,complain)`): nothing is blocked; what the profile would block is logged in the host journal as `apparmor="ALLOWED"`. On the device: Supervisor API `GET /host/logs/identifiers/audit` (or `journalctl _TRANSPORT=audit` on the host), filtered for `apparmor="ALLOWED"` and the profile name.
 - **enforce mode** (without `complain`): the same accesses are denied and logged as `apparmor="DENIED"`.
 - `.github/scripts/apparmor-test.sh` loads the profile on the runner **in enforce mode**, also while it ships in complain mode, runs the image under it (s6-overlay start and stop, `claude`, Python, git, tmux, ps, ping, chown, `apk add`) and fails on any denial. It runs in "Test build" and in the weekly "Update add-on" for both architectures.
-- The test warns while the profile is in complain mode, so it does not go to main that way by mistake.
+- The test warns while the profile is in complain mode, so the switch to enforce mode is not forgotten (0.19.0 ships complain mode on purpose for a test phase; the changelog says so).
 - A new tool or a new Claude Code version may need a capability that is not listed: the test shows it as `apparmor="DENIED" operation="capable" capname="…"`. Add the capability only if the add-on really needs it.
 
 ## Decisions and conventions
