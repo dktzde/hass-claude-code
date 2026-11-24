@@ -45,6 +45,10 @@ reviews:
     - "!**/package-lock.json"
 
   path_instructions:
+    - path: "**"
+      instructions: >-
+        Name only Anthropic and Claude models. Flag any other model provider or its model names (in code, comments, examples,
+        tests or messages); the project refers to them only as "another Anthropic-compatible API" with neutral placeholders.
     - path: "addon/mcp-server/**"
       instructions: >-
         MCP server (stdio) for Home Assistant inside the add-on. It talks to Home Assistant through the Supervisor proxy:
