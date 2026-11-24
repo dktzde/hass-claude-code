@@ -85,7 +85,8 @@ hook() {
             case "${state}:${value}" in
                 notification:idle_prompt) state=idle ;;
                 notification:permission_prompt | notification:worker_permission_prompt | \
-                    notification:agent_needs_input | notification:elicitation*) state=ask ;;
+                    notification:agent_needs_input | notification:elicitation_dialog | \
+                    notification:elicitation_url_dialog) state=ask ;;
                 session-start:startup | session-start:clear) state=new ;;
                 session-start:resume) state=idle ;;
                 *) return 0 ;;
