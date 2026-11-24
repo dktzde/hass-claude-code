@@ -1,3 +1,15 @@
+## 0.17.0
+
+<sub>2026-11-24</sub>
+
+### Changes
+
+- **Mobile tabs: letters for other models.** With `anthropic_base_url` (for example DeepSeek), a tab shows `p` for a model with "pro" in its name and `f` for one with "flash", instead of `?` for both
+
+### Maintenance
+
+- `addon/build.yaml` is removed. The Supervisor takes the base image from the Dockerfile since version 2026.04.0 and warned on every update that `build.yaml` is deprecated. The image stays the same
+
 ## 0.16.2
 
 <sub>2026-11-23</sub>
