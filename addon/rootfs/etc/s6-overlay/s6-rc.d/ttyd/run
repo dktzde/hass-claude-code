@@ -95,6 +95,10 @@ if bashio::config.true 'mobile_tabs'; then
     if bashio::config.true 'mobile_tab_titles'; then
         tmux_options+=(-f /etc/tmux-tab-titles.conf)
     fi
+    # Option mobile_tab_status: the state of each session in its tab
+    if bashio::config.true 'mobile_tab_status'; then
+        tmux_options+=(-f /etc/tmux-tab-status.conf)
+    fi
 fi
 
 # Run ttyd with tmux for session persistence

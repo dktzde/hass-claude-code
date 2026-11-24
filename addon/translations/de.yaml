@@ -43,6 +43,14 @@ configuration:
       Nur mit Mobile Tabs: Eine zweite Zeile unter den Tabs zeigt den Titel
       jeder Sitzung, vor der ersten Nachricht „new“. Antippen öffnet ein
       Popup mit vollem Titel, Modell und Effort. Wirkt nach einem Neustart.
+  mobile_tab_status:
+    name: Tab-Status
+    description: >-
+      Nur mit Mobile Tabs: Das Zeichen zwischen Tab-Nummer und Modell zeigt,
+      was die Sitzung tut: * arbeitet, _ fertig, wartet auf deine nächste
+      Nachricht, ! wartet auf deine Antwort (Freigabe, Frage oder Plan),
+      Leerzeichen bei einer neuen Sitzung. Nutzt Claude-Code-Hooks neben
+      deinen eigenen. Wirkt nach einem Neustart.
   mobile_scroll:
     name: Wischen zum Scrollen
     description: >-

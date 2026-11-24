@@ -43,6 +43,14 @@ configuration:
       each session, or "new" before the first message. Tap a title for a
       popup with the full title, model and effort. Takes effect after a
       restart.
+  mobile_tab_status:
+    name: Tab status
+    description: >-
+      Only with Mobile tabs: the character between the tab number and the
+      model shows what the session does: * works, _ done and waits for your
+      next message, ! waits for your answer (permission, question or plan),
+      a space for a new session. Uses Claude Code hooks next to your own.
+      Takes effect after a restart.
   mobile_scroll:
     name: Swipe to scroll
     description: >-
