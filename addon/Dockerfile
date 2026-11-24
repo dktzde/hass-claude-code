@@ -1,9 +1,6 @@
 # Build context: addon/ directory
 # HA Supervisor uses the config.yaml directory as build context.
 
-# Global ARG — must be before any FROM to be visible across stages
-ARG BUILD_FROM=ghcr.io/hassio-addons/base:21.0.11
-
 # Stage 1: Build MCP server and pre-index docs
 # Use the same Alpine version as the HA base image (see MAINTENANCE.md in the
 # repository root), so the builder installs the npm packages for the same libc
@@ -63,8 +60,10 @@ RUN cd mcp-server && pnpm run build
 RUN cd mcp-server && pnpm prune --prod
 
 # Stage 2: Final add-on image
-# hadolint ignore=DL3006
-FROM ${BUILD_FROM}
+# The base image is set here and nowhere else (there is no build.yaml). It is a
+# fixed FROM, not ARG BUILD_FROM: a Supervisor before 2026.04.0 passes its own
+# BUILD_FROM when there is no build.yaml, which would override an ARG default.
+FROM ghcr.io/hassio-addons/base:21.0.11
 
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
