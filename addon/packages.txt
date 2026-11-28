@@ -26,8 +26,8 @@ libbz2-1.0.8-r6
 libcrypto3-3.5.9-r0
 libcurl-8.23.0-r0
 libevent-2.1.13-r0
-libexpat-2.10.0-r0
-libffi-3.5.2-r1
+libexpat-2.11.0-r0
+libffi-3.8.2-r0
 libgcc-15.2.0-r5
 libidn2-2.3.8-r0
 libncursesw-6.6_p20260516-r0
@@ -51,10 +51,11 @@ oniguruma-6.9.10-r0
 pcre2-10.49-r0
 py3-yaml-6.0.3-r2
 py3-yaml-pyc-6.0.3-r2
-pyc-3.14.10-r1
-python3-3.14.10-r1
-python3-pyc-3.14.10-r1
-python3-pycache-pyc0-3.14.10-r1
+pyc-3.14.10-r2
+python3-3.14.10-r2
+python3-ndbm-3.14.10-r3
+python3-pyc-3.14.10-r2
+python3-pycache-pyc0-3.14.10-r2
 readline-8.3.3-r1
 ripgrep-15.1.0-r0
 scanelf-1.3.9-r1
@@ -68,4 +69,4 @@ tzdata-2026f-r0
 xz-libs-5.8.4-r0
 yaml-0.2.5-r2
 zlib-1.4-r0
-zstd-libs-1.5.7-r2
+zstd-libs-1.6.0-r1
